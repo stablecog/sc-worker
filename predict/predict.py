@@ -4,9 +4,6 @@ import os
 import torch
 
 from models.stable_diffusion.generate import generate
-from models.stable_diffusion.constants import (
-    SD_MODEL_DEFAULT_KEY,
-)
 from models.stable_diffusion.helpers import (
     png_image_to_bytes,
 )
@@ -117,28 +114,50 @@ def predict(
         print(f"⭐️ Upscaled in: {round((endTime - startTime) * 1000)} ms ⭐️")
 
     # Prepare output objects
-    output_objects = []
+    output_objects: List[PredictOutput] = []
     output_len = len(output_images)
     for i, image in enumerate(output_images):
         start_time_save = time.time()
         image_bytes = png_image_to_bytes(image)
-        obj = {
-            "image_bytes": image_bytes,
-            "target_quality": output_image_quality,
-            "target_extension": output_image_extension,
-        }
+        obj = PredictOutput(
+            image_bytes=image_bytes,
+            target_quality=output_image_quality,
+            target_extension=output_image_extension,
+        )
         output_objects.append(obj)
         end_time_save = time.time()
         print(
             f"-- Image {i+1}/{output_len} converted to bytes in: {round((end_time_save - start_time_save) * 1000)} ms --"
         )
 
-    result = {
-        "outputs": output_objects,
-        "nsfw_count": nsfw_count,
-    }
+    result = PredictResult(
+        outputs=output_objects,
+        nsfw_count=nsfw_count,
+    )
     processEnd = time.time()
     print(f"✅ Process completed in: {round((processEnd - processStart) * 1000)} ms ✅")
     print("//////////////////////////////////////////////////////////////////")
 
     return result
+
+
+class PredictOutput:
+    def __init__(
+        self,
+        pil_image: Image.Image,
+        target_extension: str,
+        target_quality: int,
+    ):
+        self.pil_image = pil_image
+        self.target_extension = target_extension
+        self.target_quality = target_quality
+
+
+class PredictResult:
+    def __init__(
+        self,
+        outputs: list[PredictOutput],
+        nsfw_count: int,
+    ):
+        self.outputs = outputs
+        self.nsfw_count = nsfw_count

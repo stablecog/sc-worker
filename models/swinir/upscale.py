@@ -14,10 +14,11 @@ from .constants import DEVICE_SWINIR
 from .helpers import get_image_pair, setup
 import time
 from PIL import Image
+from typing import Any
 
 
 @torch.cuda.amp.autocast()
-def upscale(image, model, args) -> Image.Image:
+def upscale(image: np.ndarray | Image.Image, model: Any, args: Any) -> Image.Image:
     if image is None:
         raise ValueError("Image is required for the upscaler.")
 
