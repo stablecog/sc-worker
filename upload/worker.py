@@ -19,7 +19,7 @@ from shared.helpers import ensure_trailing_slash, parse_content_type
 def convert_and_upload_to_s3(
     s3: ServiceResource,
     s3_bucket: str,
-    pil_image: Image,
+    pil_image: Image.Image,
     target_quality: int,
     target_extension: str,
     upload_path_prefix: str,
@@ -61,7 +61,6 @@ def upload_files(
     tasks: List[Future] = []
     with ThreadPoolExecutor(max_workers=len(uploadObjects)) as executor:
         for uo in uploadObjects:
-            print(f"Loaded image from bytes in: {round((end - start) *1000)} ms")
             tasks.append(
                 executor.submit(
                     convert_and_upload_to_s3,
@@ -80,7 +79,7 @@ def upload_files(
         results.append(task.result())
 
     end = time.time()
-    print(f"📤 All converted and uploaded to S3 in: {round((end - start) *1000)} ms 📤")
+    print(f"📤 All converted and uploaded to S3 in: {round((end - start) *1000)} ms - Bucket: {s3_bucket} 📤")
 
     return results
 
