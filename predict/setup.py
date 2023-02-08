@@ -1,16 +1,28 @@
-from shared import worker_version
+from typing import Tuple, Dict, Any, Callable
 import os
+
+from lingua import LanguageDetectorBuilder, LanguageDetector
+from PIL import Image
+import numpy as np
+
+from shared import worker_version
 from models.stable_diffusion.helpers import download_sd_models_concurrently
 from models.stable_diffusion.constants import SD_MODELS, SD_MODEL_CACHE
 from diffusers import (
     StableDiffusionPipeline,
 )
-from lingua import LanguageDetectorBuilder
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
 
 
-def setup():
+def setup() -> (
+    Tuple[
+        Dict[str, Any],
+        Callable[[np.ndarray | Image.Image, Any, Any], Image.Image],
+        Any,
+        LanguageDetector,
+    ]
+):
     print(f"⏳ Setup has started - Version: {worker_version}")
 
     if os.environ.get("DOWNLOAD_MODELS_ON_SETUP", "1") == "1":

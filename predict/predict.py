@@ -21,25 +21,40 @@ import numpy as np
 
 @torch.inference_mode()
 def predict(
+    # Prompt               string `json:"prompt"`
     prompt: str,
+    # NegativePrompt       string `json:"negative_prompt,omitempty"`
     negative_prompt: str,
+    # Width                string `json:"width"`
     width: int,
+    # Height               string `json:"height"`
     height: int,
+    # NumOutputs           string `json:"num_outputs"`
     num_outputs: int,
+    # NumInferenceSteps    string `json:"num_inference_steps"`
     num_inference_steps: int,
+    # GuidanceScale        string `json:"guidance_scale"`
     guidance_scale: float,
+    # Scheduler            string `json:"scheduler"`
     scheduler: str,
+    # Model                string `json:"model"`
     model: str,
+    # Seed                 string `json:"seed"`
     seed: int,
+    # PromptFlores         string `json:"prompt_flores_200_code,omitempty"`
     prompt_flores_200_code: str,
+    # NegativePromptFlores string `json:"negative_prompt_flores_200_code,omitempty"`
     negative_prompt_flores_200_code: str,
-    prompt_prefix: str,
-    negative_prompt_prefix: str,
+    # ! prompt_prefix: str,
+    # ! negative_prompt_prefix: str,
+    # OutputImageExtension string `json:"output_image_extension"`
     output_image_extension: str,
+    # OutputImageQuality   string `json:"output_image_quality"`
     output_image_quality: int,
-    image_to_upscale: str,
+    # ! image_to_upscale: str,
+    # ProcessType          string `json:"process_type"`
     process_type: str,
-    translator_cog_url: str,
+    # ! translator_cog_url: str,
     language_detector_pipe: LanguageDetector,
     txt2img_pipes: dict[str, StableDiffusionPipeline],
     upscaler_pipe: Callable[[np.ndarray | Image.Image, Any, Any], Image.Image],
