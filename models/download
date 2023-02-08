@@ -1,0 +1,8 @@
+#!/usr/bin/env python
+
+import os
+
+# For the upscaler
+print("⏳ Downloading SwinIR models...")
+os.system('wget https://github.com/JingyunLiang/SwinIR/releases/download/v0.0/003_realSR_BSRGAN_DFOWMFC_s64w8_SwinIR-L_x4_GAN.pth -P experiments/pretrained_models')
+print("✅ Downloaded SwinIR models")

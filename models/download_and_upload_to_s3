@@ -1,0 +1,53 @@
+#!/usr/bin/env python
+
+from diffusers import (
+    StableDiffusionPipeline
+)
+
+SD_MODELS_ALL = {
+    "Stable Diffusion v1.5": {
+        "id": "runwayml/stable-diffusion-v1-5",
+    },
+    "Openjourney": {
+        "id": "prompthero/openjourney",
+        "prompt_prefix": "mdjrny-v4 style",
+    },
+    "Redshift Diffusion": {
+        "id": "nitrosocke/redshift-diffusion",
+        "prompt_prefix": "redshift style",
+    },
+    "Arcane Diffusion": {
+        "id": "nitrosocke/Arcane-Diffusion",
+        "prompt_prefix": "arcane style",
+    },
+    "Ghibli Diffusion": {
+        "id": "nitrosocke/Ghibli-Diffusion",
+        "prompt_prefix": "ghibli style",
+    },
+    "Waifu Diffusion v1.4": {
+        "id": "hakurei/waifu-diffusion",
+        "prompt_prefix": "masterpiece, best quality, high quality",
+        "negative_prompt_prefix": "worst quality, low quality, deleted, nsfw",
+    },
+    "22h Diffusion v0.1": {
+        "id": "22h/vintedois-diffusion-v0-1",
+        "prompt_prefix": "estilovintedois",
+    }
+}
+
+SD_MODEL_CACHE = "diffusers-cache"
+
+
+def download_models():
+    for key in SD_MODELS_ALL:
+        model = SD_MODELS_ALL[key]
+        model_id = model["id"]
+        print(f"⏳ Downloading: {model_id}")
+        StableDiffusionPipeline.from_pretrained(
+            model_id,
+            cache_dir=SD_MODEL_CACHE,
+        )
+        print(f"✅ Downloaded: {model_id}")
+
+
+download_models()
