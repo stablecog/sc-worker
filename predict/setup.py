@@ -4,6 +4,7 @@ import os
 from lingua import LanguageDetectorBuilder, LanguageDetector
 from PIL import Image
 import numpy as np
+from boto3_type_annotations.s3 import ServiceResource
 
 from shared.constants import WORKER_VERSION
 from models.stable_diffusion.helpers import download_sd_models_concurrently
@@ -16,17 +17,17 @@ from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
 from models.download.download import download_models
 
 
-def setup() -> (
-    Tuple[
-        Dict[str, Any],
-        Callable[[np.ndarray | Image.Image, Any, Any], Image.Image],
-        Any,
-        LanguageDetector,
-    ]
-):
+def setup(
+    s3: ServiceResource, bucket_name: str
+) -> Tuple[
+    Dict[str, Any],
+    Callable[[np.ndarray | Image.Image, Any, Any], Image.Image],
+    Any,
+    LanguageDetector,
+]:
     print(f"⏳ Setup has started - Version: {WORKER_VERSION}")
 
-    download_models()
+    download_models(s3, bucket_name)
 
     txt2img_pipes: dict[
         str,

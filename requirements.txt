@@ -25,4 +25,5 @@ responses==0.22.0
 httpx==0.23.1
 hypothesis==6.56.4
 redis>=4,<5
+python-dotenv
 https://pub-6a0b59853e4a4dcfa459b203f5724709.r2.dev/xformers-0.0.16rc396-cp310-cp310-manylinux2014_x86_64.whl
