@@ -192,6 +192,9 @@ def run_prediction(
             txt2img_pipes=txt2img_pipes,
             upscaler_pipe=upscaler_pipe,
             upscaler_args=upscaler_args,
+            prompt_prefix="",
+            negative_prompt_prefix="",
+            image_to_upscale=input_obj.get("image_to_upscale"),
         )
 
         response["upload_prefix"] = ""
