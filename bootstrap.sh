@@ -75,7 +75,7 @@ if [ ! -d $HOME/.pyenv ]; then
 fi
 
 # install python_target_version if not in path
-if ! command -v $PYTHON_TARGET_VERSION &> /dev/null
+if ! command -v python$PYTHON_TARGET_VERSION &> /dev/null
 then
     pyenv install-latest "$PYTHON_TARGET_VERSION" && pyenv global $(pyenv install-latest --print "$PYTHON_TARGET_VERSION") && pip install "wheel<1"
     if [ $? -ne 0 ]; then
