@@ -142,7 +142,7 @@ def predict(
         obj = PredictOutput(
             pil_image=image,
             target_quality=output_image_quality,
-            target_extension=output_image_extension,
+            target_extension="."+ output_image_extension,
         )
         output_objects.append(obj)
         end_time_save = time.time()

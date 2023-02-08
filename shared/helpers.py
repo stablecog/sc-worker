@@ -1,5 +1,7 @@
 import os
 import shutil
+from typing import Optional
+import datetime
 
 
 def clean_folder(folder):
@@ -24,7 +26,7 @@ def ensure_trailing_slash(url: str) -> str:
         return url + "/"
 
 
-def parse_content_type(self, extension: str) -> Optional[str]:
+def parse_content_type(extension: str) -> Optional[str]:
     if extension == ".jpeg" or extension == ".jpg":
         return "image/jpeg"
     elif extension == ".png":

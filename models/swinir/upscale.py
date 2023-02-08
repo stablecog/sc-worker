@@ -39,7 +39,7 @@ def upscale(image: np.ndarray | Image.Image, model: Any, args: Any) -> Image.Ima
         image = temp_file.name
 
     # set input folder
-    input_dir = "input_cog_temp"
+    input_dir = "input_temp"
     os.makedirs(input_dir, exist_ok=True)
     input_path = os.path.join(input_dir, os.path.basename(image))
     shutil.copy(image, input_path)

@@ -11,6 +11,10 @@ from diffusers import (
     DPMSolverMultistepScheduler,
     DEISMultistepScheduler,
 )
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 
 def clean_prefix_or_suffix_space(text: str):
@@ -64,6 +68,7 @@ SD_MODELS_ALL = {
 
 SD_MODELS = {}
 models_from_env = os.environ.get("MODELS", "Stable Diffusion v1.5, Openjourney")
+print(models_from_env)
 if models_from_env == "all":
     SD_MODELS = SD_MODELS_ALL
 else:
