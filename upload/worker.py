@@ -58,24 +58,13 @@ def upload_files(
     tasks: List[Future] = []
     with ThreadPoolExecutor(max_workers=len(uploadObjects)) as executor:
         for uo in uploadObjects:
-            start = time.time()
-            img_format = uo.target_extension[1:].upper()
-            mode = "RGBA"
-            if img_format == "JPEG":
-                mode = "RGB"
-            pil_image = Image.frombytes(
-                mode, (uo.image_width, uo.image_height), uo.image_bytes
-            )
-            pil_image.load()
-            end = time.time()
-
             print(f"Loaded image from bytes in: {round((end - start) *1000)} ms")
             tasks.append(
                 executor.submit(
                     convert_and_upload_to_s3,
                     s3,
                     s3_bucket,
-                    pil_image,
+                    uo.pil_image,
                     uo.target_quality,
                     uo.target_extension,
                     upload_path_prefix,
