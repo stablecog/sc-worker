@@ -82,11 +82,11 @@ then
         echo "❌ Failed to install Python $PYTHON_TARGET_VERSION"
         exit 1
     fi
-    $PYTHON_TARGET_VERSION -m pip install virtualenv
+    python$PYTHON_TARGET_VERSION -m pip install virtualenv
 fi
 
 echo "📦 Installing StableCog worker dependencies..."
-$PYTHON_TARGET_VERSION -m virtualenv venv && source venv/bin/activate && pip install -r requirements.txt
+python$PYTHON_TARGET_VERSION -m virtualenv venv && source venv/bin/activate && pip install -r requirements.txt
 if [ $? -ne 0 ]; then
     echo "❌ Failed to install StableCog worker dependencies"
     exit 1
