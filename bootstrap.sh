@@ -53,15 +53,14 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "🐍 Installing Python $PYTHON_TARGET_VERSION..."
-curl -s -S -L https://raw.githubusercontent.com/pyenv/pyenv-installer/master/bin/pyenv-installer | bash 
-if [ $? -ne 0 ]; then
-    echo "❌ Failed to install pyenv"
-    exit 1
-fi
-
 # Setup pyenv if pyenv doesnt exist
 if [ ! -d $HOME/.pyenv ]; then
     echo "🐍 Setting up pyenv..."
+    curl -s -S -L https://raw.githubusercontent.com/pyenv/pyenv-installer/master/bin/pyenv-installer | bash 
+    if [ $? -ne 0 ]; then
+        echo "❌ Failed to install pyenv"
+        exit 1
+    fi
     echo 'export PYENV_ROOT="$HOME/.pyenv"' >> $HOME/.bashrc
     echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> $HOME/.bashrc
     echo 'eval "$(pyenv init -)"' >> $HOME/.bashrc
