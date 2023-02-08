@@ -1,1 +1,1 @@
-worker_version = "v0.10"
+WORKER_VERSION = "v0.10"

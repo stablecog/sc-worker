@@ -5,7 +5,7 @@ from lingua import LanguageDetectorBuilder, LanguageDetector
 from PIL import Image
 import numpy as np
 
-from shared import worker_version
+from shared.constants import WORKER_VERSION
 from models.stable_diffusion.helpers import download_sd_models_concurrently
 from models.stable_diffusion.constants import SD_MODELS, SD_MODEL_CACHE
 from diffusers import (
@@ -13,6 +13,7 @@ from diffusers import (
 )
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
+from models.download.download import download_models
 
 
 def setup() -> (
@@ -23,10 +24,9 @@ def setup() -> (
         LanguageDetector,
     ]
 ):
-    print(f"⏳ Setup has started - Version: {worker_version}")
+    print(f"⏳ Setup has started - Version: {WORKER_VERSION}")
 
-    if os.environ.get("DOWNLOAD_MODELS_ON_SETUP", "1") == "1":
-        download_sd_models_concurrently()
+    download_models()
 
     txt2img_pipes: dict[
         str,

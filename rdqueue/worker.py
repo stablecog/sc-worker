@@ -12,8 +12,10 @@ import uuid
 from PIL import Image
 from lingua import LanguageDetector
 
-from events import Status, Event
+from rdqueue.events import Status, Event
 from predict.predict import predict
+import os
+import traceback
 
 
 def start_redis_queue_worker(
@@ -86,7 +88,7 @@ def start_redis_queue_worker(
 
             # format: [[b'mystream', [(b'1619395583065-0', {b'mykey': b'myval6'})]]]
             key, raw_message = raw_messages[0][1][0]
-            message_id = key.decode(), raw_message[b"value"].decode()
+            message_id = key.decode()
             message_json = raw_message[b"value"].decode()
 
             if message_json is None:
@@ -170,23 +172,26 @@ def run_prediction(
     response["upload_outputs"] = []
 
     try:
+        translator_cog_url = input_obj.get("translator_cog_url")
+        if translator_cog_url is None:
+            translator_cog_url = os.environ.get("TRANSLATOR_COG_URL")
         predictResult = predict(
-            prompt=input_obj.get("prompt"),
-            negative_prompt=input_obj.get("negative_prompt"),
-            width=input_obj.get("width"),
-            height=input_obj.get("height"),
-            num_outputs=input_obj.get("num_outputs"),
-            num_inference_steps=input_obj.get("num_inference_steps"),
-            guidance_scale=input_obj.get("guidance_scale"),
+            prompt=input_obj.get("prompt", ""),
+            negative_prompt=input_obj.get("negative_prompt", ""),
+            width=int(input_obj.get("width")),
+            height=int(input_obj.get("height")),
+            num_outputs=int(input_obj.get("num_outputs")),
+            num_inference_steps=int(input_obj.get("num_inference_steps")),
+            guidance_scale=float(input_obj.get("guidance_scale")),
             scheduler=input_obj.get("scheduler"),
             model=input_obj.get("model"),
-            seed=input_obj.get("seed"),
+            seed=int(input_obj.get("seed")),
             prompt_flores_200_code=input_obj.get("prompt_flores_200_code"),
             negative_prompt_flores_200_code=input_obj.get(
                 "negative_prompt_flores_200_code"
             ),
             output_image_extension=input_obj.get("output_image_extension"),
-            output_image_quality=input_obj.get("output_image_quality"),
+            output_image_quality=int(input_obj.get("output_image_quality")),
             process_type=input_obj.get("process_type"),
             language_detector_pipe=language_detector_pipe,
             txt2img_pipes=txt2img_pipes,
@@ -195,6 +200,7 @@ def run_prediction(
             prompt_prefix="",
             negative_prompt_prefix="",
             image_to_upscale=input_obj.get("image_to_upscale"),
+            translator_cog_url=translator_cog_url,
         )
 
         response["upload_prefix"] = ""
@@ -228,7 +234,7 @@ def run_prediction(
             "predict_time": (completed_at - started_at).total_seconds()
         }
     except Exception as e:
-        sys.stderr.write(f"Error in prediction: {e}\n")
+        print(traceback.format_exc())
         completed_at = datetime.datetime.now()
         response["completed_at"] = format_datetime(completed_at)
         response["status"] = Status.FAILED

@@ -9,7 +9,6 @@ from collections import OrderedDict
 import cv2
 import tempfile
 from shared.helpers import clean_folder
-from cog import Path
 from .constants import DEVICE_SWINIR
 from .helpers import get_image_pair, setup
 import time
@@ -30,20 +29,20 @@ def upscale(image: np.ndarray | Image.Image, model: Any, args: Any) -> Image.Ima
             suffix=".png", dir=temp_dir, delete=False
         )
         cv2.imwrite(temp_file.name, image)
-        image = Path(temp_file.name)
+        image = temp_file.name
     elif isinstance(image, Image.Image):
         temp_dir = tempfile.mkdtemp()
         temp_file = tempfile.NamedTemporaryFile(
             suffix=".png", dir=temp_dir, delete=False
         )
         image.save(temp_file.name)
-        image = Path(temp_file.name)
+        image = temp_file.name
 
     # set input folder
     input_dir = "input_cog_temp"
     os.makedirs(input_dir, exist_ok=True)
     input_path = os.path.join(input_dir, os.path.basename(image))
-    shutil.copy(str(image), input_path)
+    shutil.copy(image, input_path)
 
     args.folder_lq = input_dir
 

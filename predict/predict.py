@@ -11,13 +11,33 @@ from models.nllb.translate import translate_text
 from models.swinir.upscale import upscale
 
 from typing import List, Optional
-from .predict import PredictOutput, PredictResult
 from lingua import LanguageDetector
 from diffusers import StableDiffusionPipeline
 from PIL import Image
 from typing import Callable, Any
 import numpy as np
 
+
+class PredictOutput:
+    def __init__(
+        self,
+        pil_image: Image.Image,
+        target_extension: str,
+        target_quality: int,
+    ):
+        self.pil_image = pil_image
+        self.target_extension = target_extension
+        self.target_quality = target_quality
+
+
+class PredictResult:
+    def __init__(
+        self,
+        outputs: list[PredictOutput],
+        nsfw_count: int,
+    ):
+        self.outputs = outputs
+        self.nsfw_count = nsfw_count
 
 @torch.inference_mode()
 def predict(
@@ -118,9 +138,8 @@ def predict(
     output_len = len(output_images)
     for i, image in enumerate(output_images):
         start_time_save = time.time()
-        image_bytes = png_image_to_bytes(image)
         obj = PredictOutput(
-            image_bytes=image_bytes,
+            pil_image=image,
             target_quality=output_image_quality,
             target_extension=output_image_extension,
         )
@@ -139,25 +158,3 @@ def predict(
     print("//////////////////////////////////////////////////////////////////")
 
     return result
-
-
-class PredictOutput:
-    def __init__(
-        self,
-        pil_image: Image.Image,
-        target_extension: str,
-        target_quality: int,
-    ):
-        self.pil_image = pil_image
-        self.target_extension = target_extension
-        self.target_quality = target_quality
-
-
-class PredictResult:
-    def __init__(
-        self,
-        outputs: list[PredictOutput],
-        nsfw_count: int,
-    ):
-        self.outputs = outputs
-        self.nsfw_count = nsfw_count

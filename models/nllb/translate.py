@@ -19,6 +19,11 @@ def translate_text(
 ):
     print(f"-- {label} - Translator url is: '{translator_url}' --")
 
+    if text is None:
+        text = ""
+    if text_2 is None:
+        text_2 = ""
+
     if text == "" and text_2 == "":
         print(f"-- {label} - No text to translate, skipping --")
         return ["", ""]
