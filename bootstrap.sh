@@ -43,8 +43,7 @@ sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
         git \
         ca-certificates \
         libgl1-mesa-glx \
-        libglib2.0-0 \
-        python3-virtualenv
+        libglib2.0-0
 
 
 if [ $? -ne 0 ]; then
@@ -83,10 +82,11 @@ then
         echo "❌ Failed to install Python $PYTHON_TARGET_VERSION"
         exit 1
     fi
+    $PYTHON_TARGET_VERSION -m pip install virtualenv
 fi
 
 echo "📦 Installing StableCog worker dependencies..."
-virtualenv -p $PYTHON_TARGET_VERSION venv && source venv/bin/activate && pip install -r requirements.txt
+$PYTHON_TARGET_VERSION -m virtualenv venv && source venv/bin/activate && pip install -r requirements.txt
 if [ $? -ne 0 ]; then
     echo "❌ Failed to install StableCog worker dependencies"
     exit 1
@@ -96,4 +96,6 @@ fi
 touch $BOOTSTRAP_FILE
 
 echo "🎉 StableCog bootstrapped!"
+echo "Please run 'source ~/.bashrc' or re-load your terminal"
+echo "Run 'source venv/bin/activate' to activate the virtual environment"
 exit 0
