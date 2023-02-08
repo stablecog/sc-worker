@@ -19,6 +19,7 @@ if __name__ == "__main__":
     s3Region = os.environ.get("S3_REGION")
     s3EndpointUrl = os.environ.get("S3_ENDPOINT_URL")
     s3BucketName = os.environ.get("S3_BUCKET_NAME")
+    s3BucketNameModels = os.environ.get("S3_BUCKET_NAME_MODELS")
     s3AccessKey = os.environ.get("AWS_ACCESS_KEY_ID")
     s3SecretKey = os.environ.get("AWS_SECRET_ACCESS_KEY")
     redisUrl = os.environ.get("REDIS_URL")
@@ -36,7 +37,7 @@ if __name__ == "__main__":
 
     # Setup predictor
     txt2img_pipes, upscaler_pipe, upscaler_args, language_detector_pipe = setup(
-        s3, s3BucketName
+        s3, s3BucketNameModels
     )
 
     # Setup redis
