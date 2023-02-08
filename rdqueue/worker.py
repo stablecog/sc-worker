@@ -3,7 +3,7 @@ import json
 import queue
 import sys
 import traceback
-from typing import Any, Callable, Dict, Iterable, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, Tuple, List
 
 from boto3_type_annotations.s3 import ServiceResource
 import redis
@@ -13,7 +13,7 @@ from PIL import Image
 from lingua import LanguageDetector
 
 from rdqueue.events import Status, Event
-from predict.predict import predict
+from predict.predict import predict, PredictResult
 import os
 import traceback
 
@@ -123,7 +123,9 @@ def start_redis_queue_worker(
                 upscaler_args,
                 language_detector_pipe,
             ):
-                if "upload_outputs" in response and len(response["upload_outputs"]) > 0:
+                if "upload_output" in response and isinstance(
+                    response["upload_output"], PredictResult
+                ):
                     upload_queue.put(response)
                 elif response_event in events_filter:
                     redis.publish(redis_key, json.dumps(response))
@@ -168,9 +170,6 @@ def run_prediction(
 
     yield (Event.START, response)
 
-    # If we have outputs that we need to upload
-    response["upload_outputs"] = []
-
     try:
         translator_cog_url = input_obj.get("translator_cog_url")
         if translator_cog_url is None:
@@ -203,28 +202,12 @@ def run_prediction(
             translator_cog_url=translator_cog_url,
         )
 
-        response["upload_prefix"] = ""
-        if "upload_path_prefix" in input_obj.dict():
-            response["upload_prefix"] = input_obj.dict()["upload_path_prefix"]
-
         if (predictResult.nsfw_count == 0) and (len(predictResult.outputs) == 0):
             raise Exception("Missing outputs and nsfw_count")
 
-        # Sometimes we could have, 0 outputs but a >0 nsfw_count
-        response["output"] = []
-        # if len(predictResult.outputs) > 0:
-        #     # Copy files to memory
-        #     for output in event.payload["outputs"]:
-        #         response["upload_outputs"].append(
-        #             UploadObject(
-        #                 image_bytes=output["image_bytes"],
-        #                 image_width=output["image_width"],
-        #                 image_height=output["image_height"],
-        #                 target_quality=output["target_quality"],
-        #                 target_extension=output["target_extension"],
-        #             )
-        #         )
-        # response["nsfw_count"] = event.payload["nsfw_count"]
+        response["upload_prefix"] = input_obj.get("upload_path_prefix", "")
+        response["upload_output"] = predictResult
+        response["nsfw_count"] = predictResult.nsfw_count
 
         completed_at = datetime.datetime.now()
         response["completed_at"] = format_datetime(completed_at)

@@ -39,6 +39,7 @@ class PredictResult:
         self.outputs = outputs
         self.nsfw_count = nsfw_count
 
+
 @torch.inference_mode()
 def predict(
     prompt: str,
