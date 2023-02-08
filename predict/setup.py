@@ -44,7 +44,7 @@ def setup():
     print("✅ Loaded upscaler")
 
     # For translator
-    detect_language = (
+    language_detector_pipe = (
         LanguageDetectorBuilder.from_all_languages()
         .with_preloaded_language_models()
         .build()
@@ -53,4 +53,4 @@ def setup():
 
     print("✅ Setup is done!")
 
-    return txt2img_pipes, upscaler_pipe, detect_language
+    return txt2img_pipes, upscaler_pipe, upscaler_args, language_detector_pipe

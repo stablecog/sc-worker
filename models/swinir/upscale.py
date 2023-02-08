@@ -17,7 +17,7 @@ from PIL import Image
 
 
 @torch.cuda.amp.autocast()
-def upscale(image, model, args):
+def upscale(image, model, args) -> Image.Image:
     if image is None:
         raise ValueError("Image is required for the upscaler.")
 
