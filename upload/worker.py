@@ -13,6 +13,7 @@ from PIL import Image
 
 from predict.predict import PredictResult, PredictOutput
 from rdqueue.events import Status
+from shared.helpers import ensure_trailing_slash, parse_content_type
 
 
 def convert_and_upload_to_s3(
@@ -23,6 +24,7 @@ def convert_and_upload_to_s3(
     target_extension: str,
     upload_path_prefix: str,
 ) -> str:
+    """Convert an individual image to a target format and upload to S3."""
     start_conv = time.time()
     img_format = target_extension[1:].upper()
     img_bytes = io.BytesIO()
@@ -51,6 +53,7 @@ def upload_files(
     s3_bucket: str,
     upload_path_prefix: str,
 ) -> Iterable[str]:
+    """Send all files to S3 in parallel and return the S3 URLs"""
     print("Started - Upload all files to S3 in parallel and return the S3 URLs")
     start = time.time()
 
@@ -88,6 +91,7 @@ def start_upload_worker(
     bucket: str,
     redis: redis.Redis,
 ):
+    """Starts a loop to read from the queue and upload files to S3, send responses to redis"""
     print("Starting upload thread...\n")
     # TODO - figure out how to exit this with SIGINT/SIGTERM
     while True:
@@ -109,24 +113,3 @@ def start_upload_worker(
                 if "upload_prefix" in uploadMsg:
                     del uploadMsg["upload_prefix"]
                 redis.publish(uploadMsg["redis_pubsub_key"], json.dumps(uploadMsg))
-
-
-def ensure_trailing_slash(url: str) -> str:
-    """
-    Adds a trailing slash to `url` if not already present, and then returns it.
-    """
-    if url.endswith("/"):
-        return url
-    else:
-        return url + "/"
-
-
-def parse_content_type(self, extension: str) -> Optional[str]:
-    if extension == ".jpeg" or extension == ".jpg":
-        return "image/jpeg"
-    elif extension == ".png":
-        return "image/png"
-    elif extension == ".webp":
-        return "image/webp"
-
-    return None

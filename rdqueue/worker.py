@@ -2,6 +2,7 @@ import datetime
 import json
 import queue
 import sys
+import os
 import traceback
 from typing import Any, Callable, Dict, Iterable, Tuple, List
 
@@ -14,8 +15,7 @@ from lingua import LanguageDetector
 
 from rdqueue.events import Status, Event
 from predict.predict import predict, PredictResult
-import os
-import traceback
+from shared.helpers import format_datetime
 
 
 def start_redis_queue_worker(
@@ -224,11 +224,3 @@ def run_prediction(
         response["error"] = str(e)
     finally:
         yield (Event.COMPLETED, response)
-
-
-def format_datetime(timestamp: datetime.datetime) -> str:
-    """
-    Formats a datetime in ISO8601 with a trailing Z, so it's also RFC3339 for
-    easier parsing by things like Golang.
-    """
-    return timestamp.isoformat() + "Z"

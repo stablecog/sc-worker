@@ -12,3 +12,32 @@ def clean_folder(folder):
                 shutil.rmtree(file_path)
         except Exception as e:
             print("Failed to delete %s. Reason: %s" % (file_path, e))
+
+
+def ensure_trailing_slash(url: str) -> str:
+    """
+    Adds a trailing slash to `url` if not already present, and then returns it.
+    """
+    if url.endswith("/"):
+        return url
+    else:
+        return url + "/"
+
+
+def parse_content_type(self, extension: str) -> Optional[str]:
+    if extension == ".jpeg" or extension == ".jpg":
+        return "image/jpeg"
+    elif extension == ".png":
+        return "image/png"
+    elif extension == ".webp":
+        return "image/webp"
+
+    return None
+
+
+def format_datetime(timestamp: datetime.datetime) -> str:
+    """
+    Formats a datetime in ISO8601 with a trailing Z, so it's also RFC3339 for
+    easier parsing by things like Golang.
+    """
+    return timestamp.isoformat() + "Z"
