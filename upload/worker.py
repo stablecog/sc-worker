@@ -96,7 +96,7 @@ def upload_files(
 def start_upload_worker(
     q: queue.Queue[Dict[str, Any]],
     s3: ServiceResource,
-    s3_bucket: str,
+    bucket: str,
     redis: redis.Redis,
 ):
     print("Starting upload thread...\n")
@@ -107,7 +107,7 @@ def start_upload_worker(
             predictresult: PredictResult = uploadMsg["upload_output"]
             try:
                 uploadMsg["output"] = upload_files(
-                    predictresult.outputs, s3, s3_bucket, uploadMsg["upload_prefix"]
+                    predictresult.outputs, s3, bucket, uploadMsg["upload_prefix"]
                 )
             except Exception as e:
                 print("Error uploading files\n")
