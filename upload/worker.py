@@ -79,7 +79,9 @@ def upload_files(
         results.append(task.result())
 
     end = time.time()
-    print(f"📤 All converted and uploaded to S3 in: {round((end - start) *1000)} ms - Bucket: {s3_bucket} 📤")
+    print(
+        f"📤 All converted and uploaded to S3 in: {round((end - start) *1000)} ms - Bucket: {s3_bucket} 📤"
+    )
 
     return results
 
@@ -102,8 +104,8 @@ def start_upload_worker(
                     predictresult.outputs, s3, bucket, uploadMsg["upload_prefix"]
                 )
             except Exception as e:
-                print("Error uploading files\n")
-                print(traceback.format_exc())
+                tb = traceback.format_exc()
+                print(f"Error uploading files {tb}\n")
                 uploadMsg["status"] = Status.FAILED
                 uploadMsg["error"] = str(e)
             finally:

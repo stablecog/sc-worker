@@ -1,7 +1,6 @@
 import datetime
 import json
 import queue
-import sys
 import os
 import traceback
 from typing import Any, Callable, Dict, Iterable, Tuple, List
@@ -43,11 +42,9 @@ def start_redis_queue_worker(
     # 1 minute
     autoclaim_messages_after = 1 * 60
 
-    sys.stderr.write(
-        f"Connected to Redis: {redis.get_connection_kwargs().get('host')}\n"
-    )
+    print(f"Connected to Redis: {redis.get_connection_kwargs().get('host')}\n")
 
-    sys.stderr.write(f"Waiting for message on {input_queue}\n")
+    print(f"Waiting for message on {input_queue}\n")
 
     # TODO - figure out how to exit this with SIGINT/SIGTERM
     while True:
@@ -98,7 +95,7 @@ def start_redis_queue_worker(
 
             redis_key = message["redis_pubsub_key"]
 
-            sys.stderr.write(f"Received message {message_id} on {input_queue}\n")
+            print(f"Received message {message_id} on {input_queue}\n")
 
             if "webhook_events_filter" in message:
                 valid_events = {ev.value for ev in Event}
@@ -135,7 +132,7 @@ def start_redis_queue_worker(
 
         except Exception as e:
             tb = traceback.format_exc()
-            sys.stderr.write(f"Failed to handle message: {tb}\n")
+            print(f"Failed to handle message: {tb}\n")
 
 
 def run_prediction(
@@ -159,6 +156,8 @@ def run_prediction(
     try:
         input_obj: Dict[str, Any] = response["input"]
     except Exception as e:
+        tb = traceback.format_exc()
+        print(f"Failed to start prediction: {tb}\n")
         response["status"] = Status.FAILED
         response["error"] = str(e)
         yield (Event.COMPLETED, response)
@@ -217,7 +216,8 @@ def run_prediction(
             "predict_time": (completed_at - started_at).total_seconds()
         }
     except Exception as e:
-        print(traceback.format_exc())
+        tb = traceback.format_exc()
+        print(f"Failed to run prediction: {tb}\n")
         completed_at = datetime.datetime.now()
         response["completed_at"] = format_datetime(completed_at)
         response["status"] = Status.FAILED
