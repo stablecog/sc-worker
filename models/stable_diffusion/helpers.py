@@ -1,6 +1,5 @@
 import os
-import boto3
-from boto3.s3.transfer import TransferConfig
+from boto3_type_annotations.s3 import ServiceResource
 from .constants import SD_SCHEDULERS
 from .constants import SD_MODELS, SD_MODEL_CACHE
 import concurrent.futures
@@ -8,16 +7,7 @@ from io import BytesIO
 from PIL import Image
 
 
-s3 = boto3.resource(
-    "s3",
-    endpoint_url=os.environ.get("S3_ENDPOINT_URL"),
-    aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
-    aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
-)
-bucket_name = os.environ.get("S3_BUCKET_NAME")
-
-
-def download_sd_model(key):
+def download_sd_model(key, s3: ServiceResource, bucket_name: str):
     model_id = SD_MODELS[key]["id"]
     model_dir = SD_MODEL_CACHE + "/" + "models--" + model_id.replace("/", "--")
     print(f"⏳ Downloading model: {model_id}")
@@ -43,10 +33,13 @@ def download_sd_model(key):
     return {"key": key}
 
 
-def download_sd_models_concurrently():
+def download_sd_models_concurrently(s3: ServiceResource, bucket_name: str):
     with concurrent.futures.ThreadPoolExecutor(10) as executor:
         # Start the download tasks
-        download_tasks = [executor.submit(download_sd_model, key) for key in SD_MODELS]
+        download_tasks = [
+            executor.submit(download_sd_model, key, s3, bucket_name)
+            for key in SD_MODELS
+        ]
         # Wait for all tasks to complete
         results = [
             task.result() for task in concurrent.futures.as_completed(download_tasks)
