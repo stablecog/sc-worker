@@ -10,9 +10,7 @@ from models.swinir.upscale import upscale
 from typing import List, Optional
 from lingua import LanguageDetector
 from diffusers import StableDiffusionPipeline
-from PIL import Image
-from typing import Callable, Any
-import numpy as np
+from typing import Any
 from .classes import PredictOutput, PredictResult
 
 
@@ -96,9 +94,7 @@ def predict(
     if process_type == "upscale" or process_type == "generate_and_upscale":
         startTime = time.time()
         if process_type == "upscale":
-            upscale_output_image = upscale(
-                image_to_upscale, upscaler
-            )
+            upscale_output_image = upscale(image_to_upscale, upscaler)
             output_images = [upscale_output_image]
         else:
             upscale_output_images = []

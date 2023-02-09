@@ -1,5 +1,4 @@
 from typing import Tuple, Dict, Any, Callable
-import os
 
 from lingua import LanguageDetectorBuilder, LanguageDetector
 from PIL import Image
@@ -7,7 +6,6 @@ import numpy as np
 from boto3_type_annotations.s3 import ServiceResource
 
 from shared.constants import WORKER_VERSION
-from models.stable_diffusion.helpers import download_sd_models_concurrently
 from models.stable_diffusion.constants import SD_MODELS, SD_MODEL_CACHE
 from diffusers import (
     StableDiffusionPipeline,
@@ -15,7 +13,6 @@ from diffusers import (
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
 from models.download.download import download_models
-from transformers import AutoImageProcessor, Swin2SRForImageSuperResolution
 
 
 def setup(
@@ -55,10 +52,7 @@ def setup(
     upscaler_pipe = define_model_swinir(upscaler_args)
     upscaler_pipe.eval()
     upscaler_pipe = upscaler_pipe.to(DEVICE_SWINIR)
-    upscaler = {
-        "pipe": upscaler_pipe,
-        "args": upscaler_args
-    }
+    upscaler = {"pipe": upscaler_pipe, "args": upscaler_args}
     print("✅ Loaded upscaler")
 
     # For translator
