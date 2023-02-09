@@ -138,7 +138,6 @@ def predict(
     output_objects: List[PredictOutput] = []
     output_len = len(output_images)
     for i, image in enumerate(output_images):
-        start_time_save = time.time()
         obj = PredictOutput(
             pil_image=image,
             target_quality=output_image_quality,
@@ -146,9 +145,6 @@ def predict(
         )
         output_objects.append(obj)
         end_time_save = time.time()
-        print(
-            f"-- Image {i+1}/{output_len} converted to bytes in: {round((end_time_save - start_time_save) * 1000)} ms --"
-        )
 
     result = PredictResult(
         outputs=output_objects,
