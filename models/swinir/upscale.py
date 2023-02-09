@@ -17,7 +17,7 @@ from typing import Any
 
 
 @torch.cuda.amp.autocast()
-def upscale(image: np.ndarray | Image.Image, model: Any, args: Any) -> Image.Image:
+def upscale(image: np.ndarray | Image.Image, model_pipe: Any, args: Any) -> Image.Image:
     if image is None:
         raise ValueError("Image is required for the upscaler.")
 
@@ -82,7 +82,7 @@ def upscale(image: np.ndarray | Image.Image, model: Any, args: Any) -> Image.Ima
             img_lq = torch.cat([img_lq, torch.flip(img_lq, [3])], 3)[
                 :, :, :, : w_old + w_pad
             ]
-            output = model(img_lq)
+            output = model_pipe(img_lq)
             output = output[..., : h_old * args.scale, : w_old * args.scale]
         inf_end_time = time.time()
         print(
