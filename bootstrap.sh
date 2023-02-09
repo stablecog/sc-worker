@@ -75,7 +75,11 @@ if ! command -v python$PYTHON_TARGET_VERSION &>/dev/null; then
         echo "❌ Failed to install Python $PYTHON_TARGET_VERSION"
         exit 1
     fi
-    python$PYTHON_TARGET_VERSION -m pip install virtualenv
+fi
+python$PYTHON_TARGET_VERSION -m pip install virtualenv
+if [ $? -ne 0 ]; then
+    echo "❌ Failed to install virtualenv"
+    exit 1
 fi
 
 echo "📦 Installing Stablecog worker dependencies..."
