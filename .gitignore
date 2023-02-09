@@ -26,6 +26,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 diffusers-cache
+upscalers-cache
 experiments
 input_temp
 

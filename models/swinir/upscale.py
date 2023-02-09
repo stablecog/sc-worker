@@ -17,10 +17,12 @@ from typing import Any
 
 
 @torch.cuda.amp.autocast()
-def upscale(image: np.ndarray | Image.Image, model_pipe: Any, args: Any) -> Image.Image:
+def upscale(image: np.ndarray | Image.Image, upscaler: Any) -> Image.Image:
     if image is None:
         raise ValueError("Image is required for the upscaler.")
 
+    args = upscaler["args"]
+    pipe = upscaler["pipe"]
     output_image = None
     # check if the image is a numpy array and convert it to path if so
     if isinstance(image, np.ndarray):
@@ -83,12 +85,12 @@ def upscale(image: np.ndarray | Image.Image, model_pipe: Any, args: Any) -> Imag
             img_lq = torch.cat([img_lq, torch.flip(img_lq, [3])], 3)[
                 :, :, :, : w_old + w_pad
             ]
-            output = model_pipe(img_lq)
+            output = pipe(img_lq)
             output = output[..., : h_old * args.scale, : w_old * args.scale]
 
         inf_end_time = time.time()
         print(
-            f"-- Upscale - Inference time: {round((inf_end_time - inf_start_time) * 1000)} ms --"
+            f"-- Upscale - Inference in: {round((inf_end_time - inf_start_time) * 1000)} ms --"
         )
 
         save_start_time = time.time()
@@ -101,7 +103,7 @@ def upscale(image: np.ndarray | Image.Image, model_pipe: Any, args: Any) -> Imag
         output_image = output
         save_end_time = time.time()
         print(
-            f"-- Upscale - Image save image time: {round((save_end_time - save_start_time) * 1000)} ms --"
+            f"-- Upscale - Image save in: {round((save_end_time - save_start_time) * 1000)} ms --"
         )
 
     clean_folder(input_dir)

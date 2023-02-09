@@ -5,7 +5,7 @@ import torch
 
 from models.stable_diffusion.generate import generate
 from models.nllb.translate import translate_text
-from models.swin2r.upscale import upscale
+from models.swinir.upscale import upscale
 
 from typing import List, Optional
 from lingua import LanguageDetector
