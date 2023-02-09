@@ -15,6 +15,7 @@ from diffusers import (
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
 from models.download.download import download_models
+from transformers import AutoImageProcessor, Swin2SRForImageSuperResolution
 
 
 def setup(
@@ -56,6 +57,14 @@ def setup(
     upscaler_pipe = upscaler_pipe.to(DEVICE_SWINIR)
     print("✅ Loaded upscaler")
 
+    upscaler_processor = AutoImageProcessor.from_pretrained("caidas/swin2SR-realworld-sr-x4-64-bsrgan-psnr")
+    upscaler_pipe = Swin2SRForImageSuperResolution.from_pretrained("caidas/swin2SR-realworld-sr-x4-64-bsrgan-psnr")
+    upscaler_pipe = upscaler_pipe.to("cuda")
+    upscaler = {
+        "pipe": upscaler_pipe,
+        "processor": upscaler_processor
+    }
+
     # For translator
     language_detector_pipe = (
         LanguageDetectorBuilder.from_all_languages()
@@ -66,4 +75,4 @@ def setup(
 
     print("✅ Setup is done!")
 
-    return txt2img_pipes, upscaler_pipe, upscaler_args, language_detector_pipe
+    return txt2img_pipes, upscaler, language_detector_pipe

@@ -5,7 +5,7 @@ import torch
 
 from models.stable_diffusion.generate import generate
 from models.nllb.translate import translate_text
-from models.swinir.upscale import upscale
+from models.swin2r.upscale import upscale
 
 from typing import List, Optional
 from lingua import LanguageDetector
@@ -35,8 +35,7 @@ def predict(
     process_type: str,
     language_detector_pipe: LanguageDetector,
     txt2img_pipes: dict[str, StableDiffusionPipeline],
-    upscaler_pipe: Callable[[np.ndarray | Image.Image, Any, Any], Image.Image],
-    upscaler_args: Any,
+    upscaler: Any,
     prompt_prefix: str,
     negative_prompt_prefix: str,
     image_to_upscale: Optional[str],
@@ -98,13 +97,13 @@ def predict(
         startTime = time.time()
         if process_type == "upscale":
             upscale_output_image = upscale(
-                image_to_upscale, upscaler_pipe, upscaler_args
+                image_to_upscale, upscaler
             )
             output_images = [upscale_output_image]
         else:
             upscale_output_images = []
             for image in output_images:
-                upscale_output_image = upscale(image, upscaler_pipe, upscaler_args)
+                upscale_output_image = upscale(image, upscaler)
                 upscale_output_images.append(upscale_output_image)
             output_images = upscale_output_images
         endTime = time.time()

@@ -24,8 +24,7 @@ def start_redis_queue_worker(
     s3_bucket: str,
     upload_queue: queue.Queue[Dict[str, Any]],
     txt2img_pipes: Dict[str, Any],
-    upscaler_pipe: Callable[[np.ndarray | Image.Image, Any, Any], Image.Image],
-    upscaler_args: Any,
+    upscaler: Any,
     language_detector_pipe: LanguageDetector,
 ) -> None:
     print(f"Starting redis queue worker, bucket is: {s3_bucket}")
@@ -35,8 +34,7 @@ def start_redis_queue_worker(
     s3_bucket = s3_bucket
     upload_queue = upload_queue
     txt2img_pipes = txt2img_pipes
-    upscaler_pipe = upscaler_pipe
-    upscaler_args = upscaler_args
+    upscaler = upscaler
     language_detector_pipe = language_detector_pipe
     consumer_id = f"cog-{uuid.uuid4()}"
     # 1 minute
@@ -116,8 +114,7 @@ def start_redis_queue_worker(
             for response_event, response in run_prediction(
                 message,
                 txt2img_pipes,
-                upscaler_pipe,
-                upscaler_args,
+                upscaler,
                 language_detector_pipe,
             ):
                 if "upload_output" in response and isinstance(
@@ -138,8 +135,7 @@ def start_redis_queue_worker(
 def run_prediction(
     message: Dict[str, Any],
     txt2img_pipes: Dict[str, Any],
-    upscaler_pipe: Callable[[np.ndarray | Image.Image, Any, Any], Image.Image],
-    upscaler_args: Any,
+    upscaler: Any,
     language_detector_pipe: LanguageDetector,
 ) -> Iterable[Tuple[Event, Dict[str, Any]]]:
     """Runs the prediction and yields events and responses."""
@@ -193,8 +189,7 @@ def run_prediction(
             process_type=input_obj.get("process_type"),
             language_detector_pipe=language_detector_pipe,
             txt2img_pipes=txt2img_pipes,
-            upscaler_pipe=upscaler_pipe,
-            upscaler_args=upscaler_args,
+            upscaler=upscaler,
             prompt_prefix="",
             negative_prompt_prefix="",
             image_to_upscale=input_obj.get("image_to_upscale"),

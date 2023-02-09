@@ -36,7 +36,7 @@ if __name__ == "__main__":
     )
 
     # Setup predictor
-    txt2img_pipes, upscaler_pipe, upscaler_args, language_detector_pipe = setup(
+    txt2img_pipes, upscaler, language_detector_pipe = setup(
         s3, s3BucketNameModels
     )
 
@@ -55,8 +55,7 @@ if __name__ == "__main__":
             s3_bucket=s3BucketNameUpload,
             upload_queue=upload_queue,
             txt2img_pipes=txt2img_pipes,
-            upscaler_pipe=upscaler_pipe,
-            upscaler_args=upscaler_args,
+            upscaler=upscaler,
             language_detector_pipe=language_detector_pipe,
         )
     )
