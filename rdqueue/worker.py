@@ -27,7 +27,7 @@ def start_redis_queue_worker(
     upscaler: Any,
     language_detector_pipe: LanguageDetector,
 ) -> None:
-    print(f"Starting redis queue worker, bucket is: {s3_bucket}")
+    print(f"Starting redis queue worker, bucket is: {s3_bucket}\n")
 
     input_queue = input_queue
     s3_client = s3_client
