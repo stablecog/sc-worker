@@ -1,8 +1,9 @@
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV PATH="/root/.pyenv/shims:/root/.pyenv/bin:$PATH"
 
-RUN apt-get install -qqy --no-install-recommends \
+RUN apt-get update && apt-get install -qqy --no-install-recommends \
         make \
         build-essential \
         libssl-dev \
@@ -22,7 +23,7 @@ RUN apt-get install -qqy --no-install-recommends \
         git \
         ca-certificates \
         libgl1-mesa-glx \
-        libglib2.0-0
+        libglib2.0-0 \
         && rm -rf /var/lib/apt/lists/*
 
 RUN curl -s -S -L https://raw.githubusercontent.com/pyenv/pyenv-installer/master/bin/pyenv-installer | bash && \
