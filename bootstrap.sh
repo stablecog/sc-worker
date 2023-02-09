@@ -17,11 +17,6 @@ if [ $? -ne 0 ]; then
     echo "Failed to run apt-get"
     exit 1
 fi
-sudo env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
-if [ $? -ne 0 ]; then
-    echo "Failed to run apt-get upgrade"
-    exit 1
-fi
 
 sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
     make \
