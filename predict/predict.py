@@ -4,9 +4,6 @@ import os
 import torch
 
 from models.stable_diffusion.generate import generate
-from models.stable_diffusion.helpers import (
-    png_image_to_bytes,
-)
 from models.nllb.translate import translate_text
 from models.swinir.upscale import upscale
 
@@ -16,28 +13,7 @@ from diffusers import StableDiffusionPipeline
 from PIL import Image
 from typing import Callable, Any
 import numpy as np
-
-
-class PredictOutput:
-    def __init__(
-        self,
-        pil_image: Image.Image,
-        target_extension: str,
-        target_quality: int,
-    ):
-        self.pil_image = pil_image
-        self.target_extension = target_extension
-        self.target_quality = target_quality
-
-
-class PredictResult:
-    def __init__(
-        self,
-        outputs: list[PredictOutput],
-        nsfw_count: int,
-    ):
-        self.outputs = outputs
-        self.nsfw_count = nsfw_count
+from .classes import PredictOutput, PredictResult
 
 
 @torch.inference_mode()
@@ -136,15 +112,13 @@ def predict(
 
     # Prepare output objects
     output_objects: List[PredictOutput] = []
-    output_len = len(output_images)
     for i, image in enumerate(output_images):
         obj = PredictOutput(
             pil_image=image,
             target_quality=output_image_quality,
-            target_extension="."+ output_image_extension,
+            target_extension=output_image_extension,
         )
         output_objects.append(obj)
-        end_time_save = time.time()
 
     result = PredictResult(
         outputs=output_objects,

@@ -49,9 +49,3 @@ def download_sd_models_concurrently(s3: ServiceResource, bucket_name: str):
 
 def make_scheduler(name, config):
     return SD_SCHEDULERS[name]["from_config"](config)
-
-
-def png_image_to_bytes(image: Image.Image) -> bytes:
-    with BytesIO() as output:
-        image.save(output, format="PNG")
-        return output.getvalue()

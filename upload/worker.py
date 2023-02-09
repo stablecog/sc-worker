@@ -26,7 +26,7 @@ def convert_and_upload_to_s3(
 ) -> str:
     """Convert an individual image to a target format and upload to S3."""
     start_conv = time.time()
-    img_format = target_extension[1:].upper()
+    img_format = target_extension.upper()
     img_bytes = io.BytesIO()
     pil_image.save(img_bytes, format=img_format, quality=target_quality)
     file_bytes = img_bytes.getvalue()
@@ -34,7 +34,7 @@ def convert_and_upload_to_s3(
     print(
         f"Converted image in: {round((end_conv - start_conv) *1000)} ms - {img_format} - {target_quality}"
     )
-    key = f"{str(uuid.uuid4())}{target_extension}"
+    key = f"{str(uuid.uuid4())}.{target_extension}"
     if upload_path_prefix is not None and upload_path_prefix != "":
         key = f"{ensure_trailing_slash(upload_path_prefix)}{key}"
 

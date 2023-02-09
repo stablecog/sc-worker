@@ -88,10 +88,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+echo "Making start script executable"
+sudo chmod +x run
+
 # Create bootstrap file
 touch $BOOTSTRAP_FILE
 
 echo "🎉 Stablecog bootstrapped!"
-echo "Please run 'source ~/.bashrc' or re-load your terminal"
-echo "Run 'source venv/bin/activate' to activate the virtual environment"
+echo "🔑 Don't forget to create a ".env" file"
+echo "🎬 You can start the server by running './start.sh'"
+echo "Please run 'source ~/.bashrc' or reload your terminal"
 exit 0

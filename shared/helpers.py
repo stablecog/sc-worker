@@ -27,11 +27,11 @@ def ensure_trailing_slash(url: str) -> str:
 
 
 def parse_content_type(extension: str) -> Optional[str]:
-    if extension == ".jpeg" or extension == ".jpg":
+    if extension == "jpeg" or extension == "jpg":
         return "image/jpeg"
-    elif extension == ".png":
+    elif extension == "png":
         return "image/png"
-    elif extension == ".webp":
+    elif extension == "webp":
         return "image/webp"
 
     return None
