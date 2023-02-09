@@ -104,8 +104,8 @@ def upscale(image: np.ndarray | Image.Image, model: Any, args: Any) -> Image.Ima
 
     clean_folder(input_dir)
     start = time.time()
-    pil_image = Image.fromarray(output_image)
-    pil_image.save("output.png")
+    imageRGB = cv2.cvtColor(output_image, cv2.COLOR_BGR2RGBA)
+    pil_image = Image.fromarray(imageRGB)
     end = time.time()
     print(f"-- Upscale - Array to PIL Image in: {round((end - start) * 1000)} ms --")
     return pil_image

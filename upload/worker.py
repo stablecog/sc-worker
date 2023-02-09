@@ -26,9 +26,12 @@ def convert_and_upload_to_s3(
 ) -> str:
     """Convert an individual image to a target format and upload to S3."""
     start_conv = time.time()
+    _pil_image = pil_image
+    if target_extension == "jpeg":
+        _pil_image = _pil_image.convert("RGB")
     img_format = target_extension.upper()
     img_bytes = io.BytesIO()
-    pil_image.save(img_bytes, format=img_format, quality=target_quality)
+    _pil_image.save(img_bytes, format=img_format, quality=target_quality)
     file_bytes = img_bytes.getvalue()
     end_conv = time.time()
     print(
@@ -89,7 +92,7 @@ def upload_files(
 def start_upload_worker(
     q: queue.Queue[Dict[str, Any]],
     s3: ServiceResource,
-    bucket: str,
+    s3_bucket: str,
     redis: redis.Redis,
 ):
     """Starts a loop to read from the queue and upload files to S3, send responses to redis"""
@@ -101,7 +104,7 @@ def start_upload_worker(
             predictresult: PredictResult = uploadMsg["upload_output"]
             try:
                 uploadMsg["output"] = upload_files(
-                    predictresult.outputs, s3, bucket, uploadMsg["upload_prefix"]
+                    predictresult.outputs, s3, s3_bucket, uploadMsg["upload_prefix"]
                 )
             except Exception as e:
                 tb = traceback.format_exc()

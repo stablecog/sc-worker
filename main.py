@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     s3Region = os.environ.get("S3_REGION")
     s3EndpointUrl = os.environ.get("S3_ENDPOINT_URL")
-    s3BucketName = os.environ.get("S3_BUCKET_NAME")
+    s3BucketNameUpload = os.environ.get("S3_BUCKET_NAME_UPLOAD")
     s3BucketNameModels = os.environ.get("S3_BUCKET_NAME_MODELS")
     s3AccessKey = os.environ.get("AWS_ACCESS_KEY_ID")
     s3SecretKey = os.environ.get("AWS_SECRET_ACCESS_KEY")
@@ -52,7 +52,7 @@ if __name__ == "__main__":
             redis,
             input_queue=redisInputQueue,
             s3_client=s3,
-            s3_bucket=s3BucketName,
+            s3_bucket=s3BucketNameUpload,
             upload_queue=upload_queue,
             txt2img_pipes=txt2img_pipes,
             upscaler_pipe=upscaler_pipe,
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     # Create upload thread
     upload_thread = Thread(
         target=lambda: start_upload_worker(
-            q=upload_queue, s3=s3, bucket=s3BucketName, redis=redis
+            q=upload_queue, s3=s3, s3_bucket=s3BucketNameUpload, redis=redis
         )
     )
 

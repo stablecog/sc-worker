@@ -89,7 +89,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Making start script executable"
-sudo chmod +x run
+sudo chmod +x ./run
 
 # Create bootstrap file
 touch $BOOTSTRAP_FILE
