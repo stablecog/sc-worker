@@ -71,19 +71,21 @@ def upscale(image: np.ndarray | Image.Image, model_pipe: Any, args: Any) -> Imag
 
         # inference
         inf_start_time = time.time()
-        with torch.no_grad():
-            # pad input image to be a multiple of window_size
-            _, _, h_old, w_old = img_lq.size()
-            h_pad = (h_old // window_size + 1) * window_size - h_old
-            w_pad = (w_old // window_size + 1) * window_size - w_old
-            img_lq = torch.cat([img_lq, torch.flip(img_lq, [2])], 2)[
-                :, :, : h_old + h_pad, :
-            ]
-            img_lq = torch.cat([img_lq, torch.flip(img_lq, [3])], 3)[
-                :, :, :, : w_old + w_pad
-            ]
-            output = model_pipe(img_lq)
-            output = output[..., : h_old * args.scale, : w_old * args.scale]
+
+        # with torch.no_grad():
+        # pad input image to be a multiple of window_size
+        _, _, h_old, w_old = img_lq.size()
+        h_pad = (h_old // window_size + 1) * window_size - h_old
+        w_pad = (w_old // window_size + 1) * window_size - w_old
+        img_lq = torch.cat([img_lq, torch.flip(img_lq, [2])], 2)[
+            :, :, : h_old + h_pad, :
+        ]
+        img_lq = torch.cat([img_lq, torch.flip(img_lq, [3])], 3)[
+            :, :, :, : w_old + w_pad
+        ]
+        output = model_pipe(img_lq)
+        output = output[..., : h_old * args.scale, : w_old * args.scale]
+
         inf_end_time = time.time()
         print(
             f"-- Upscale - Inference time: {round((inf_end_time - inf_start_time) * 1000)} ms --"
