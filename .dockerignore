@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+# Worker stuff
+bootstrap
+run
+
+
 # Distribution / packaging
 .Python
 build/
