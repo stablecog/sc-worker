@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BOOTSTRAP_FILE=$HOME/sc-bootstrapped
+BOOTSTRAP_FILE=./sc-bootstrapped
 PYTHON_TARGET_VERSION=3.10
 
 # This script is used to bootstrap the environment for the Stablecog worker
