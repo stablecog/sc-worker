@@ -13,7 +13,7 @@ def download_all_models():
 def download_sd_model_from_hf(key):
     model_id = SD_MODELS_ALL[key]["id"]
     print(f"⏳ Downloading model: {model_id}")
-    StableDiffusionPipeline.from_pretrained(
+    pipe = StableDiffusionPipeline.from_pretrained(
         model_id,
         torch_dtype=SD_MODELS_ALL[key]["torch_dtype"],
         cache_dir=SD_MODEL_CACHE,
