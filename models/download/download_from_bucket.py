@@ -1,5 +1,4 @@
 import os
-from models.stable_diffusion.helpers import download_sd_models_concurrently
 from boto3_type_annotations.s3 import ServiceResource
 from models.swinir.constants import MODEL_DIR_SWINIR, MODEL_NAME_SWINIR
 from models.stable_diffusion.constants import SD_MODELS, SD_MODEL_CACHE
@@ -8,8 +7,8 @@ import concurrent.futures
 
 def download_all_models_from_bucket(s3: ServiceResource, bucket_name: str):
     if os.environ.get("DOWNLOAD_MODELS_ON_SETUP", "1") == "1":
-        download_sd_models_concurrently(s3, bucket_name)
-        download_swinir_models(s3, bucket_name)
+        download_sd_models_concurrently_from_bucket(s3, bucket_name)
+        download_swinir_models_from_bucket(s3, bucket_name)
 
 
 def download_sd_model_from_bucket(key: str, s3: ServiceResource, bucket_name: str):
@@ -54,7 +53,7 @@ def download_model_from_bucket(
     return {"key": key}
 
 
-def download_swinir_models(s3: ServiceResource, bucket_name: str):
+def download_swinir_models_from_bucket(s3: ServiceResource, bucket_name: str):
     download_swinir_model_from_bucket(MODEL_NAME_SWINIR, s3, bucket_name)
 
 
