@@ -13,4 +13,4 @@ RUN apt-get update && apt-get install -qqy --no-install-recommends \
         libglib2.0-0 \
         && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install -r --no-cache-dir requirements-torch.txt
+RUN pip3 install -r requirements.txt --no-cache-dir
