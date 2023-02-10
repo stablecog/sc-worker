@@ -7,23 +7,27 @@ import concurrent.futures
 
 
 def download_all_models_from_bucket(s3: ServiceResource, bucket_name: str):
-    if os.environ.get("DOWNLOAD_SD_MODELS_ON_SETUP", "1") == "1":
+    if os.environ.get("DOWNLOAD_MODELS_ON_SETUP", "1") == "1":
         download_sd_models_concurrently(s3, bucket_name)
-    # For the upscaler
-    print("⏳ Downloading SwinIR models...")
-    # Check if the model is already downloaded
-    if os.path.exists(os.path.join(MODEL_DIR_SWINIR, MODEL_NAME_SWINIR)):
-        print("✅ SwinIR models already downloaded")
-    else:
-        os.system(
-            f"wget https://github.com/JingyunLiang/SwinIR/releases/download/v0.0/{MODEL_NAME_SWINIR} -P {MODEL_DIR_SWINIR}"
-        )
-        print("✅ Downloaded SwinIR models")
+        download_swinir_models(s3, bucket_name)
 
 
-def download_sd_model_from_bucket(key, s3: ServiceResource, bucket_name: str):
+def download_sd_model_from_bucket(key: str, s3: ServiceResource, bucket_name: str):
     model_id = SD_MODELS[key]["id"]
     model_dir = SD_MODEL_CACHE + "/" + "models--" + model_id.replace("/", "--")
+    download_model_from_bucket(model_id, model_dir, s3, bucket_name)
+
+
+def download_swinir_model_from_bucket(
+    model_id: str, s3: ServiceResource, bucket_name: str
+):
+    model_dir = MODEL_DIR_SWINIR
+    download_model_from_bucket(model_id, model_dir, s3, bucket_name)
+
+
+def download_model_from_bucket(
+    model_id: str, model_dir: str, s3: ServiceResource, bucket_name: str
+):
     print(f"⏳ Downloading model: {model_id}")
     bucket = s3.Bucket(bucket_name)
     # Loop through all files in the S3 directory
@@ -45,6 +49,10 @@ def download_sd_model_from_bucket(key, s3: ServiceResource, bucket_name: str):
         bucket.download_file(key, local_file_path)
     print(f"✅ Downloaded model: {key}")
     return {"key": key}
+
+
+def download_swinir_models(s3: ServiceResource, bucket_name: str):
+    download_swinir_model_from_bucket(MODEL_NAME_SWINIR, s3, bucket_name)
 
 
 def download_sd_models_concurrently_from_bucket(s3: ServiceResource, bucket_name: str):
