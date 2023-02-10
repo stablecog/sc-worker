@@ -30,3 +30,4 @@ def download_sd_models_concurrently_from_hf():
 
 if __name__ == "__main__":
     download_sd_models_concurrently_from_hf()
+    print("✅ Downloaded all models successfully")
