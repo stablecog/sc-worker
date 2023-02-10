@@ -15,6 +15,11 @@ def download_sd_model_from_hf(key):
     return {"key": key}
 
 
+def download_sd_models_from_hf():
+    for key in SD_MODELS_ALL:
+        download_sd_model_from_hf(key)
+
+
 def download_sd_models_concurrently_from_hf():
     with concurrent.futures.ThreadPoolExecutor(10) as executor:
         # Start the download tasks
@@ -29,5 +34,5 @@ def download_sd_models_concurrently_from_hf():
 
 
 if __name__ == "__main__":
-    download_sd_models_concurrently_from_hf()
+    download_sd_models_from_hf()
     print("✅ Downloaded all models successfully")
