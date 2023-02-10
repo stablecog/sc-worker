@@ -12,7 +12,7 @@ from diffusers import (
 )
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
-from models.download.download import download_models
+from models.download.download_from_bucket import download_all_models_from_bucket
 
 
 def setup(
@@ -25,7 +25,7 @@ def setup(
 ]:
     print(f"⏳ Setup has started - Version: {WORKER_VERSION}")
 
-    download_models(s3, bucket_name)
+    download_all_models_from_bucket(s3, bucket_name)
 
     txt2img_pipes: dict[
         str,
