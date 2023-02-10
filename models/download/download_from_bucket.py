@@ -22,7 +22,10 @@ def download_swinir_model_from_bucket(
     model_id: str, s3: ServiceResource, bucket_name: str
 ):
     model_dir = MODEL_DIR_SWINIR
-    download_model_from_bucket(model_id, model_dir, s3, bucket_name)
+    if os.path.exists(os.path.join(model_dir, model_id)):
+        print("✅ SwinIR models already downloaded")
+    else:
+        download_model_from_bucket(model_id, model_dir, s3, bucket_name)
 
 
 def download_model_from_bucket(
