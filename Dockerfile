@@ -1,22 +1,6 @@
-FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu22.04
-
-ENV DEBIAN_FRONTEND=noninteractive
-ENV PYTHONUNBUFFERED=1
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib64:/usr/local/nvidia/bin
-
-RUN apt-get update && apt-get install -qqy --no-install-recommends \
-        python3 \
-        python3-pip \
-        ca-certificates \
-        wget \
-        libgl1-mesa-glx \
-        libglib2.0-0 \
-        && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /root
+FROM stablecog/cuda-torch:11.7.1-cudnn8-devel-1.13.1-ubuntu22.04
 
 ADD . .
-
-RUN pip3 install -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 CMD ["python3", "main.py"]
