@@ -13,6 +13,7 @@ from diffusers import (
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
 from models.download.download_from_bucket import download_all_models_from_bucket
+import time
 
 
 def setup(
@@ -23,6 +24,7 @@ def setup(
     Any,
     LanguageDetector,
 ]:
+    start = time.time()
     print(f"⏳ Setup has started - Version: {WORKER_VERSION}")
 
     download_all_models_from_bucket(s3, bucket_name)
@@ -63,6 +65,7 @@ def setup(
     )
     print("✅ Loaded language detector")
 
-    print("✅ Setup is done!")
+    end = time.time()
+    print(f"✅ Setup is done in: {round((end - start))} s")
 
     return txt2img_pipes, upscaler, language_detector_pipe

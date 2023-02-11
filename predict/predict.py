@@ -39,7 +39,7 @@ def predict(
     image_to_upscale: Optional[str],
     translator_cog_url: Optional[str],
 ) -> PredictResult:
-    processStart = time.time()
+    process_start = time.time()
     print("//////////////////////////////////////////////////////////////////")
     print(f"⏳ Process started: {process_type} ⏳")
     output_images = []
@@ -119,8 +119,8 @@ def predict(
         outputs=output_objects,
         nsfw_count=nsfw_count,
     )
-    processEnd = time.time()
-    print(f"✅ Process completed in: {round((processEnd - processStart) * 1000)} ms ✅")
+    process_end = time.time()
+    print(f"✅ Process completed in: {round((process_end - process_start) * 1000)} ms ✅")
     print("//////////////////////////////////////////////////////////////////")
 
     return result
