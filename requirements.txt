@@ -6,7 +6,7 @@ transformers==4.26.0
 accelerate==0.15.0
 bitsandbytes==0.35.4
 triton==2.0.0.dev20221103
-numpy==1.24.1;
+numpy==1.24.1
 opencv-python==4.7.0.68
 tqdm==4.62.2
 Pillow==9.4.0
