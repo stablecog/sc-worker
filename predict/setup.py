@@ -66,6 +66,8 @@ def setup(
     print("✅ Loaded language detector")
 
     end = time.time()
-    print(f"✅ Setup is done in: {round((end - start))} s")
+    print("//////////////////////////////////////////////////////////////////")
+    print(f"✅ Predict setup is done in: {round((end - start))} sec.")
+    print("//////////////////////////////////////////////////////////////////")
 
     return txt2img_pipes, upscaler, language_detector_pipe
