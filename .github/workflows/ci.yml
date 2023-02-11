@@ -1,4 +1,4 @@
-name: Build Master
+name: Build and Publish Worker
 
 on:
   push:
