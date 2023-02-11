@@ -1,7 +1,9 @@
 import requests
+from tabulate import tabulate
 
 
 def get_release_info(package, version):
+    table = []
     package_url = f"https://pypi.org/pypi/{package}/json"
     response = requests.get(package_url)
     data = response.json()
@@ -16,18 +18,24 @@ def get_release_info(package, version):
     release = release_info[0]
     size_in_bytes = release.get("size", 0)
     size_in_mb = size_in_bytes / (1024 * 1024)
-    print(f"{package} {version}: {size_in_mb:.2f} MB")
-    return size_in_mb
+    return package, version, size_in_mb
 
 
 with open("requirements.txt") as f:
     total_in_mb = 0
+    table = []
     for line in f:
         line = line.strip()
         try:
-            package, version = line.split("==")
-            mb = get_release_info(package, version)
-            total_in_mb += mb
+            p, v = line.split("==")
+            package, version, size_in_mb = get_release_info(p, v)
+            total_in_mb += size_in_mb
+            table.append([package, version, round(size_in_mb, 2)])
         except ValueError:
             print(f"Skipping {line}")
-    print(f"Total: {total_in_mb:.2f} MB")
+    table = sorted(table, key=lambda x: x[2], reverse=True)
+    print("\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n")
+    print(tabulate(table, headers=["Package", "Version", "Size (MB)"]))
+    print("\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n")
+    print(f"Total size: {total_in_mb:.2f} MB")
+    print("\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n")
