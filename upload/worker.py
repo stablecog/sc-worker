@@ -102,18 +102,19 @@ def start_upload_worker(
         uploadMsg: List[Dict[str, Any]] = q.get()
         if "upload_output" in uploadMsg:
             predictresult: PredictResult = uploadMsg["upload_output"]
-            try:
-                uploadMsg["output"] = upload_files(
-                    predictresult.outputs, s3, s3_bucket, uploadMsg["upload_prefix"]
-                )
-            except Exception as e:
-                tb = traceback.format_exc()
-                print(f"Error uploading files {tb}\n")
-                uploadMsg["status"] = Status.FAILED
-                uploadMsg["error"] = str(e)
-            finally:
-                if "upload_output" in uploadMsg:
-                    del uploadMsg["upload_output"]
-                if "upload_prefix" in uploadMsg:
-                    del uploadMsg["upload_prefix"]
-                redis.publish(uploadMsg["redis_pubsub_key"], json.dumps(uploadMsg))
+            if len(predictresult.outputs) > 0:
+                try:
+                    uploadMsg["output"] = upload_files(
+                        predictresult.outputs, s3, s3_bucket, uploadMsg["upload_prefix"]
+                    )
+                except Exception as e:
+                    tb = traceback.format_exc()
+                    print(f"Error uploading files {tb}\n")
+                    uploadMsg["status"] = Status.FAILED
+                    uploadMsg["error"] = str(e)
+
+        if "upload_output" in uploadMsg:
+            del uploadMsg["upload_output"]
+        if "upload_prefix" in uploadMsg:
+            del uploadMsg["upload_prefix"]
+        redis.publish(uploadMsg["redis_pubsub_key"], json.dumps(uploadMsg))
