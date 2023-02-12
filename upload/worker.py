@@ -101,11 +101,14 @@ def start_upload_worker(
     while True:
         uploadMsg: List[Dict[str, Any]] = q.get()
         if "upload_output" in uploadMsg:
-            predictresult: PredictResult = uploadMsg["upload_output"]
-            if len(predictresult.outputs) > 0:
+            predict_result: PredictResult = uploadMsg["upload_output"]
+            if len(predict_result.outputs) > 0:
                 try:
                     uploadMsg["output"] = upload_files(
-                        predictresult.outputs, s3, s3_bucket, uploadMsg["upload_prefix"]
+                        predict_result.outputs,
+                        s3,
+                        s3_bucket,
+                        uploadMsg["upload_prefix"],
                     )
                 except Exception as e:
                     tb = traceback.format_exc()
