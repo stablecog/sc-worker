@@ -10,7 +10,7 @@ from models.swinir.upscale import upscale
 from typing import List, Optional
 from .classes import PredictOutput, PredictResult
 from .setup import ModelPack
-from models.clip.main import get_image_features
+from models.clip.main import get_features_of_images
 
 
 @torch.inference_mode()
@@ -89,7 +89,7 @@ def predict(
         )
 
         start_clip = time.time()
-        image_features = get_image_features(
+        features_of_images = get_features_of_images(
             output_images, model_pack.clip["model"], model_pack.clip["processor"]
         )
         end_clip = time.time()
