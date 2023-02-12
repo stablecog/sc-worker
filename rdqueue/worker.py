@@ -3,18 +3,17 @@ import json
 import queue
 import os
 import traceback
-from typing import Any, Callable, Dict, Iterable, Tuple, List
+from typing import Any, Dict, Iterable, Tuple
 
 from boto3_type_annotations.s3 import ServiceResource
 import redis
-import numpy as np
 import uuid
-from PIL import Image
 from lingua import LanguageDetector
 
 from rdqueue.events import Status, Event
 from predict.predict import predict, PredictResult
 from shared.helpers import format_datetime
+from predict.setup import ModelPack
 
 
 def start_redis_queue_worker(
@@ -23,9 +22,7 @@ def start_redis_queue_worker(
     s3_client: ServiceResource,
     s3_bucket: str,
     upload_queue: queue.Queue[Dict[str, Any]],
-    txt2img_pipes: Dict[str, Any],
-    upscaler: Any,
-    language_detector_pipe: LanguageDetector,
+    model_pack: ModelPack,
 ) -> None:
     print(f"Starting redis queue worker, bucket is: {s3_bucket}\n")
 
@@ -33,9 +30,6 @@ def start_redis_queue_worker(
     s3_client = s3_client
     s3_bucket = s3_bucket
     upload_queue = upload_queue
-    txt2img_pipes = txt2img_pipes
-    upscaler = upscaler
-    language_detector_pipe = language_detector_pipe
     consumer_id = f"cog-{uuid.uuid4()}"
     # 1 minute
     autoclaim_messages_after = 1 * 60
@@ -111,12 +105,7 @@ def start_redis_queue_worker(
             else:
                 events_filter = Event.default_events()
 
-            for response_event, response in run_prediction(
-                message,
-                txt2img_pipes,
-                upscaler,
-                language_detector_pipe,
-            ):
+            for response_event, response in run_prediction(message, model_pack):
                 if "upload_output" in response and isinstance(
                     response["upload_output"], PredictResult
                 ):
@@ -134,9 +123,7 @@ def start_redis_queue_worker(
 
 def run_prediction(
     message: Dict[str, Any],
-    txt2img_pipes: Dict[str, Any],
-    upscaler: Any,
-    language_detector_pipe: LanguageDetector,
+    model_pack: ModelPack,
 ) -> Iterable[Tuple[Event, Dict[str, Any]]]:
     """Runs the prediction and yields events and responses."""
 
@@ -187,13 +174,11 @@ def run_prediction(
             output_image_extension=input_obj.get("output_image_extension"),
             output_image_quality=int(input_obj.get("output_image_quality")),
             process_type=input_obj.get("process_type"),
-            language_detector_pipe=language_detector_pipe,
-            txt2img_pipes=txt2img_pipes,
-            upscaler=upscaler,
             prompt_prefix="",
             negative_prompt_prefix="",
             image_to_upscale=input_obj.get("image_to_upscale"),
             translator_cog_url=translator_cog_url,
+            model_pack=model_pack,
         )
 
         if (predictResult.nsfw_count == 0) and (len(predictResult.outputs) == 0):

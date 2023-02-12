@@ -8,10 +8,9 @@ from models.nllb.translate import translate_text
 from models.swinir.upscale import upscale
 
 from typing import List, Optional
-from lingua import LanguageDetector
-from diffusers import StableDiffusionPipeline
-from typing import Any
 from .classes import PredictOutput, PredictResult
+from .setup import ModelPack
+from models.clip.main import get_image_features
 
 
 @torch.inference_mode()
@@ -31,13 +30,11 @@ def predict(
     output_image_extension: str,
     output_image_quality: int,
     process_type: str,
-    language_detector_pipe: LanguageDetector,
-    txt2img_pipes: dict[str, StableDiffusionPipeline],
-    upscaler: Any,
     prompt_prefix: str,
     negative_prompt_prefix: str,
     image_to_upscale: Optional[str],
     translator_cog_url: Optional[str],
+    model_pack: ModelPack,
 ) -> PredictResult:
     process_start = time.time()
     print("//////////////////////////////////////////////////////////////////")
@@ -58,13 +55,13 @@ def predict(
                 negative_prompt,
                 negative_prompt_flores_200_code,
                 translator_cog_url,
-                language_detector_pipe,
+                model_pack.language_detector_pipe,
                 "Prompt & Negative Prompt",
             )
         else:
             print("-- Translator cog URL is not set. Skipping translation. --")
 
-        txt2img_pipe = txt2img_pipes[model]
+        txt2img_pipe = model_pack.txt2img_pipes[model]
         print(
             f"🖥️ Generating - Model: {model} - Width: {width} - Height: {height} - Steps: {num_inference_steps} - Outputs: {num_outputs} 🖥️"
         )
@@ -91,15 +88,24 @@ def predict(
             f"🖥️ Generated in {round((endTime - startTime) * 1000)} ms - Model: {model} - Width: {width} - Height: {height} - Steps: {num_inference_steps} - Outputs: {num_outputs} 🖥️"
         )
 
+        start_clip = time.time()
+        image_features = get_image_features(
+            output_images, model_pack.clip["model"], model_pack.clip["processor"]
+        )
+        end_clip = time.time()
+        print(
+            f"🖼️ CLIP embeddings in: {round((end_clip - start_clip) * 1000)} ms 🖼️"
+        )
+
     if process_type == "upscale" or process_type == "generate_and_upscale":
         startTime = time.time()
         if process_type == "upscale":
-            upscale_output_image = upscale(image_to_upscale, upscaler)
+            upscale_output_image = upscale(image_to_upscale, model_pack.upscaler)
             output_images = [upscale_output_image]
         else:
             upscale_output_images = []
             for image in output_images:
-                upscale_output_image = upscale(image, upscaler)
+                upscale_output_image = upscale(image, model_pack.upscaler)
                 upscale_output_images.append(upscale_output_image)
             output_images = upscale_output_images
         endTime = time.time()

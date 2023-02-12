@@ -14,6 +14,21 @@ from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
 from models.download.download_from_bucket import download_all_models_from_bucket
 import time
+from transformers import AutoProcessor, CLIPModel
+
+
+class ModelPack:
+    def __init__(
+        self,
+        txt2img_pipes: dict[str, StableDiffusionPipeline],
+        upscaler: Any,
+        language_detector_pipe: LanguageDetector,
+        clip: Any,
+    ):
+        self.txt2img_pipes = txt2img_pipes
+        self.upscaler = upscaler
+        self.language_detector_pipe = language_detector_pipe
+        self.clip = clip
 
 
 def setup(
@@ -65,9 +80,21 @@ def setup(
     )
     print("✅ Loaded language detector")
 
+    # For CLIP
+    clip_model = CLIPModel.from_pretrained("openai/clip-vit-large-patch14")
+    clip_model = clip_model.to("cuda")
+    clip_processor = AutoProcessor.from_pretrained("openai/clip-vit-large-patch14")
+    clip = {"model": clip_model, "processor": clip_processor}
+    print("✅ Loaded CLIP model")
+
     end = time.time()
     print("//////////////////////////////////////////////////////////////////")
     print(f"✅ Predict setup is done in: {round((end - start))} sec.")
     print("//////////////////////////////////////////////////////////////////")
 
-    return txt2img_pipes, upscaler, language_detector_pipe
+    return ModelPack(
+        txt2img_pipes=txt2img_pipes,
+        upscaler=upscaler,
+        language_detector_pipe=language_detector_pipe,
+        clip=clip,
+    )

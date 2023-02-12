@@ -36,9 +36,7 @@ if __name__ == "__main__":
     )
 
     # Setup predictor
-    txt2img_pipes, upscaler, language_detector_pipe = setup(
-        s3, s3BucketNameModels
-    )
+    model_pack = setup(s3, s3BucketNameModels)
 
     # Setup redis
     redis = redis.from_url(redisUrl)
@@ -54,9 +52,7 @@ if __name__ == "__main__":
             s3_client=s3,
             s3_bucket=s3BucketNameUpload,
             upload_queue=upload_queue,
-            txt2img_pipes=txt2img_pipes,
-            upscaler=upscaler,
-            language_detector_pipe=language_detector_pipe,
+            model_pack=model_pack,
         )
     )
 
