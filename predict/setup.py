@@ -23,14 +23,21 @@ from transformers import (
 from models.clip.constants import CLIP_MODEL_ID
 
 
-def setup(
-    s3: ServiceResource, bucket_name: str
-) -> Tuple[
-    Dict[str, Any],
-    Callable[[np.ndarray | Image.Image, Any, Any], Image.Image],
-    Any,
-    LanguageDetector,
-]:
+class ModelsPack:
+    def __init__(
+        self,
+        txt2img_pipes: dict[str, StableDiffusionPipeline],
+        upscaler: Any,
+        language_detector_pipe: LanguageDetector,
+        clip: Any,
+    ):
+        self.txt2img_pipes = txt2img_pipes
+        self.upscaler = upscaler
+        self.language_detector_pipe = language_detector_pipe
+        self.clip = clip
+
+
+def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     start = time.time()
     print(f"⏳ Setup has started - Version: {WORKER_VERSION}")
 
@@ -97,17 +104,3 @@ def setup(
         language_detector_pipe=language_detector_pipe,
         clip=clip,
     )
-
-
-class ModelsPack:
-    def __init__(
-        self,
-        txt2img_pipes: dict[str, StableDiffusionPipeline],
-        upscaler: Any,
-        language_detector_pipe: LanguageDetector,
-        clip: Any,
-    ):
-        self.txt2img_pipes = txt2img_pipes
-        self.upscaler = upscaler
-        self.language_detector_pipe = language_detector_pipe
-        self.clip = clip
