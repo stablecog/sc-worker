@@ -10,8 +10,7 @@ from models.swinir.upscale import upscale
 from typing import List, Optional
 from .classes import PredictOutput, PredictResult
 from .setup import ModelsPack
-
-""" from models.clip.main import get_embeds_of_images, get_embeds_of_texts """
+from models.clip.main import get_embeds_of_images, get_embeds_of_texts
 
 
 @torch.inference_mode()
@@ -42,8 +41,8 @@ def predict(
     print(f"⏳ Process started: {process_type} ⏳")
     output_images = []
     nsfw_count = 0
-    """ embeds_of_images = None
-    embed_of_prompt = None """
+    embeds_of_images = None
+    embed_of_prompt = None
 
     if process_type == "generate" or process_type == "generate_and_upscale":
         if translator_cog_url is None:
@@ -91,7 +90,7 @@ def predict(
             f"🖥️ Generated in {round((endTime - startTime) * 1000)} ms - Model: {model} - Width: {width} - Height: {height} - Steps: {num_inference_steps} - Outputs: {num_outputs} 🖥️"
         )
 
-        """ start_clip_image = time.time()
+        start_clip_image = time.time()
         embeds_of_images = get_embeds_of_images(
             output_images, model_pack.clip["model"], model_pack.clip["processor"]
         )
@@ -101,14 +100,13 @@ def predict(
         )
 
         start_clip_prompt = time.time()
-        embeds_of_texts = get_embeds_of_texts(
+        embed_of_prompt = get_embeds_of_texts(
             [prompt], model_pack.clip["model"], model_pack.clip["tokenizer"]
         )
-        embed_of_prompt = embeds_of_texts[0]
         end_clip_prompt = time.time()
         print(
             f"📜 CLIP prompt embedding in: {round((end_clip_prompt - start_clip_prompt) * 1000)} ms 📜"
-        ) """
+        )
 
     if process_type == "upscale" or process_type == "generate_and_upscale":
         startTime = time.time()
@@ -131,6 +129,8 @@ def predict(
             pil_image=image,
             target_quality=output_image_quality,
             target_extension=output_image_extension,
+            image_embed=embeds_of_images[i],
+            prompt_embed=embed_of_prompt,
         )
         output_objects.append(obj)
 

@@ -15,12 +15,12 @@ from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
 from models.download.download_from_bucket import download_all_models_from_bucket
 import time
 from models.constants import DEVICE
-""" from transformers import (
+from transformers import (
     AutoProcessor,
     AutoTokenizer,
     CLIPModel,
 )
-from models.clip.constants import CLIP_MODEL_ID """
+from models.clip.constants import CLIP_MODEL_ID
 
 
 def setup(
@@ -76,7 +76,7 @@ def setup(
     print("✅ Loaded language detector")
 
     # For CLIP
-    """ clip_model = CLIPModel.from_pretrained(CLIP_MODEL_ID).to(DEVICE)
+    clip_model = CLIPModel.from_pretrained(CLIP_MODEL_ID).to(DEVICE)
     clip_processor = AutoProcessor.from_pretrained(CLIP_MODEL_ID)
     clip_tokenizer = AutoTokenizer.from_pretrained(CLIP_MODEL_ID)
     clip = {
@@ -84,7 +84,7 @@ def setup(
         "processor": clip_processor,
         "tokenizer": clip_tokenizer,
     }
-    print("✅ Loaded CLIP model") """
+    print("✅ Loaded CLIP model")
 
     end = time.time()
     print("//////////////////////////////////////////////////////////////////")
@@ -95,6 +95,7 @@ def setup(
         txt2img_pipes=txt2img_pipes,
         upscaler=upscaler,
         language_detector_pipe=language_detector_pipe,
+        clip=clip,
     )
 
 
@@ -104,7 +105,9 @@ class ModelsPack:
         txt2img_pipes: dict[str, StableDiffusionPipeline],
         upscaler: Any,
         language_detector_pipe: LanguageDetector,
+        clip: Any,
     ):
         self.txt2img_pipes = txt2img_pipes
         self.upscaler = upscaler
         self.language_detector_pipe = language_detector_pipe
+        self.clip = clip

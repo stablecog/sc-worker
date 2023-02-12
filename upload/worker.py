@@ -5,7 +5,7 @@ import traceback
 import queue
 import uuid
 from concurrent.futures import Future, ThreadPoolExecutor
-from typing import List, Iterable, Dict, Any, Optional
+from typing import List, Iterable, Dict, Any
 
 import redis
 from boto3_type_annotations.s3 import ServiceResource
@@ -26,6 +26,7 @@ def convert_and_upload_to_s3(
 ) -> str:
     """Convert an individual image to a target format and upload to S3."""
     start_conv = time.time()
+
     _pil_image = pil_image
     if target_extension == "jpeg":
         _pil_image = _pil_image.convert("RGB")
@@ -37,6 +38,7 @@ def convert_and_upload_to_s3(
     print(
         f"Converted image in: {round((end_conv - start_conv) *1000)} ms - {img_format} - {target_quality}"
     )
+
     key = f"{str(uuid.uuid4())}.{target_extension}"
     if upload_path_prefix is not None and upload_path_prefix != "":
         key = f"{ensure_trailing_slash(upload_path_prefix)}{key}"
@@ -120,13 +122,5 @@ def start_upload_worker(
             del uploadMsg["upload_output"]
         if "upload_prefix" in uploadMsg:
             del uploadMsg["upload_prefix"]
-
-        """ outputs = predict_result.outputs
-        embeddings_of_images = []
-        embedding_of_prompt = outputs[0].clip_prompt_embedding
-        for output in outputs:
-            embeddings_of_images.append(output.clip_image_embedding)
-        uploadMsg["embeddings_of_images"] = embeddings_of_images
-        uploadMsg["embedding_of_prompt"] = embedding_of_prompt """
 
         redis.publish(uploadMsg["redis_pubsub_key"], json.dumps(uploadMsg))
