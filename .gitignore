@@ -29,6 +29,7 @@ diffusers-cache
 upscalers-cache
 experiments
 input_temp
+sc-bootstrapped
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
