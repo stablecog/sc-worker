@@ -8,7 +8,6 @@ from typing import Any, Dict, Iterable, Tuple
 from boto3_type_annotations.s3 import ServiceResource
 import redis
 import uuid
-from lingua import LanguageDetector
 
 from rdqueue.events import Status, Event
 from predict.predict import predict, PredictResult
@@ -131,7 +130,7 @@ def run_prediction(
     # that we echo back any additional fields sent to us
     response = message
     response["status"] = Status.PROCESSING
-    response["output"] = None
+    response["outputs"] = None
     response["logs"] = ""
 
     started_at = datetime.datetime.now()

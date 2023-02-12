@@ -104,7 +104,7 @@ def start_upload_worker(
             predict_result: PredictResult = uploadMsg["upload_output"]
             if len(predict_result.outputs) > 0:
                 try:
-                    uploadMsg["output"] = upload_files(
+                    uploadMsg["outputs"] = upload_files(
                         predict_result.outputs,
                         s3,
                         s3_bucket,
@@ -120,4 +120,13 @@ def start_upload_worker(
             del uploadMsg["upload_output"]
         if "upload_prefix" in uploadMsg:
             del uploadMsg["upload_prefix"]
+
+        """ outputs = predict_result.outputs
+        embeddings_of_images = []
+        embedding_of_prompt = outputs[0].clip_prompt_embedding
+        for output in outputs:
+            embeddings_of_images.append(output.clip_image_embedding)
+        uploadMsg["embeddings_of_images"] = embeddings_of_images
+        uploadMsg["embedding_of_prompt"] = embedding_of_prompt """
+
         redis.publish(uploadMsg["redis_pubsub_key"], json.dumps(uploadMsg))
