@@ -96,6 +96,6 @@ touch $BOOTSTRAP_FILE
 
 echo "🎉 Stablecog bootstrapped!"
 echo "🔑 Don't forget to create a ".env" file"
-echo "🎬 You can start the server by running './run'"
+echo "🎬 You can start the server by running './run.sh'"
 echo "Please run 'source ~/.bashrc' or reload your terminal"
 exit 0
