@@ -9,8 +9,8 @@ from models.swinir.upscale import upscale
 
 from typing import List, Optional
 from .classes import PredictOutput, PredictResult
-from .setup import ModelPack
-from models.clip.main import get_features_of_images
+from .setup import ModelsPack
+from models.clip.main import get_embeds_of_images, get_embeds_of_texts
 
 
 @torch.inference_mode()
@@ -34,13 +34,15 @@ def predict(
     negative_prompt_prefix: str,
     image_to_upscale: Optional[str],
     translator_cog_url: Optional[str],
-    model_pack: ModelPack,
+    model_pack: ModelsPack,
 ) -> PredictResult:
     process_start = time.time()
     print("//////////////////////////////////////////////////////////////////")
     print(f"⏳ Process started: {process_type} ⏳")
     output_images = []
     nsfw_count = 0
+    embeds_of_images = None
+    embed_of_prompt = None
 
     if process_type == "generate" or process_type == "generate_and_upscale":
         if translator_cog_url is None:
@@ -88,24 +90,34 @@ def predict(
             f"🖥️ Generated in {round((endTime - startTime) * 1000)} ms - Model: {model} - Width: {width} - Height: {height} - Steps: {num_inference_steps} - Outputs: {num_outputs} 🖥️"
         )
 
-        start_clip = time.time()
-        features_of_images = get_features_of_images(
+        start_clip_image = time.time()
+        embeds_of_images = get_embeds_of_images(
             output_images, model_pack.clip["model"], model_pack.clip["processor"]
         )
-        end_clip = time.time()
+        end_clip_image = time.time()
         print(
-            f"🖼️ CLIP embeddings in: {round((end_clip - start_clip) * 1000)} ms 🖼️"
+            f"🖼️ CLIP image embeddings in: {round((end_clip_image - start_clip_image) * 1000)} ms - {len(output_images)} images 🖼️"
+        )
+
+        start_clip_prompt = time.time()
+        embeds_of_texts = get_embeds_of_texts(
+            [prompt], model_pack.clip["model"], model_pack.clip["tokenizer"]
+        )
+        embed_of_prompt = embeds_of_texts[0]
+        end_clip_prompt = time.time()
+        print(
+            f"📜 CLIP prompt embedding in: {round((end_clip_prompt - start_clip_prompt) * 1000)} ms 📜"
         )
 
     if process_type == "upscale" or process_type == "generate_and_upscale":
         startTime = time.time()
         if process_type == "upscale":
-            upscale_output_image = upscale(image_to_upscale, model_pack.upscaler)
+            upscale_output_image = upscale(image_to_upscale, model_pack["upscaler"])
             output_images = [upscale_output_image]
         else:
             upscale_output_images = []
             for image in output_images:
-                upscale_output_image = upscale(image, model_pack.upscaler)
+                upscale_output_image = upscale(image, model_pack["upscaler"])
                 upscale_output_images.append(upscale_output_image)
             output_images = upscale_output_images
         endTime = time.time()
@@ -118,6 +130,8 @@ def predict(
             pil_image=image,
             target_quality=output_image_quality,
             target_extension=output_image_extension,
+            clip_image_embedding=embeds_of_images[i],
+            clip_prompt_embedding=embed_of_prompt,
         )
         output_objects.append(obj)
 

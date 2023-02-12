@@ -14,21 +14,13 @@ from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
 from models.download.download_from_bucket import download_all_models_from_bucket
 import time
-from transformers import AutoProcessor, CLIPModel
-
-
-class ModelPack:
-    def __init__(
-        self,
-        txt2img_pipes: dict[str, StableDiffusionPipeline],
-        upscaler: Any,
-        language_detector_pipe: LanguageDetector,
-        clip: Any,
-    ):
-        self.txt2img_pipes = txt2img_pipes
-        self.upscaler = upscaler
-        self.language_detector_pipe = language_detector_pipe
-        self.clip = clip
+from transformers import (
+    AutoProcessor,
+    AutoTokenizer,
+    CLIPModel,
+)
+from models.constants import DEVICE
+from models.clip.constants import CLIP_MODEL_ID
 
 
 def setup(
@@ -56,7 +48,7 @@ def setup(
             torch_dtype=SD_MODELS[key]["torch_dtype"],
             cache_dir=SD_MODEL_CACHE,
         )
-        txt2img_pipes[key] = pipe.to("cuda")
+        txt2img_pipes[key] = pipe.to(DEVICE)
         txt2img_pipes[key].enable_xformers_memory_efficient_attention()
         print(f"✅ Loaded SD model: {key}")
 
@@ -69,7 +61,10 @@ def setup(
     upscaler_pipe = define_model_swinir(upscaler_args)
     upscaler_pipe.eval()
     upscaler_pipe = upscaler_pipe.to(DEVICE_SWINIR)
-    upscaler = {"pipe": upscaler_pipe, "args": upscaler_args}
+    upscaler = {
+        "pipe": upscaler_pipe,
+        "args": upscaler_args,
+    }
     print("✅ Loaded upscaler")
 
     # For translator
@@ -81,10 +76,14 @@ def setup(
     print("✅ Loaded language detector")
 
     # For CLIP
-    clip_model = CLIPModel.from_pretrained("openai/clip-vit-large-patch14")
-    clip_model = clip_model.to("cuda")
-    clip_processor = AutoProcessor.from_pretrained("openai/clip-vit-large-patch14")
-    clip = {"model": clip_model, "processor": clip_processor}
+    clip_model = CLIPModel.from_pretrained(CLIP_MODEL_ID).to(DEVICE)
+    clip_processor = AutoProcessor.from_pretrained(CLIP_MODEL_ID)
+    clip_tokenizer = AutoTokenizer.from_pretrained(CLIP_MODEL_ID)
+    clip = {
+        "model": clip_model,
+        "processor": clip_processor,
+        "tokenizer": clip_tokenizer,
+    }
     print("✅ Loaded CLIP model")
 
     end = time.time()
@@ -92,9 +91,23 @@ def setup(
     print(f"✅ Predict setup is done in: {round((end - start))} sec.")
     print("//////////////////////////////////////////////////////////////////")
 
-    return ModelPack(
+    return ModelsPack(
         txt2img_pipes=txt2img_pipes,
         upscaler=upscaler,
         language_detector_pipe=language_detector_pipe,
         clip=clip,
     )
+
+
+class ModelsPack:
+    def __init__(
+        self,
+        txt2img_pipes: dict[str, StableDiffusionPipeline],
+        upscaler: Any,
+        language_detector_pipe: LanguageDetector,
+        clip: Any,
+    ):
+        self.txt2img_pipes = txt2img_pipes
+        self.upscaler = upscaler
+        self.language_detector_pipe = language_detector_pipe
+        self.clip = clip

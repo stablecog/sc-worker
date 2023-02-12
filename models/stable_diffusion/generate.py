@@ -2,7 +2,7 @@ import os
 import torch
 from .helpers import make_scheduler
 from .constants import SD_MODELS
-import numpy as np
+from models.constants import DEVICE
 
 
 def generate(
@@ -53,7 +53,7 @@ def generate(
 
     pipe = txt2img_pipe
     pipe.scheduler = make_scheduler(scheduler, pipe.scheduler.config)
-    generator = torch.Generator("cuda").manual_seed(seed)
+    generator = torch.Generator(DEVICE).manual_seed(seed)
     output = pipe(
         prompt=[prompt] * num_outputs if prompt is not None else None,
         negative_prompt=[negative_prompt] * num_outputs

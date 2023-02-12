@@ -13,7 +13,7 @@ from lingua import LanguageDetector
 from rdqueue.events import Status, Event
 from predict.predict import predict, PredictResult
 from shared.helpers import format_datetime
-from predict.setup import ModelPack
+from predict.setup import ModelsPack
 
 
 def start_redis_queue_worker(
@@ -22,7 +22,7 @@ def start_redis_queue_worker(
     s3_client: ServiceResource,
     s3_bucket: str,
     upload_queue: queue.Queue[Dict[str, Any]],
-    model_pack: ModelPack,
+    model_pack: ModelsPack,
 ) -> None:
     print(f"Starting redis queue worker, bucket is: {s3_bucket}\n")
 
@@ -123,7 +123,7 @@ def start_redis_queue_worker(
 
 def run_prediction(
     message: Dict[str, Any],
-    model_pack: ModelPack,
+    model_pack: ModelsPack,
 ) -> Iterable[Tuple[Event, Dict[str, Any]]]:
     """Runs the prediction and yields events and responses."""
 
