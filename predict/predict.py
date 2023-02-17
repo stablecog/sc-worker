@@ -48,7 +48,7 @@ class PredictInput(BaseModel):
     model: str = Field(
         default=SD_MODEL_DEFAULT_KEY,
         choices=SD_MODEL_CHOICES,
-        description="Choose a model. Defaults to 'Stable Diffusion v1.5'.",
+        description=f"Choose a model. Defaults to '{SD_MODEL_DEFAULT_KEY}'.",
     )
     seed: int = Field(
         description="Random seed. Leave blank to randomize the seed.", default=None
@@ -100,18 +100,15 @@ def predict(
     embed_of_prompt = None
 
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
-        if translator_cog_url is None:
-            translator_cog_url = os.environ.get("TRANSLATOR_COG_URL", None)
-
         t_prompt = input.prompt
         t_negative_prompt = input.negative_prompt
-        if translator_cog_url is not None:
+        if input.translator_cog_url is not None:
             [t_prompt, t_negative_prompt] = translate_text(
                 input.prompt,
                 input.prompt_flores_200_code,
                 input.negative_prompt,
                 input.negative_prompt_flores_200_code,
-                translator_cog_url,
+                input.translator_cog_url,
                 models_pack.language_detector_pipe,
                 "Prompt & Negative Prompt",
             )
@@ -184,8 +181,8 @@ def predict(
             pil_image=image,
             target_quality=input.output_image_quality,
             target_extension=input.output_image_extension,
-            image_embed=embeds_of_images[i],
-            prompt_embed=embed_of_prompt,
+            image_embed=embeds_of_images[i] if embeds_of_images is not None else None,
+            prompt_embed=embed_of_prompt if embed_of_prompt is not None else None,
         )
         output_objects.append(obj)
 

@@ -134,7 +134,10 @@ def is_url(url: str) -> bool:
     return url.startswith("http://") or url.startswith("https://")
 
 def download_image(url: str, temp_file: Any) -> None:
+    start = time.time()
     response = requests.get(url)
     if response.status_code != 200:
         raise ValueError(f"Failed to download image from: {url}")
     temp_file.write(response.content)
+    end = time.time()
+    print(f"-- Upscale - Download image in: {round((end - start) * 1000)} ms --")
