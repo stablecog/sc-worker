@@ -40,13 +40,14 @@ def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image
         download_image(image, temp_file)
         image = temp_file.name
 
-    if isinstance(image, np.ndarray):
+    elif isinstance(image, np.ndarray):
         temp_dir = tempfile.mkdtemp()
         temp_file = tempfile.NamedTemporaryFile(
             suffix=".png", dir=temp_dir, delete=False
         )
         cv2.imwrite(temp_file.name, image)
         image = temp_file.name
+        
     elif isinstance(image, Image.Image):
         temp_dir = tempfile.mkdtemp()
         temp_file = tempfile.NamedTemporaryFile(
