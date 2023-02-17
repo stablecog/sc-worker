@@ -74,4 +74,4 @@ LANG_TO_FLORES = {
     "ZULU": "zul_Latn",
 }
 
-TRANSLATOR_COG_URL = os.environ.get("TRANSLATOR_COG_URL")
+TRANSLATOR_COG_URL = os.environ.get("TRANSLATOR_COG_URL", None)

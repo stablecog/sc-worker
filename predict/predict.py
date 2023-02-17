@@ -2,60 +2,115 @@ import time
 import os
 
 import torch
+from models.nllb.constants import TRANSLATOR_COG_URL
+from models.stable_diffusion.constants import SD_MODEL_CHOICES, SD_MODEL_DEFAULT_KEY, SD_SCHEDULER_CHOICES, SD_SCHEDULER_DEFAULT
 
 from models.stable_diffusion.generate import generate
 from models.nllb.translate import translate_text
 from models.swinir.upscale import upscale
 
-from typing import List, Optional
+from typing import List
 from .classes import PredictOutput, PredictResult
 from .setup import ModelsPack
 from models.clip.main import get_embeds_of_images, get_embeds_of_texts
+from pydantic import BaseModel, Field
 
+class PredictInput(BaseModel):
+    prompt: str = Field(description="Input prompt.", default="")
+    negative_prompt: str = Field(description="Input negative prompt.", default="")
+    width: int = Field(
+        description="Width of output image.",
+        choices=[128, 256, 384, 448, 512, 576, 640, 704, 768, 832, 896, 960, 1024],
+        default=512,
+    )
+    height: int = Field(
+        description="Height of output image.",
+        choices=[128, 256, 384, 448, 512, 576, 640, 704, 768, 832, 896, 960, 1024],
+        default=512,
+    )
+    num_outputs: int = Field(
+        description="Number of images to output. If the NSFW filter is triggered, you may get fewer outputs than this.",
+        ge=1,
+        le=10,
+        default=1,
+    )
+    num_inference_steps: int = Field(
+        description="Number of denoising steps", ge=1, le=500, default=30
+    )
+    guidance_scale: float = Field(
+        description="Scale for classifier-free guidance", ge=1, le=20, default=7.5
+    )
+    scheduler: str = Field(
+        default=SD_SCHEDULER_DEFAULT,
+        choices=SD_SCHEDULER_CHOICES,
+        description="Choose a scheduler.",
+    )
+    model: str = Field(
+        default=SD_MODEL_DEFAULT_KEY,
+        choices=SD_MODEL_CHOICES,
+        description="Choose a model. Defaults to 'Stable Diffusion v1.5'.",
+    )
+    seed: int = Field(
+        description="Random seed. Leave blank to randomize the seed.", default=None
+    )
+    prompt_flores_200_code: str = Field(
+        description="Prompt language code (FLORES-200). It overrides the language auto-detection.",
+        default=None,
+    )
+    negative_prompt_flores_200_code: str = Field(
+        description="Negative prompt language code (FLORES-200). It overrides the language auto-detection.",
+        default=None,
+    )
+    prompt_prefix: str = Field(description="Prompt prefix.", default=None)
+    negative_prompt_prefix: str = Field(
+        description="Negative prompt prefix.", default=None
+    )
+    output_image_extension: str = Field(
+        description="Output type of the image. Can be 'png' or 'jpeg' or 'webp'.",
+        choices=["png", "jpeg", "webp"],
+        default="jpeg",
+    )
+    output_image_quality: int = Field(
+        description="Output quality of the image. Can be 1-100.", default=90
+    )
+    image_to_upscale: str = Field(
+        description="Input image for the upscaler (SwinIR).", default=None
+    )
+    process_type: str = Field(
+        description="Choose a process type. Can be 'generate', 'upscale' or 'generate_and_upscale'. Defaults to 'generate'",
+        choices=["generate", "upscale", "generate_and_upscale"],
+        default="generate",
+    )
+    translator_cog_url: str = Field(
+        description="URL of the translator cog. If it's blank, TRANSLATOR_COG_URL environment variable will be used (if it exists).",
+        default=TRANSLATOR_COG_URL,
+    )
 
 @torch.inference_mode()
 def predict(
-    prompt: str,
-    negative_prompt: str,
-    width: int,
-    height: int,
-    num_outputs: int,
-    num_inference_steps: int,
-    guidance_scale: float,
-    scheduler: str,
-    model: str,
-    seed: int,
-    prompt_flores_200_code: str,
-    negative_prompt_flores_200_code: str,
-    output_image_extension: str,
-    output_image_quality: int,
-    process_type: str,
-    prompt_prefix: str,
-    negative_prompt_prefix: str,
-    image_to_upscale: Optional[str],
-    translator_cog_url: Optional[str],
+    input: PredictInput,
     models_pack: ModelsPack,
 ) -> PredictResult:
     process_start = time.time()
     print("//////////////////////////////////////////////////////////////////")
-    print(f"⏳ Process started: {process_type} ⏳")
+    print(f"⏳ Process started: {input.process_type} ⏳")
     output_images = []
     nsfw_count = 0
     embeds_of_images = None
     embed_of_prompt = None
 
-    if process_type == "generate" or process_type == "generate_and_upscale":
+    if input.process_type == "generate" or input.process_type == "generate_and_upscale":
         if translator_cog_url is None:
             translator_cog_url = os.environ.get("TRANSLATOR_COG_URL", None)
 
-        t_prompt = prompt
-        t_negative_prompt = negative_prompt
+        t_prompt = input.prompt
+        t_negative_prompt = input.negative_prompt
         if translator_cog_url is not None:
             [t_prompt, t_negative_prompt] = translate_text(
-                prompt,
-                prompt_flores_200_code,
-                negative_prompt,
-                negative_prompt_flores_200_code,
+                input.prompt,
+                input.prompt_flores_200_code,
+                input.negative_prompt,
+                input.negative_prompt_flores_200_code,
                 translator_cog_url,
                 models_pack.language_detector_pipe,
                 "Prompt & Negative Prompt",
@@ -63,31 +118,31 @@ def predict(
         else:
             print("-- Translator cog URL is not set. Skipping translation. --")
 
-        txt2img_pipe = models_pack.txt2img_pipes[model]
+        txt2img_pipe = models_pack.txt2img_pipes[input.model]
         print(
-            f"🖥️ Generating - Model: {model} - Width: {width} - Height: {height} - Steps: {num_inference_steps} - Outputs: {num_outputs} 🖥️"
+            f"🖥️ Generating - Model: {input.model} - Width: {input.width} - Height: {input.height} - Steps: {input.num_inference_steps} - Outputs: {input.num_outputs} 🖥️"
         )
         startTime = time.time()
         generate_output_images, generate_nsfw_count = generate(
             t_prompt,
             t_negative_prompt,
-            prompt_prefix,
-            negative_prompt_prefix,
-            width,
-            height,
-            num_outputs,
-            num_inference_steps,
-            guidance_scale,
-            scheduler,
-            seed,
-            model,
+            input.prompt_prefix,
+            input.negative_prompt_prefix,
+            input.width,
+            input.height,
+            input.num_outputs,
+            input.num_inference_steps,
+            input.guidance_scale,
+            input.scheduler,
+            input.seed,
+            input.model,
             txt2img_pipe,
         )
         output_images = generate_output_images
         nsfw_count = generate_nsfw_count
         endTime = time.time()
         print(
-            f"🖥️ Generated in {round((endTime - startTime) * 1000)} ms - Model: {model} - Width: {width} - Height: {height} - Steps: {num_inference_steps} - Outputs: {num_outputs} 🖥️"
+            f"🖥️ Generated in {round((endTime - startTime) * 1000)} ms - Model: {input.model} - Width: {input.width} - Height: {input.height} - Steps: {input.num_inference_steps} - Outputs: {input.num_outputs} 🖥️"
         )
 
         start_clip_image = time.time()
@@ -101,17 +156,17 @@ def predict(
 
         start_clip_prompt = time.time()
         embed_of_prompt = get_embeds_of_texts(
-            [prompt], models_pack.clip["model"], models_pack.clip["tokenizer"]
+            [input.prompt], models_pack.clip["model"], models_pack.clip["tokenizer"]
         )
         end_clip_prompt = time.time()
         print(
             f"📜 CLIP prompt embedding in: {round((end_clip_prompt - start_clip_prompt) * 1000)} ms 📜"
         )
 
-    if process_type == "upscale" or process_type == "generate_and_upscale":
+    if input.process_type == "upscale" or input.process_type == "generate_and_upscale":
         startTime = time.time()
-        if process_type == "upscale":
-            upscale_output_image = upscale(image_to_upscale, models_pack.upscaler)
+        if input.process_type == "upscale":
+            upscale_output_image = upscale(input.image_to_upscale, models_pack.upscaler)
             output_images = [upscale_output_image]
         else:
             upscale_output_images = []
@@ -127,8 +182,8 @@ def predict(
     for i, image in enumerate(output_images):
         obj = PredictOutput(
             pil_image=image,
-            target_quality=output_image_quality,
-            target_extension=output_image_extension,
+            target_quality=input.output_image_quality,
+            target_extension=input.output_image_extension,
             image_embed=embeds_of_images[i],
             prompt_embed=embed_of_prompt,
         )

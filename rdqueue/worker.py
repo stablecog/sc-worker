@@ -10,7 +10,7 @@ import redis
 import uuid
 
 from rdqueue.events import Status, Event
-from predict.predict import predict, PredictResult
+from predict.predict import PredictInput, predict, PredictResult
 from shared.helpers import format_datetime
 from predict.setup import ModelsPack
 
@@ -153,27 +153,7 @@ def run_prediction(
 
     try:            
         predictResult = predict(
-            prompt=input_obj.get("prompt", ""),
-            negative_prompt=input_obj.get("negative_prompt", ""),
-            width=input_obj.get("width"),
-            height=input_obj.get("height"),
-            num_outputs=input_obj.get("num_outputs"),
-            num_inference_steps=input_obj.get("num_inference_steps"),
-            guidance_scale=input_obj.get("guidance_scale"),
-            scheduler=input_obj.get("scheduler"),
-            model=input_obj.get("model"),
-            seed=input_obj.get("seed"),
-            prompt_flores_200_code=input_obj.get("prompt_flores_200_code"),
-            negative_prompt_flores_200_code=input_obj.get(
-                "negative_prompt_flores_200_code"
-            ),
-            output_image_extension=input_obj.get("output_image_extension"),
-            output_image_quality=input_obj.get("output_image_quality"),
-            process_type=input_obj.get("process_type"),
-            prompt_prefix=None,
-            negative_prompt_prefix=None,
-            image_to_upscale=input_obj.get("image_to_upscale"),
-            translator_cog_url=input_obj.get("translator_cog_url"),
+            input=PredictInput(**input_obj),
             models_pack=models_pack,
         )
 
