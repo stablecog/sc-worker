@@ -14,17 +14,32 @@ from .helpers import get_image_pair, setup
 import time
 from PIL import Image
 from typing import Any
+import requests
 
 
 @torch.cuda.amp.autocast()
-def upscale(image: np.ndarray | Image.Image, upscaler: Any) -> Image.Image:
+def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image:
     if image is None:
         raise ValueError("Image is required for the upscaler.")
 
     args = upscaler["args"]
     pipe = upscaler["pipe"]
     output_image = None
-    # check if the image is a numpy array and convert it to path if so
+    
+    # check if image is a url and download it if sso
+    if is_url(image):
+        extension = image.split(".")[-1]
+        if extension is None:
+            extension = "png"
+        else: 
+            extension.lower()
+        temp_dir = tempfile.mkdtemp()
+        temp_file = tempfile.NamedTemporaryFile(
+            suffix=f".{extension}", dir=temp_dir, delete=False
+        )
+        download_image(image, temp_file)
+        image = temp_file.name
+
     if isinstance(image, np.ndarray):
         temp_dir = tempfile.mkdtemp()
         temp_file = tempfile.NamedTemporaryFile(
@@ -113,3 +128,12 @@ def upscale(image: np.ndarray | Image.Image, upscaler: Any) -> Image.Image:
     end = time.time()
     print(f"-- Upscale - Array to PIL Image in: {round((end - start) * 1000)} ms --")
     return pil_image
+
+def is_url(url: str) -> bool:
+    return url.startswith("http://") or url.startswith("https://")
+
+def download_image(url: str, temp_file: Any) -> None:
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise ValueError(f"Failed to download image from: {url}")
+    temp_file.write(response.content)
