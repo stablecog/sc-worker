@@ -111,12 +111,12 @@ def predict(
     if process_type == "upscale" or process_type == "generate_and_upscale":
         startTime = time.time()
         if process_type == "upscale":
-            upscale_output_image = upscale(image_to_upscale, models_pack["upscaler"])
+            upscale_output_image = upscale(image_to_upscale, models_pack.upscaler)
             output_images = [upscale_output_image]
         else:
             upscale_output_images = []
             for image in output_images:
-                upscale_output_image = upscale(image, models_pack["upscaler"])
+                upscale_output_image = upscale(image, models_pack.upscaler)
                 upscale_output_images.append(upscale_output_image)
             output_images = upscale_output_images
         endTime = time.time()
