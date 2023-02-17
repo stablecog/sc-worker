@@ -1,3 +1,5 @@
+import os
+
 LANG_TO_FLORES = {
     "AFRIKAANS": "afr_Latn",
     "ALBANIAN": "als_Latn",
@@ -71,3 +73,5 @@ LANG_TO_FLORES = {
     "YORUBA": "yor_Latn",
     "ZULU": "zul_Latn",
 }
+
+TRANSLATOR_COG_URL = os.environ.get("TRANSLATOR_COG_URL")

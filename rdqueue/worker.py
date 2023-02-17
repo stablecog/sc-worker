@@ -151,32 +151,29 @@ def run_prediction(
 
     yield (Event.START, response)
 
-    try:
-        translator_cog_url = input_obj.get("translator_cog_url")
-        if translator_cog_url is None:
-            translator_cog_url = os.environ.get("TRANSLATOR_COG_URL")
+    try:            
         predictResult = predict(
             prompt=input_obj.get("prompt", ""),
             negative_prompt=input_obj.get("negative_prompt", ""),
-            width=int(input_obj.get("width")),
-            height=int(input_obj.get("height")),
-            num_outputs=int(input_obj.get("num_outputs")),
-            num_inference_steps=int(input_obj.get("num_inference_steps")),
-            guidance_scale=float(input_obj.get("guidance_scale")),
+            width=input_obj.get("width"),
+            height=input_obj.get("height"),
+            num_outputs=input_obj.get("num_outputs"),
+            num_inference_steps=input_obj.get("num_inference_steps"),
+            guidance_scale=input_obj.get("guidance_scale"),
             scheduler=input_obj.get("scheduler"),
             model=input_obj.get("model"),
-            seed=int(input_obj.get("seed")),
+            seed=input_obj.get("seed"),
             prompt_flores_200_code=input_obj.get("prompt_flores_200_code"),
             negative_prompt_flores_200_code=input_obj.get(
                 "negative_prompt_flores_200_code"
             ),
             output_image_extension=input_obj.get("output_image_extension"),
-            output_image_quality=int(input_obj.get("output_image_quality")),
+            output_image_quality=input_obj.get("output_image_quality"),
             process_type=input_obj.get("process_type"),
-            prompt_prefix="",
-            negative_prompt_prefix="",
+            prompt_prefix=None,
+            negative_prompt_prefix=None,
             image_to_upscale=input_obj.get("image_to_upscale"),
-            translator_cog_url=translator_cog_url,
+            translator_cog_url=input_obj.get("translator_cog_url"),
             models_pack=models_pack,
         )
 
