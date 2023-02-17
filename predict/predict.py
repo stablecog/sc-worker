@@ -34,7 +34,7 @@ def predict(
     negative_prompt_prefix: str,
     image_to_upscale: Optional[str],
     translator_cog_url: Optional[str],
-    model_pack: ModelsPack,
+    models_pack: ModelsPack,
 ) -> PredictResult:
     process_start = time.time()
     print("//////////////////////////////////////////////////////////////////")
@@ -57,13 +57,13 @@ def predict(
                 negative_prompt,
                 negative_prompt_flores_200_code,
                 translator_cog_url,
-                model_pack.language_detector_pipe,
+                models_pack.language_detector_pipe,
                 "Prompt & Negative Prompt",
             )
         else:
             print("-- Translator cog URL is not set. Skipping translation. --")
 
-        txt2img_pipe = model_pack.txt2img_pipes[model]
+        txt2img_pipe = models_pack.txt2img_pipes[model]
         print(
             f"🖥️ Generating - Model: {model} - Width: {width} - Height: {height} - Steps: {num_inference_steps} - Outputs: {num_outputs} 🖥️"
         )
@@ -92,7 +92,7 @@ def predict(
 
         start_clip_image = time.time()
         embeds_of_images = get_embeds_of_images(
-            output_images, model_pack.clip["model"], model_pack.clip["processor"]
+            output_images, models_pack.clip["model"], models_pack.clip["processor"]
         )
         end_clip_image = time.time()
         print(
@@ -101,7 +101,7 @@ def predict(
 
         start_clip_prompt = time.time()
         embed_of_prompt = get_embeds_of_texts(
-            [prompt], model_pack.clip["model"], model_pack.clip["tokenizer"]
+            [prompt], models_pack.clip["model"], models_pack.clip["tokenizer"]
         )
         end_clip_prompt = time.time()
         print(
@@ -111,12 +111,12 @@ def predict(
     if process_type == "upscale" or process_type == "generate_and_upscale":
         startTime = time.time()
         if process_type == "upscale":
-            upscale_output_image = upscale(image_to_upscale, model_pack["upscaler"])
+            upscale_output_image = upscale(image_to_upscale, models_pack["upscaler"])
             output_images = [upscale_output_image]
         else:
             upscale_output_images = []
             for image in output_images:
-                upscale_output_image = upscale(image, model_pack["upscaler"])
+                upscale_output_image = upscale(image, models_pack["upscaler"])
                 upscale_output_images.append(upscale_output_image)
             output_images = upscale_output_images
         endTime = time.time()

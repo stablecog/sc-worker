@@ -31,7 +31,7 @@ if __name__ == "__main__":
     )
 
     # Setup predictor
-    model_pack = setup(s3, S3_BUCKET_NAME_MODELS)
+    models_pack = setup(s3, S3_BUCKET_NAME_MODELS)
 
     # Setup redis
     redis = redis.from_url(redisUrl)
@@ -47,7 +47,7 @@ if __name__ == "__main__":
             s3_client=s3,
             s3_bucket=S3_BUCKET_NAME_UPLOAD,
             upload_queue=upload_queue,
-            model_pack=model_pack,
+            models_pack=models_pack,
         )
     )
 

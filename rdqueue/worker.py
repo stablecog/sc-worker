@@ -21,7 +21,7 @@ def start_redis_queue_worker(
     s3_client: ServiceResource,
     s3_bucket: str,
     upload_queue: queue.Queue[Dict[str, Any]],
-    model_pack: ModelsPack,
+    models_pack: ModelsPack,
 ) -> None:
     print(f"Starting redis queue worker, bucket is: {s3_bucket}\n")
 
@@ -104,7 +104,7 @@ def start_redis_queue_worker(
             else:
                 events_filter = Event.default_events()
 
-            for response_event, response in run_prediction(message, model_pack):
+            for response_event, response in run_prediction(message, models_pack):
                 if "upload_output" in response and isinstance(
                     response["upload_output"], PredictResult
                 ):
@@ -122,7 +122,7 @@ def start_redis_queue_worker(
 
 def run_prediction(
     message: Dict[str, Any],
-    model_pack: ModelsPack,
+    models_pack: ModelsPack,
 ) -> Iterable[Tuple[Event, Dict[str, Any]]]:
     """Runs the prediction and yields events and responses."""
 
@@ -177,7 +177,7 @@ def run_prediction(
             negative_prompt_prefix="",
             image_to_upscale=input_obj.get("image_to_upscale"),
             translator_cog_url=translator_cog_url,
-            model_pack=model_pack,
+            models_pack=models_pack,
         )
 
         if (predictResult.nsfw_count == 0) and (len(predictResult.outputs) == 0):
