@@ -1,5 +1,4 @@
 import time
-import os
 
 import torch
 from models.nllb.constants import TRANSLATOR_COG_URL
@@ -13,21 +12,26 @@ from typing import List
 from .classes import PredictOutput, PredictResult
 from .setup import ModelsPack
 from models.clip.main import get_embeds_of_images, get_embeds_of_texts
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
+from .helpers import get_value_if_in_list
 
 class PredictInput(BaseModel):
     prompt: str = Field(description="Input prompt.", default="")
     negative_prompt: str = Field(description="Input negative prompt.", default="")
     width: int = Field(
         description="Width of output image.",
-        choices=[128, 256, 384, 448, 512, 576, 640, 704, 768, 832, 896, 960, 1024],
         default=512,
     )
+    @validator("width")
+    def validate_width(cls, v: int):
+        return get_value_if_in_list(v, [128, 256, 384, 448, 512, 576, 640, 704, 768, 832, 896, 960, 1024])
     height: int = Field(
         description="Height of output image.",
-        choices=[128, 256, 384, 448, 512, 576, 640, 704, 768, 832, 896, 960, 1024],
         default=512,
     )
+    @validator("height")
+    def validate_height(cls, v: int):
+        return get_value_if_in_list(v, [128, 256, 384, 448, 512, 576, 640, 704, 768, 832, 896, 960, 1024])
     num_outputs: int = Field(
         description="Number of images to output. If the NSFW filter is triggered, you may get fewer outputs than this.",
         ge=1,
@@ -38,18 +42,22 @@ class PredictInput(BaseModel):
         description="Number of denoising steps", ge=1, le=500, default=30
     )
     guidance_scale: float = Field(
-        description="Scale for classifier-free guidance", ge=1, le=20, default=7.5
+        description="Scale for classifier-free guidance.", ge=1, le=20, default=7.5
     )
     scheduler: str = Field(
         default=SD_SCHEDULER_DEFAULT,
-        choices=SD_SCHEDULER_CHOICES,
-        description="Choose a scheduler.",
+        description=f'Choose a scheduler. Defaults to "{SD_SCHEDULER_DEFAULT}".',
     )
+    @validator("scheduler")
+    def validate_scheduler(cls, v):
+        return get_value_if_in_list(v, SD_SCHEDULER_CHOICES)
     model: str = Field(
         default=SD_MODEL_DEFAULT_KEY,
-        choices=SD_MODEL_CHOICES,
-        description=f"Choose a model. Defaults to '{SD_MODEL_DEFAULT_KEY}'.",
+        description=f'Choose a model. Defaults to "{SD_MODEL_DEFAULT_KEY}".',
     )
+    @validator("model")
+    def validate_model(cls, v):
+        return get_value_if_in_list(v, SD_MODEL_CHOICES)
     seed: int = Field(
         description="Random seed. Leave blank to randomize the seed.", default=None
     )
@@ -67,9 +75,11 @@ class PredictInput(BaseModel):
     )
     output_image_extension: str = Field(
         description="Output type of the image. Can be 'png' or 'jpeg' or 'webp'.",
-        choices=["png", "jpeg", "webp"],
         default="jpeg",
     )
+    @validator("output_image_extension")
+    def validate_output_image_extension(cls, v):
+        return get_value_if_in_list(v, ["png", "jpeg", "webp"])
     output_image_quality: int = Field(
         description="Output quality of the image. Can be 1-100.", default=90
     )
@@ -78,9 +88,11 @@ class PredictInput(BaseModel):
     )
     process_type: str = Field(
         description="Choose a process type. Can be 'generate', 'upscale' or 'generate_and_upscale'. Defaults to 'generate'",
-        choices=["generate", "upscale", "generate_and_upscale"],
         default="generate",
     )
+    @validator("process_type")
+    def validate_process_type(cls, v):
+        return get_value_if_in_list(v, ["generate", "upscale", "generate_and_upscale"])
     translator_cog_url: str = Field(
         description="URL of the translator cog. If it's blank, TRANSLATOR_COG_URL environment variable will be used (if it exists).",
         default=TRANSLATOR_COG_URL,
@@ -91,6 +103,7 @@ def predict(
     input: PredictInput,
     models_pack: ModelsPack,
 ) -> PredictResult:
+    print(input.model)
     process_start = time.time()
     print("//////////////////////////////////////////////////////////////////")
     print(f"⏳ Process started: {input.process_type} ⏳")
