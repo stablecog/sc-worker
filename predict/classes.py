@@ -1,5 +1,6 @@
 from PIL import Image
 
+
 class PredictOutput:
     def __init__(
         self,
