@@ -55,7 +55,7 @@ SD_MODELS_ALL = {
     "Waifu Diffusion v1.4": {
         "id": "hakurei/waifu-diffusion",
         "prompt_prefix": "masterpiece, best quality, high quality",
-        "negative_prompt_prefix": "worst quality, low quality, deleted, nsfw",
+        "negative_prompt_prefix": "worst quality, low quality, deleted, nsfw, blurry",
         "torch_dtype": torch.float16,
         "branch": "fp16",
     },
