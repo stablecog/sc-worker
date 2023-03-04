@@ -123,4 +123,9 @@ def start_upload_worker(
         if "upload_prefix" in uploadMsg:
             del uploadMsg["upload_prefix"]
 
-        redis.publish(uploadMsg["redis_pubsub_key"], json.dumps(uploadMsg))
+        try:
+            redis.publish(uploadMsg["redis_pubsub_key"], json.dumps(uploadMsg))
+        except Exception as e:
+            tb = traceback.format_exc()
+            print(f"Error publishing to redis {tb}\n")
+            print(f"Message was: {uploadMsg}\n")
