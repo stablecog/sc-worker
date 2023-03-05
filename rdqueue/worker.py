@@ -151,7 +151,7 @@ def run_prediction(
 
     yield (Event.START, response)
 
-    try:            
+    try:
         predictResult = predict(
             input=PredictInput(**input_obj),
             models_pack=models_pack,

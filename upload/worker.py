@@ -101,31 +101,31 @@ def start_upload_worker(
     print("Starting upload thread...\n")
     # TODO - figure out how to exit this with SIGINT/SIGTERM
     while True:
-        uploadMsg: List[Dict[str, Any]] = q.get()
-        if "upload_output" in uploadMsg:
-            predict_result: PredictResult = uploadMsg["upload_output"]
-            if len(predict_result.outputs) > 0:
-                try:
-                    uploadMsg["outputs"] = upload_files(
-                        predict_result.outputs,
-                        s3,
-                        s3_bucket,
-                        uploadMsg["upload_prefix"],
-                    )
-                except Exception as e:
-                    tb = traceback.format_exc()
-                    print(f"Error uploading files {tb}\n")
-                    uploadMsg["status"] = Status.FAILED
-                    uploadMsg["error"] = str(e)
-
-        if "upload_output" in uploadMsg:
-            del uploadMsg["upload_output"]
-        if "upload_prefix" in uploadMsg:
-            del uploadMsg["upload_prefix"]
-
         try:
+            uploadMsg: List[Dict[str, Any]] = q.get()
+            if "upload_output" in uploadMsg:
+                predict_result: PredictResult = uploadMsg["upload_output"]
+                if len(predict_result.outputs) > 0:
+                    try:
+                        uploadMsg["outputs"] = upload_files(
+                            predict_result.outputs,
+                            s3,
+                            s3_bucket,
+                            uploadMsg["upload_prefix"],
+                        )
+                    except Exception as e:
+                        tb = traceback.format_exc()
+                        print(f"Error uploading files {tb}\n")
+                        uploadMsg["status"] = Status.FAILED
+                        uploadMsg["error"] = str(e)
+
+            if "upload_output" in uploadMsg:
+                del uploadMsg["upload_output"]
+            if "upload_prefix" in uploadMsg:
+                del uploadMsg["upload_prefix"]
+
             redis.publish(uploadMsg["redis_pubsub_key"], json.dumps(uploadMsg))
         except Exception as e:
             tb = traceback.format_exc()
-            print(f"Error publishing to redis {tb}\n")
+            print(f"Exception in upload process {tb}\n")
             print(f"Message was: {uploadMsg}\n")
