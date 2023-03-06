@@ -60,6 +60,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             SD_MODELS[key]["id"],
             torch_dtype=SD_MODELS[key]["torch_dtype"],
             cache_dir=SD_MODEL_CACHE,
+            use_auth_token=os.environ.get("HUGGINGFACE_TOKEN", None),
         )
         txt2img_pipes[key] = pipe.to(DEVICE)
         txt2img_pipes[key].enable_xformers_memory_efficient_attention()
