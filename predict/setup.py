@@ -41,10 +41,11 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     start = time.time()
     print(f"⏳ Setup has started - Version: {WORKER_VERSION}")
 
+    hf_token = os.environ.get("HUGGINGFACE_TOKEN", None)
     # Login to HuggingFace if there is a token
-    if os.environ.get("HUGGINGFACE_TOKEN"):
+    if hf_token is not None:
         print(f"⏳ Logging in to HuggingFace")
-        _login.login(token=os.environ.get("HUGGINGFACE_TOKEN"))
+        _login.login(token=hf_token)
         print(f"✅ Logged in to HuggingFace")
 
     download_all_models_from_bucket(s3, bucket_name)
@@ -60,7 +61,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             SD_MODELS[key]["id"],
             torch_dtype=SD_MODELS[key]["torch_dtype"],
             cache_dir=SD_MODEL_CACHE,
-            use_auth_token=os.environ.get("HUGGINGFACE_TOKEN", None),
+            use_auth_token=hf_token,
         )
         txt2img_pipes[key] = pipe.to(DEVICE)
         txt2img_pipes[key].enable_xformers_memory_efficient_attention()
