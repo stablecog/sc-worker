@@ -64,6 +64,10 @@ SD_MODELS_ALL = {
         "prompt_prefix": "estilovintedois",
         "torch_dtype": torch.float16,
     },
+    "Luna Diffusion": {
+        "id": "proximasanfinetuning/luna-diffusion",
+        "torch_dtype": torch.float16,
+    },
 }
 
 SD_MODELS = {}
