@@ -1,8 +1,6 @@
-from typing import Tuple, Dict, Any, Callable
+from typing import Any
 
 from lingua import LanguageDetectorBuilder, LanguageDetector
-from PIL import Image
-import numpy as np
 from boto3_type_annotations.s3 import ServiceResource
 
 from shared.constants import WORKER_VERSION
@@ -21,6 +19,8 @@ from transformers import (
     CLIPModel,
 )
 from models.clip.constants import CLIP_MODEL_ID
+import os
+from huggingface_hub import _login
 
 
 class ModelsPack:
@@ -40,6 +40,12 @@ class ModelsPack:
 def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     start = time.time()
     print(f"⏳ Setup has started - Version: {WORKER_VERSION}")
+
+    # Login to HuggingFace if there is a token
+    if os.environ.get("HUGGINGFACE_TOKEN"):
+        print(f"⏳ Logging in to HuggingFace")
+        _login.login(token=os.environ.get("HUGGINGFACE_TOKEN"))
+        print(f"✅ Logged in to HuggingFace")
 
     download_all_models_from_bucket(s3, bucket_name)
 
