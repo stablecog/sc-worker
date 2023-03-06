@@ -3,9 +3,15 @@ from diffusers import StableDiffusionPipeline
 import concurrent.futures
 import os
 from models.swinir.constants import MODEL_DIR_SWINIR, MODEL_NAME_SWINIR
+from huggingface_hub import _login
 
 
 def download_all_models():
+    # Login to HuggingFace if there is a token
+    if os.environ.get("HUGGINGFACE_TOKEN"):
+        print(f"⏳ Logging in to HuggingFace")
+        _login.login(token=os.environ.get("HUGGINGFACE_TOKEN"))
+        print(f"✅ Logged in to HuggingFace")
     download_sd_models_from_hf()
     download_swinir_models()
 
