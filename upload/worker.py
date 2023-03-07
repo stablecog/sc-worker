@@ -14,6 +14,7 @@ from PIL import Image
 from predict.predict import PredictResult, PredictOutput
 from rdqueue.events import Status
 from shared.helpers import ensure_trailing_slash, parse_content_type
+from shared.webhook import post_webhook
 
 
 def convert_and_upload_to_s3(
@@ -99,7 +100,6 @@ def start_upload_worker(
     q: queue.Queue[Dict[str, Any]],
     s3: ServiceResource,
     s3_bucket: str,
-    pub_cb: Callable[[str, str], None],
 ):
     """Starts a loop to read from the queue and upload files to S3, send responses to redis"""
     print("Starting upload thread...\n")
@@ -136,8 +136,8 @@ def start_upload_worker(
                 print(f"-- Upload: Deleting upload_prefix from message --\n")
                 del uploadMsg["upload_prefix"]
 
-            print(f"-- Upload: Publishing to redis --\n")
-            pub_cb(uploadMsg["redis_pubsub_key"], json.dumps(uploadMsg))
+            print(f"-- Upload: Publishing to WEBHOOK --\n")
+            post_webhook(uploadMsg["webhook_url"], uploadMsg)
         except Exception as e:
             tb = traceback.format_exc()
             print(f"Exception in upload process {tb}\n")

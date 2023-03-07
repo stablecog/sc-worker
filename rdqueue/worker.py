@@ -13,11 +13,11 @@ from rdqueue.events import Status, Event
 from predict.predict import PredictInput, predict, PredictResult
 from shared.helpers import format_datetime
 from predict.setup import ModelsPack
+from shared.webhook import post_webhook
 
 
 def start_redis_queue_worker(
     redis: redis.Redis,
-    pub_cb: Callable[[str, str], None],
     input_queue: str,
     s3_client: ServiceResource,
     s3_bucket: str,
@@ -83,7 +83,7 @@ def start_redis_queue_worker(
 
             message = json.loads(message_json)
 
-            redis_key = message["redis_pubsub_key"]
+            webhook_url = message["webhook_url"]
 
             print(f"Received message {message_id} on {input_queue}\n")
 
@@ -110,7 +110,7 @@ def start_redis_queue_worker(
                     print(f"-- Upload: Putting to queue")
                     upload_queue.put(response)
                 elif response_event in events_filter:
-                    pub_cb(redis_key, json.dumps(response))
+                    post_webhook(webhook_url, response)
 
             redis.xack(input_queue, input_queue, message_id)
             redis.xdel(input_queue, message_id)
