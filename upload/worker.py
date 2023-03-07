@@ -5,7 +5,7 @@ import traceback
 import queue
 import uuid
 from concurrent.futures import Future, ThreadPoolExecutor
-from typing import List, Iterable, Dict, Any
+from typing import List, Iterable, Dict, Any, Callable
 
 import redis
 from boto3_type_annotations.s3 import ServiceResource
@@ -99,7 +99,7 @@ def start_upload_worker(
     q: queue.Queue[Dict[str, Any]],
     s3: ServiceResource,
     s3_bucket: str,
-    redis: redis.Redis,
+    pub_cb: Callable[[str, str], None],
 ):
     """Starts a loop to read from the queue and upload files to S3, send responses to redis"""
     print("Starting upload thread...\n")
@@ -137,9 +137,8 @@ def start_upload_worker(
                 del uploadMsg["upload_prefix"]
 
             print(f"-- Upload: Publishing to redis --\n")
-            redis.publish(uploadMsg["redis_pubsub_key"], json.dumps(uploadMsg))
+            pub_cb(uploadMsg["redis_pubsub_key"], json.dumps(uploadMsg))
         except Exception as e:
             tb = traceback.format_exc()
             print(f"Exception in upload process {tb}\n")
             print(f"Message was: {uploadMsg}\n")
-    print(f"!!!! Upload: Exiting --\n")

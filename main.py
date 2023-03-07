@@ -1,5 +1,5 @@
 from threading import Thread
-from typing import Any, Dict
+from typing import Any, Dict, Callable
 import os
 import queue
 
@@ -41,20 +41,27 @@ if __name__ == "__main__":
     models_pack = setup(s3, S3_BUCKET_NAME_MODELS)
 
     # Setup redis
-    redisPool = redis.BlockingConnectionPool.from_url(redisUrl)
+    redisConn = redis.from_url(redisUrl)
 
     # Create queue for thread communication
     upload_queue: queue.Queue[Dict[str, Any]] = queue.Queue()
 
+    # Create a callback for publishing to redis
+    def publish_to_redis(channel: str, msg: str) -> None:
+        print(f"Publishing to redis: {channel} {msg}")
+        redisConn.publish(channel, msg)
+        print(f"Published to redis channel {channel}")
+
     # Create redis worker thread
     redis_worker_thread = Thread(
         target=lambda: start_redis_queue_worker(
-            redis.Redis(connection_pool=redisPool),
+            redisConn,
             input_queue=redisInputQueue,
             s3_client=s3,
             s3_bucket=S3_BUCKET_NAME_UPLOAD,
             upload_queue=upload_queue,
             models_pack=models_pack,
+            pub_cb=publish_to_redis,
         )
     )
 
@@ -64,7 +71,7 @@ if __name__ == "__main__":
             q=upload_queue,
             s3=s3,
             s3_bucket=S3_BUCKET_NAME_UPLOAD,
-            redis=redis.Redis(connection_pool=redisPool),
+            pub_cb=publish_to_redis,
         )
     )
 

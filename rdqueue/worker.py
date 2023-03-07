@@ -3,7 +3,7 @@ import json
 import queue
 import os
 import traceback
-from typing import Any, Dict, Iterable, Tuple
+from typing import Any, Dict, Iterable, Tuple, Callable
 
 from boto3_type_annotations.s3 import ServiceResource
 import redis
@@ -17,6 +17,7 @@ from predict.setup import ModelsPack
 
 def start_redis_queue_worker(
     redis: redis.Redis,
+    pub_cb: Callable[[str, str], None],
     input_queue: str,
     s3_client: ServiceResource,
     s3_bucket: str,
@@ -109,7 +110,7 @@ def start_redis_queue_worker(
                     print(f"-- Upload: Putting to queue")
                     upload_queue.put(response)
                 elif response_event in events_filter:
-                    redis.publish(redis_key, json.dumps(response))
+                    pub_cb(redis_key, json.dumps(response))
 
             redis.xack(input_queue, input_queue, message_id)
             redis.xdel(input_queue, message_id)
