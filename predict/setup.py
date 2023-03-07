@@ -11,6 +11,7 @@ from diffusers import (
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
 from models.download.download_from_bucket import download_all_models_from_bucket
+from models.download.download_from_hf import download_all_models_from_hf
 import time
 from models.constants import DEVICE
 from transformers import (
@@ -42,13 +43,15 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     print(f"⏳ Setup has started - Version: {WORKER_VERSION}")
 
     hf_token = os.environ.get("HUGGINGFACE_TOKEN", None)
-    # Login to HuggingFace if there is a token
     if hf_token is not None:
         print(f"⏳ Logging in to HuggingFace")
         _login.login(token=hf_token)
         print(f"✅ Logged in to HuggingFace")
 
-    download_all_models_from_bucket(s3, bucket_name)
+    if os.environ.get("USE_HF", "0") == "1":
+        download_all_models_from_hf()
+    else:
+        download_all_models_from_bucket(s3, bucket_name)
 
     txt2img_pipes: dict[
         str,

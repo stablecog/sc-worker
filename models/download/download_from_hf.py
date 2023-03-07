@@ -6,7 +6,7 @@ from models.swinir.constants import MODEL_DIR_SWINIR, MODEL_NAME_SWINIR
 from huggingface_hub import _login
 
 
-def download_all_models():
+def download_all_models_from_hf():
     # Login to HuggingFace if there is a token
     if os.environ.get("HUGGINGFACE_TOKEN"):
         print(f"⏳ Logging in to HuggingFace")
@@ -58,5 +58,5 @@ def download_swinir_models():
 
 
 if __name__ == "__main__":
-    download_all_models()
+    download_all_models_from_hf()
     print("✅ Downloaded all models successfully")
