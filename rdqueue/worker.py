@@ -33,8 +33,6 @@ def start_redis_queue_worker(
     # 1 minute
     autoclaim_messages_after = 1 * 60
 
-    print(f"Connected to Redis: {redis.get_connection_kwargs().get('host')}\n")
-
     print(f"Waiting for message on {input_queue}\n")
 
     # TODO - figure out how to exit this with SIGINT/SIGTERM
