@@ -1,4 +1,4 @@
-from models.stable_diffusion.constants import SD_MODELS_ALL, SD_MODEL_CACHE
+from models.stable_diffusion.constants import SD_MODELS_ALL, SD_MODELS, SD_MODEL_CACHE
 from diffusers import StableDiffusionPipeline
 import concurrent.futures
 import os
@@ -6,13 +6,13 @@ from models.swinir.constants import MODEL_DIR_SWINIR, MODEL_NAME_SWINIR
 from huggingface_hub import _login
 
 
-def download_all_models_from_hf():
+def download_models_from_hf(downloadAll=True):
     # Login to HuggingFace if there is a token
     if os.environ.get("HUGGINGFACE_TOKEN"):
         print(f"⏳ Logging in to HuggingFace")
         _login.login(token=os.environ.get("HUGGINGFACE_TOKEN"))
         print(f"✅ Logged in to HuggingFace")
-    download_sd_models_from_hf()
+    download_sd_models_from_hf(downloadAll=downloadAll)
     download_swinir_models()
 
 
@@ -28,8 +28,9 @@ def download_sd_model_from_hf(key):
     return {"key": key}
 
 
-def download_sd_models_from_hf():
-    for key in SD_MODELS_ALL:
+def download_sd_models_from_hf(downloadAll=True):
+    models = SD_MODELS_ALL if downloadAll else SD_MODELS
+    for key in models:
         download_sd_model_from_hf(key)
 
 
@@ -58,5 +59,5 @@ def download_swinir_models():
 
 
 if __name__ == "__main__":
-    download_all_models_from_hf()
+    download_models_from_hf()
     print("✅ Downloaded all models successfully")

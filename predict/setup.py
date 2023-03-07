@@ -11,7 +11,7 @@ from diffusers import (
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
 from models.download.download_from_bucket import download_all_models_from_bucket
-from models.download.download_from_hf import download_all_models_from_hf
+from models.download.download_from_hf import download_models_from_hf
 import time
 from models.constants import DEVICE
 from transformers import (
@@ -49,7 +49,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         print(f"✅ Logged in to HuggingFace")
 
     if os.environ.get("USE_HF", "0") == "1":
-        download_all_models_from_hf()
+        download_models_from_hf(downloadAll=False)
     else:
         download_all_models_from_bucket(s3, bucket_name)
 
