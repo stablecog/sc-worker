@@ -11,7 +11,14 @@ from dotenv import load_dotenv
 
 from predict.setup import setup
 from rdqueue.worker import start_redis_queue_worker
-from upload.constants import S3_ACCESS_KEY_ID, S3_BUCKET_NAME_MODELS, S3_BUCKET_NAME_UPLOAD, S3_ENDPOINT_URL, S3_REGION, S3_SECRET_ACCESS_KEY
+from upload.constants import (
+    S3_ACCESS_KEY_ID,
+    S3_BUCKET_NAME_MODELS,
+    S3_BUCKET_NAME_UPLOAD,
+    S3_ENDPOINT_URL,
+    S3_REGION,
+    S3_SECRET_ACCESS_KEY,
+)
 from upload.worker import start_upload_worker
 
 if __name__ == "__main__":
@@ -34,7 +41,7 @@ if __name__ == "__main__":
     models_pack = setup(s3, S3_BUCKET_NAME_MODELS)
 
     # Setup redis
-    redis = redis.from_url(redisUrl)
+    redisPool = redis.BlockingConnectionPool.from_url(redisUrl)
 
     # Create queue for thread communication
     upload_queue: queue.Queue[Dict[str, Any]] = queue.Queue()
@@ -42,7 +49,7 @@ if __name__ == "__main__":
     # Create redis worker thread
     redis_worker_thread = Thread(
         target=lambda: start_redis_queue_worker(
-            redis,
+            redisPool,
             input_queue=redisInputQueue,
             s3_client=s3,
             s3_bucket=S3_BUCKET_NAME_UPLOAD,
@@ -54,7 +61,7 @@ if __name__ == "__main__":
     # Create upload thread
     upload_thread = Thread(
         target=lambda: start_upload_worker(
-            q=upload_queue, s3=s3, s3_bucket=S3_BUCKET_NAME_UPLOAD, redis=redis
+            q=upload_queue, s3=s3, s3_bucket=S3_BUCKET_NAME_UPLOAD, redis=redisPool
         )
     )
 

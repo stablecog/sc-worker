@@ -29,6 +29,7 @@ def convert_and_upload_to_s3(
 
     _pil_image = pil_image
     if target_extension == "jpeg":
+        print(f"-- Upload: Converting to JPEG")
         _pil_image = _pil_image.convert("RGB")
     img_format = target_extension.upper()
     img_bytes = io.BytesIO()
@@ -45,6 +46,7 @@ def convert_and_upload_to_s3(
 
     content_type = parse_content_type(target_extension)
     start_upload = time.time()
+    print(f"-- Upload: Uploading to S3")
     s3.Bucket(s3_bucket).put_object(Body=file_bytes, Key=key, ContentType=content_type)
     end_upload = time.time()
     print(f"Uploaded image in: {round((end_upload - start_upload) *1000)} ms")
@@ -65,6 +67,7 @@ def upload_files(
     # Run all uploads at same time in threadpool
     tasks: List[Future] = []
     with ThreadPoolExecutor(max_workers=len(uploadObjects)) as executor:
+        print(f"-- Upload: Submitting to thread")
         for uo in uploadObjects:
             tasks.append(
                 executor.submit(
@@ -81,6 +84,7 @@ def upload_files(
     # Get results
     results = []
     for task in tasks:
+        print(f"-- Upload: Got result")
         results.append(task.result())
 
     end = time.time()
@@ -102,10 +106,15 @@ def start_upload_worker(
     # TODO - figure out how to exit this with SIGINT/SIGTERM
     while True:
         try:
+            print(f"-- Upload: Waiting for queue --\n")
             uploadMsg: List[Dict[str, Any]] = q.get()
+            print(f"-- Upload: Got from queue --\n")
             if "upload_output" in uploadMsg:
                 predict_result: PredictResult = uploadMsg["upload_output"]
                 if len(predict_result.outputs) > 0:
+                    print(
+                        f"-- Upload: Uploading {len(predict_result.outputs)} files --\n"
+                    )
                     try:
                         uploadMsg["outputs"] = upload_files(
                             predict_result.outputs,
@@ -118,14 +127,19 @@ def start_upload_worker(
                         print(f"Error uploading files {tb}\n")
                         uploadMsg["status"] = Status.FAILED
                         uploadMsg["error"] = str(e)
+                    print(f"-- Upload: Finished uploading files --\n")
 
             if "upload_output" in uploadMsg:
+                print(f"-- Upload: Deleting upload_output from message --\n")
                 del uploadMsg["upload_output"]
             if "upload_prefix" in uploadMsg:
+                print(f"-- Upload: Deleting upload_prefix from message --\n")
                 del uploadMsg["upload_prefix"]
 
+            print(f"-- Upload: Publishing to redis --\n")
             redis.publish(uploadMsg["redis_pubsub_key"], json.dumps(uploadMsg))
         except Exception as e:
             tb = traceback.format_exc()
             print(f"Exception in upload process {tb}\n")
             print(f"Message was: {uploadMsg}\n")
+    print(f"!!!! Upload: Exiting --\n")
