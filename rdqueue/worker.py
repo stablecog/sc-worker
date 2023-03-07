@@ -106,6 +106,7 @@ def start_redis_queue_worker(
                 if "upload_output" in response and isinstance(
                     response["upload_output"], PredictResult
                 ):
+                    print(f"-- Upload: Putting to queue")
                     upload_queue.put(response)
                 elif response_event in events_filter:
                     redis.publish(redis_key, json.dumps(response))

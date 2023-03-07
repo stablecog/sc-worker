@@ -49,7 +49,7 @@ if __name__ == "__main__":
     # Create redis worker thread
     redis_worker_thread = Thread(
         target=lambda: start_redis_queue_worker(
-            redisPool,
+            redis.Redis(connection_pool=redisPool),
             input_queue=redisInputQueue,
             s3_client=s3,
             s3_bucket=S3_BUCKET_NAME_UPLOAD,
@@ -61,7 +61,10 @@ if __name__ == "__main__":
     # Create upload thread
     upload_thread = Thread(
         target=lambda: start_upload_worker(
-            q=upload_queue, s3=s3, s3_bucket=S3_BUCKET_NAME_UPLOAD, redis=redisPool
+            q=upload_queue,
+            s3=s3,
+            s3_bucket=S3_BUCKET_NAME_UPLOAD,
+            redis=redis.Redis(connection_pool=redisPool),
         )
     )
 
