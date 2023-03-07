@@ -142,3 +142,4 @@ def start_upload_worker(
             tb = traceback.format_exc()
             print(f"Exception in upload process {tb}\n")
             print(f"Message was: {uploadMsg}\n")
+    print(f"!!!! Upload: Exiting --\n")
