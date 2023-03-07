@@ -1,8 +1,6 @@
-from typing import Tuple, Dict, Any, Callable
+from typing import Any
 
 from lingua import LanguageDetectorBuilder, LanguageDetector
-from PIL import Image
-import numpy as np
 from boto3_type_annotations.s3 import ServiceResource
 
 from shared.constants import WORKER_VERSION
@@ -13,6 +11,7 @@ from diffusers import (
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
 from models.download.download_from_bucket import download_all_models_from_bucket
+from models.download.download_from_hf import download_models_from_hf
 import time
 from models.constants import DEVICE
 from transformers import (
@@ -21,6 +20,8 @@ from transformers import (
     CLIPModel,
 )
 from models.clip.constants import CLIP_MODEL_ID
+import os
+from huggingface_hub import _login
 
 
 class ModelsPack:
@@ -41,7 +42,16 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     start = time.time()
     print(f"⏳ Setup has started - Version: {WORKER_VERSION}")
 
-    download_all_models_from_bucket(s3, bucket_name)
+    hf_token = os.environ.get("HUGGINGFACE_TOKEN", None)
+    if hf_token is not None:
+        print(f"⏳ Logging in to HuggingFace")
+        _login.login(token=hf_token)
+        print(f"✅ Logged in to HuggingFace")
+
+    if os.environ.get("USE_HF", "0") == "1":
+        download_models_from_hf(downloadAll=False)
+    else:
+        download_all_models_from_bucket(s3, bucket_name)
 
     txt2img_pipes: dict[
         str,

@@ -32,6 +32,7 @@ def download_model_from_bucket(
 ):
     print(f"⏳ Downloading model: {model_id}")
     bucket = s3.Bucket(bucket_name)
+    key = model_id
     # Loop through all files in the S3 directory
     for object in bucket.objects.filter(Prefix=model_dir):
         # Get the file key and local file path
