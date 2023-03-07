@@ -41,7 +41,8 @@ if __name__ == "__main__":
     models_pack = setup(s3, S3_BUCKET_NAME_MODELS)
 
     # Setup redis
-    redisConn = redis.from_url(redisUrl)
+    redisConn = redis.BlockingConnectionPool.from_url(redisUrl)
+    redisConn.max_connections = 10
 
     # Create queue for thread communication
     upload_queue: queue.Queue[Dict[str, Any]] = queue.Queue()
@@ -49,13 +50,13 @@ if __name__ == "__main__":
     # Create a callback for publishing to redis
     def publish_to_redis(channel: str, msg: str) -> None:
         print(f"Publishing to redis: {channel} {msg}")
-        redisConn.publish(channel, msg)
+        redis.Redis(connection_pool=redisConn).publish(channel, msg)
         print(f"Published to redis channel {channel}")
 
     # Create redis worker thread
     redis_worker_thread = Thread(
         target=lambda: start_redis_queue_worker(
-            redisConn,
+            redis.Redis(connection_pool=redisConn),
             input_queue=redisInputQueue,
             s3_client=s3,
             s3_bucket=S3_BUCKET_NAME_UPLOAD,
