@@ -26,7 +26,7 @@ def requests_session_with_retries() -> requests.Session:
             total=12,
             backoff_factor=0.1,
             status_forcelist=[
-                x for x in requests.status_codes._codes if x not in [400, 401]
+                x for x in requests.status_codes._codes if x not in [200, 400, 401]
             ],
             allowed_methods=["POST"],
         )
