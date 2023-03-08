@@ -6,9 +6,11 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry  # type: ignore
 
 
-def post_webhook(url: str, data: Dict[str, Any]) -> Callable:
+def post_webhook(url: str, data: Dict[str, Any]) -> int:
+    """Retry a POST request to a webhook URL, return status code"""
     with requests_session_with_retries() as retry_session:
-        retry_session.post(url, json=data)
+        ret = retry_session.post(url, json=data)
+    return ret.status_code
 
 
 def requests_session_with_retries() -> requests.Session:

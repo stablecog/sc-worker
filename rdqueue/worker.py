@@ -110,7 +110,8 @@ def start_redis_queue_worker(
                     print(f"-- Upload: Putting to queue")
                     upload_queue.put(response)
                 elif response_event in events_filter:
-                    post_webhook(webhook_url, response)
+                    status_code = post_webhook(webhook_url, response)
+                    print(f"-- Webhook: {status_code}")
 
             redis.xack(input_queue, input_queue, message_id)
             redis.xdel(input_queue, message_id)
