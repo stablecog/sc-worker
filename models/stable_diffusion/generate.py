@@ -15,7 +15,7 @@ def generate(
     num_outputs,
     num_inference_steps,
     guidance_scale,
-    init_image,
+    init_image_url,
     prompt_strength,
     scheduler,
     seed,
@@ -54,16 +54,16 @@ def generate(
     extra_kwargs = {}
     sd_pipe.scheduler = get_scheduler(scheduler, sd_pipe.scheduler.config)
     pipe = None
-    if init_image is not None:
+    if init_image_url is not None:
         pipe = sd_pipe.img2img
         start_i = time.time()
-        init_image = download_image(init_image)
-        init_image = fit_image(init_image, width, height)
+        init_image_url = download_image(init_image_url)
+        init_image_url = fit_image(init_image_url, width, height)
         end_i = time.time()
         print(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
         )
-        extra_kwargs["image"] = [init_image] * num_outputs
+        extra_kwargs["image"] = [init_image_url] * num_outputs
         extra_kwargs["strength"] = prompt_strength
     else:
         pipe = sd_pipe.text2img

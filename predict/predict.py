@@ -52,15 +52,15 @@ class PredictInput(BaseModel):
         le=10,
         default=1,
     )
-    init_image: str = Field(
-        description='Init image to be used with img2img.',
+    init_image_url: str = Field(
+        description='Init image url to be used with img2img.',
         default=None,
     )
     prompt_strength: float = Field(
         description="The strength of the prompt when using img2img, between 0-1. When 1, it'll essentially ignore the image.",
         ge=0,
         le=1,
-        default=0.8,
+        default=0.6,
     )
     num_inference_steps: int = Field(
         description="Number of denoising steps", ge=1, le=500, default=30
@@ -176,7 +176,7 @@ def predict(
             input.num_outputs,
             input.num_inference_steps,
             input.guidance_scale,
-            input.init_image,
+            input.init_image_url,
             input.prompt_strength,
             input.scheduler,
             input.seed,
