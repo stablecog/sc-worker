@@ -1,9 +1,9 @@
 import os
 import torch
-from .helpers import make_scheduler
+from .helpers import get_scheduler, download_image, fit_image
 from .constants import SD_MODELS
 from models.constants import DEVICE
-
+import time
 
 def generate(
     prompt,
@@ -15,16 +15,16 @@ def generate(
     num_outputs,
     num_inference_steps,
     guidance_scale,
+    init_image,
+    prompt_strength,
     scheduler,
     seed,
     model,
-    txt2img_pipe,
+    sd_pipe,
 ):
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
     print(f"Using seed: {seed}")
-
-    extra_kwargs = {}
 
     if prompt_prefix is not None:
         prompt = f"{prompt_prefix} {prompt}"
@@ -51,8 +51,24 @@ def generate(
     print(f"-- Prompt: {prompt} --")
     print(f"-- Negative Prompt: {negative_prompt} --")
 
-    pipe = txt2img_pipe
-    pipe.scheduler = make_scheduler(scheduler, pipe.scheduler.config)
+    extra_kwargs = {}
+    sd_pipe.scheduler = get_scheduler(scheduler, sd_pipe.scheduler.config)
+    pipe = None
+    if init_image is not None:
+        pipe = sd_pipe.img2img
+        start_i = time.time()
+        init_image = download_image(init_image)
+        init_image = fit_image(init_image, width, height)
+        end_i = time.time()
+        print(
+            f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
+        )
+        extra_kwargs["image"] = [init_image] * num_outputs
+        extra_kwargs["strength"] = prompt_strength
+    else:
+        pipe = sd_pipe.text2img
+    
+
     generator = torch.Generator(DEVICE).manual_seed(seed)
     output = pipe(
         prompt=[prompt] * num_outputs if prompt is not None else None,

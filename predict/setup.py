@@ -6,7 +6,7 @@ from boto3_type_annotations.s3 import ServiceResource
 from shared.constants import WORKER_VERSION
 from models.stable_diffusion.constants import SD_MODELS, SD_MODEL_CACHE
 from diffusers import (
-    StableDiffusionPipeline,
+    DiffusionPipeline,
 )
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
@@ -27,12 +27,12 @@ from huggingface_hub import _login
 class ModelsPack:
     def __init__(
         self,
-        txt2img_pipes: dict[str, StableDiffusionPipeline],
+        sd_pipes: dict[str, DiffusionPipeline],
         upscaler: Any,
         language_detector_pipe: LanguageDetector,
         clip: Any,
     ):
-        self.txt2img_pipes = txt2img_pipes
+        self.sd_pipes = sd_pipes
         self.upscaler = upscaler
         self.language_detector_pipe = language_detector_pipe
         self.clip = clip
@@ -53,20 +53,21 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     else:
         download_all_models_from_bucket(s3, bucket_name)
 
-    txt2img_pipes: dict[
+    sd_pipes: dict[
         str,
-        StableDiffusionPipeline,
+        DiffusionPipeline,
     ] = {}
 
     for key in SD_MODELS:
         print(f"⏳ Loading SD model: {key}")
-        pipe = StableDiffusionPipeline.from_pretrained(
+        pipe = DiffusionPipeline.from_pretrained(
             SD_MODELS[key]["id"],
+            custom_pipeline="stable_diffusion_mega",
             torch_dtype=SD_MODELS[key]["torch_dtype"],
             cache_dir=SD_MODEL_CACHE,
         )
-        txt2img_pipes[key] = pipe.to(DEVICE)
-        txt2img_pipes[key].enable_xformers_memory_efficient_attention()
+        sd_pipes[key] = pipe.to(DEVICE)
+        sd_pipes[key].enable_xformers_memory_efficient_attention()
         print(f"✅ Loaded SD model: {key}")
 
     # For upscaler
@@ -109,7 +110,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     print("//////////////////////////////////////////////////////////////////")
 
     return ModelsPack(
-        txt2img_pipes=txt2img_pipes,
+        sd_pipes=sd_pipes,
         upscaler=upscaler,
         language_detector_pipe=language_detector_pipe,
         clip=clip,

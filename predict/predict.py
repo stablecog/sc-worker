@@ -52,6 +52,16 @@ class PredictInput(BaseModel):
         le=10,
         default=1,
     )
+    init_image: str = Field(
+        description='Init image to be used with img2img.',
+        default=None,
+    )
+    prompt_strength: float = Field(
+        description="The strength of the prompt when using img2img, between 0-1. When 1, it'll essentially ignore the image.",
+        ge=0,
+        le=1,
+        default=0.8,
+    )
     num_inference_steps: int = Field(
         description="Number of denoising steps", ge=1, le=500, default=30
     )
@@ -151,7 +161,7 @@ def predict(
         else:
             print("-- Translator cog URL is not set. Skipping translation. --")
 
-        txt2img_pipe = models_pack.txt2img_pipes[input.model]
+        sd_pipe = models_pack.sd_pipes[input.model]
         print(
             f"🖥️ Generating - Model: {input.model} - Width: {input.width} - Height: {input.height} - Steps: {input.num_inference_steps} - Outputs: {input.num_outputs} 🖥️"
         )
@@ -166,10 +176,12 @@ def predict(
             input.num_outputs,
             input.num_inference_steps,
             input.guidance_scale,
+            input.init_image,
+            input.prompt_strength,
             input.scheduler,
             input.seed,
             input.model,
-            txt2img_pipe,
+            sd_pipe,
         )
         output_images = generate_output_images
         nsfw_count = generate_nsfw_count
