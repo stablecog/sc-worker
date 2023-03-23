@@ -32,7 +32,7 @@ class PredictInput(BaseModel):
     @validator("width")
     def validate_width(cls, v: int):
         return get_value_if_in_list(
-            v, [128, 256, 384, 448, 512, 576, 640, 704, 768, 832, 896, 960, 1024]
+            v, [128, 256, 384, 432, 448, 512, 576, 640, 704, 768, 832, 896, 960, 1024]
         )
 
     height: int = Field(
@@ -43,7 +43,7 @@ class PredictInput(BaseModel):
     @validator("height")
     def validate_height(cls, v: int):
         return get_value_if_in_list(
-            v, [128, 256, 384, 448, 512, 576, 640, 704, 768, 832, 896, 960, 1024]
+            v, [128, 256, 384, 432, 448, 512, 576, 640, 704, 768, 832, 896, 960, 1024]
         )
 
     num_outputs: int = Field(
@@ -53,7 +53,7 @@ class PredictInput(BaseModel):
         default=1,
     )
     init_image_url: str = Field(
-        description='Init image url to be used with img2img.',
+        description="Init image url to be used with img2img.",
         default=None,
     )
     prompt_strength: float = Field(
