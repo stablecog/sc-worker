@@ -17,6 +17,25 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+IMG_SIZES = [
+    128,
+    256,
+    384,
+    432,
+    448,
+    512,
+    576,
+    616,
+    640,
+    704,
+    768,
+    832,
+    896,
+    960,
+    1024,
+]
+
+
 def clean_prefix_or_suffix_space(text: str):
     if text.startswith(" "):
         text = text[1:]
