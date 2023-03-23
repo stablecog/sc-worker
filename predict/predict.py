@@ -7,7 +7,6 @@ from models.stable_diffusion.constants import (
     SD_MODEL_DEFAULT_KEY,
     SD_SCHEDULER_CHOICES,
     SD_SCHEDULER_DEFAULT,
-    IMG_SIZES,
 )
 
 from models.stable_diffusion.generate import generate
@@ -34,7 +33,7 @@ class PredictInput(BaseModel):
     def validate_width(cls, v: int):
         return get_value_if_in_list(
             v,
-            IMG_SIZES,
+            range(384, 1025, 8),
         )
 
     height: int = Field(
@@ -46,7 +45,7 @@ class PredictInput(BaseModel):
     def validate_height(cls, v: int):
         return get_value_if_in_list(
             v,
-            IMG_SIZES,
+            range(384, 1025, 8),
         )
 
     num_outputs: int = Field(
