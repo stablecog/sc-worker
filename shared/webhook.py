@@ -19,8 +19,9 @@ def requests_session_with_retries() -> requests.Session:
     # resilience through temporary networking and availability issues.
     session = requests.Session()
     webhook_sig = os.environ.get("WEBHOOK_SIGNATURE")
-    if webhook_sig:
-        session.headers["signature"] = webhook_sig
+    if webhook_sig is None:
+        raise Exception("WEBHOOK_SIGNATURE not set")
+    session.headers["signature"] = webhook_sig
     adapter = HTTPAdapter(
         max_retries=Retry(
             total=12,
