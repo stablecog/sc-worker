@@ -8,6 +8,7 @@ import boto3
 from boto3_type_annotations.s3 import ServiceResource
 from botocore.config import Config
 from dotenv import load_dotenv
+import torch
 
 from predict.setup import setup
 from rdqueue.worker import start_redis_queue_worker
@@ -22,7 +23,8 @@ from upload.constants import (
 from upload.worker import start_upload_worker
 
 if __name__ == "__main__":
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    if torch.cuda.is_available() is False:
+        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     load_dotenv()
 
     redisUrl = os.environ.get("REDIS_URL")
