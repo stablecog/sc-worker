@@ -3,7 +3,7 @@ import time
 from .constants import LANG_TO_FLORES
 import requests
 
-target_lang_score_max = 0.87
+target_lang_score_max = 0.85
 target_lang = Language.ENGLISH
 target_lang_flores = LANG_TO_FLORES[target_lang.name]
 
