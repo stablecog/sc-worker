@@ -22,6 +22,7 @@ from upload.constants import (
 from upload.worker import start_upload_worker
 
 if __name__ == "__main__":
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     load_dotenv()
 
     redisUrl = os.environ.get("REDIS_URL")
