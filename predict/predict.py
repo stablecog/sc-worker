@@ -164,12 +164,12 @@ def predict(
             print("-- Translator cog URL is not set. Skipping translation. --")
 
         sd_pipe = models_pack.sd_pipes[input.model]
-        setting_log_str = f"Model: {input.model} - Width: {input.width} - Height: {input.height} - Steps: {input.num_inference_steps} - Outputs: {input.num_outputs}"
+        settings_log_str = f"Model: {input.model} - Width: {input.width} - Height: {input.height} - Steps: {input.num_inference_steps} - Outputs: {input.num_outputs}"
         if input.init_image_url is not None:
-            output_log_str += f" - Init image: {input.init_image_url}"
+            settings_log_str += f" - Init image: {input.init_image_url}"
         if input.prompt_strength is not None:
-            output_log_str += f" - Prompt strength: {input.prompt_strength}"
-        print(f"🖥️ Generating - {setting_log_str} 🖥️")
+            settings_log_str += f" - Prompt strength: {input.prompt_strength}"
+        print(f"🖥️ Generating - {settings_log_str} 🖥️")
         startTime = time.time()
         generate_output_images, generate_nsfw_count = generate(
             t_prompt,
@@ -192,7 +192,7 @@ def predict(
         nsfw_count = generate_nsfw_count
         endTime = time.time()
         print(
-            f"🖥️ Generated in {round((endTime - startTime) * 1000)} ms - {setting_log_str} 🖥️"
+            f"🖥️ Generated in {round((endTime - startTime) * 1000)} ms - {settings_log_str} 🖥️"
         )
 
         if len(output_images) > 0:
