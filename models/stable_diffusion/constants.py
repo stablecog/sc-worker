@@ -59,8 +59,20 @@ SD_MODELS_ALL = {
         "torch_dtype": torch.float16,
         "branch": "fp16",
     },
+    "Waifu Diffusion": {
+        "id": "hakurei/waifu-diffusion",
+        "prompt_prefix": "masterpiece, best quality, high quality",
+        "negative_prompt_prefix": "worst quality, low quality, deleted, nsfw, blurry",
+        "torch_dtype": torch.float16,
+        "branch": "fp16",
+    },
     "22h Diffusion v0.1": {
-        "id": "22h/vintedois-diffusion-v0-1",
+        "id": "22h/vintedois-diffusion-v0-2",
+        "prompt_prefix": "estilovintedois",
+        "torch_dtype": torch.float16,
+    },
+    "22h Diffusion": {
+        "id": "22h/vintedois-diffusion-v0-2",
         "prompt_prefix": "estilovintedois",
         "torch_dtype": torch.float16,
     },
