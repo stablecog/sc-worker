@@ -67,12 +67,12 @@ SD_MODELS_ALL = {
         "branch": "fp16",
     },
     "22h Diffusion v0.1": {
-        "id": "22h/vintedois-diffusion-v0-2",
+        "id": "22h/vintedois-diffusion-v0-1",
         "prompt_prefix": "estilovintedois",
         "torch_dtype": torch.float16,
     },
     "22h Diffusion": {
-        "id": "22h/vintedois-diffusion-v0-2",
+        "id": "22h/vintedois-diffusion-v0-1",
         "prompt_prefix": "estilovintedois",
         "torch_dtype": torch.float16,
     },
