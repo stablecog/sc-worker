@@ -119,6 +119,11 @@ def start_redis_queue_worker(
         except Exception as e:
             tb = traceback.format_exc()
             print(f"Failed to handle message: {tb}\n")
+            try:
+                redis.xack(input_queue, input_queue, message_id)
+                redis.xdel(input_queue, message_id)
+            except:
+                pass
 
 
 def run_prediction(
