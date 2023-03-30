@@ -210,7 +210,7 @@ def predict(
 
         start_clip_prompt = time.time()
         embed_of_prompt = get_embeds_of_texts(
-            [input.prompt], models_pack.clip["model"], models_pack.clip["tokenizer"]
+            [t_prompt], models_pack.clip["model"], models_pack.clip["tokenizer"]
         )
         end_clip_prompt = time.time()
         print(
