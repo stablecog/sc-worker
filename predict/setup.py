@@ -17,9 +17,11 @@ from models.constants import DEVICE
 from transformers import (
     AutoProcessor,
     AutoTokenizer,
+    AutoModel,
     CLIPModel,
 )
 from models.clip.constants import CLIP_MODEL_ID
+from models.open_clip.constants import OPEN_CLIP_MODEL_ID
 import os
 from huggingface_hub import _login
 
@@ -31,11 +33,13 @@ class ModelsPack:
         upscaler: Any,
         language_detector_pipe: LanguageDetector,
         clip: Any,
+        open_clip: Any
     ):
         self.sd_pipes = sd_pipes
         self.upscaler = upscaler
         self.language_detector_pipe = language_detector_pipe
         self.clip = clip
+        self.open_clip = open_clip
 
 
 def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
@@ -102,7 +106,17 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         "processor": clip_processor,
         "tokenizer": clip_tokenizer,
     }
-    print("✅ Loaded CLIP model")
+    print("✅ Loaded CLIP")
+
+    open_clip_model = AutoModel.from_pretrained(OPEN_CLIP_MODEL_ID).to(DEVICE)
+    open_clip_processor = AutoProcessor.from_pretrained(OPEN_CLIP_MODEL_ID)
+    open_clip_tokenizer = AutoTokenizer.from_pretrained(OPEN_CLIP_MODEL_ID)
+    open_clip = {
+        "model": open_clip_model,
+        "processor": open_clip_processor,
+        "tokenizer": open_clip_tokenizer,
+    }
+    print("✅ Loaded Open CLIP")
 
     end = time.time()
     print("//////////////////////////////////////////////////////////////////")
@@ -114,4 +128,5 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         upscaler=upscaler,
         language_detector_pipe=language_detector_pipe,
         clip=clip,
+        open_clip=open_clip
     )
