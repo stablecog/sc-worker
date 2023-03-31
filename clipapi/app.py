@@ -31,38 +31,46 @@ def clip_embed():
         return str(e), 400
     finally:
         print(req_body)
-        if req_body is None or "text" not in req_body:
-            return "Missing 'text' in request body", 400
+        if req_body is None:
+            return "Missing request body", 400
+        if isinstance(req_body, list) is not True:
+            return "Body should be an array", 400
 
-    text = req_body["text"]
-    if TRANSLATOR_COG_URL is not None:
-        try:
-            [text, _] = translate_text(
-                text,
-                "",
-                "",
-                "",
-                TRANSLATOR_COG_URL,
-                models_pack.language_detector_pipe,
-                "CLIP Query",
-            )
-        except Exception as e:
-            tb = traceback.format_exc()
-            print(f"Failed to translate input: {tb}\n")
-            return str(e), 500
+    embeds = []
+    for item in req_body:
+        if "text" in item:
+            text = item["text"]
+            if TRANSLATOR_COG_URL is not None:
+                try:
+                    [translated_text, _] = translate_text(
+                        text,
+                        "",
+                        "",
+                        "",
+                        TRANSLATOR_COG_URL,
+                        models_pack.language_detector_pipe,
+                        "CLIP Query",
+                    )
+                except Exception as e:
+                    tb = traceback.format_exc()
+                    print(f"Failed to translate input: {tb}\n")
+                    return str(e), 500
+            try:
+                text_embed = open_clip_get_embeds_of_texts(
+                    [translated_text],
+                    models_pack.open_clip["model"],
+                    models_pack.open_clip["tokenizer"],
+                )[0]
+                obj = {"input_text": text, "embedding": text_embed}
+                if translate_text != text:
+                    obj["translated_text"] = translated_text
+                embeds.append(obj)
+            except Exception as e:
+                tb = traceback.format_exc()
+                print(f"Failed to get openCLIP embeds: {tb}\n")
+                return str(e), 500
 
-    try:
-        text_embed = open_clip_get_embeds_of_texts(
-            [text],
-            models_pack.open_clip["model"],
-            models_pack.open_clip["tokenizer"],
-        )[0]
-    except Exception as e:
-        tb = traceback.format_exc()
-        print(f"Failed to get openCLIP embeds: {tb}\n")
-        return str(e), 500
-
-    return jsonify({"embed": text_embed})
+    return jsonify({"embeddings": embeds})
 
 
 def run_clipapi(models_pack: ModelsPack):

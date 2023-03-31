@@ -9,12 +9,10 @@ from shared.helpers import time_it
 @time_it
 def open_clip_get_embeds_of_images(images: List[Image.Image], model, processor):
     with torch.no_grad():
-        s = time.time()
         inputs = processor(images=images, return_tensors="pt")
         inputs = inputs.to(DEVICE)
         image_embeddings = model.get_image_features(**inputs)
         image_embeddings = image_embeddings.cpu().numpy().tolist()
-        e = time.time()
         return image_embeddings
 
 @time_it
