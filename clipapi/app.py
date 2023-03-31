@@ -39,11 +39,11 @@ def clip_embed():
     embeds = []
     for item in req_body:
         if "text" in item:
-            text = item["text"]
+            input_text = item["text"]
             if TRANSLATOR_COG_URL is not None:
                 try:
                     [translated_text, _] = translate_text(
-                        text,
+                        input_text,
                         "",
                         "",
                         "",
@@ -61,8 +61,8 @@ def clip_embed():
                     models_pack.open_clip["model"],
                     models_pack.open_clip["tokenizer"],
                 )[0]
-                obj = {"input_text": text, "embedding": text_embed}
-                if translate_text != text:
+                obj = {"input_text": input_text, "embedding": text_embed}
+                if translated_text != input_text:
                     obj["translated_text"] = translated_text
                 embeds.append(obj)
             except Exception as e:
