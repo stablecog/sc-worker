@@ -16,7 +16,6 @@ from models.swinir.upscale import upscale
 from typing import List
 from .classes import PredictOutput, PredictResult
 from .setup import ModelsPack
-from models.clip.main import clip_get_embeds_of_images, clip_get_embeds_of_texts
 from models.open_clip.main import open_clip_get_embeds_of_images, open_clip_get_embeds_of_texts
 from pydantic import BaseModel, Field, validator
 from .helpers import get_value_if_in_list
@@ -145,8 +144,6 @@ def predict(
     print(f"⏳ Process started: {input.process_type} ⏳")
     output_images = []
     nsfw_count = 0
-    clip_embeds_of_images = None
-    clip_embed_of_prompt = None
     open_clip_embeds_of_images = None
     open_clip_embed_of_prompt = None
 
@@ -198,18 +195,14 @@ def predict(
             f"🖥️ Generated in {round((endTime - startTime) * 1000)} ms - {settings_log_str} 🖥️"
         )
 
-        if len(output_images) > 0:
-            start_clip_image = time.time()
-            clip_embeds_of_images = clip_get_embeds_of_images(
-                output_images, models_pack.clip["model"], models_pack.clip["processor"]
-            )
-            end_clip_image = time.time()
-            print(
-                f"🖼️ CLIP image embeddings in: {round((end_clip_image - start_clip_image) * 1000)} ms - {len(output_images)} images 🖼️"
-            )
-        else:
-            clip_embeds_of_images = []
-            print("🖼️ No non-NSFW images generated. Skipping CLIP image embeddings. 🖼️")
+        start_open_clip_prompt = time.time()
+        open_clip_embed_of_prompt = open_clip_get_embeds_of_texts(
+            [t_prompt], models_pack.open_clip["model"], models_pack.open_clip["tokenizer"]
+        )[0]
+        end_open_clip_prompt = time.time()
+        print(
+            f"📜 Open CLIP prompt embedding in: {round((end_open_clip_prompt - start_open_clip_prompt) * 1000)} ms 📜"
+        )
         
         if len(output_images) > 0:
             start_open_clip_image = time.time()
@@ -223,24 +216,6 @@ def predict(
         else:
             open_clip_embeds_of_images = []
             print("🖼️ No non-NSFW images generated. Skipping Open CLIP image embeddings. 🖼️")
-
-        start_clip_prompt = time.time()
-        clip_embed_of_prompt = clip_get_embeds_of_texts(
-            [t_prompt], models_pack.clip["model"], models_pack.clip["tokenizer"]
-        )[0]
-        end_clip_prompt = time.time()
-        print(
-            f"📜 CLIP prompt embedding in: {round((end_clip_prompt - start_clip_prompt) * 1000)} ms 📜"
-        )
-
-        start_open_clip_prompt = time.time()
-        open_clip_embed_of_prompt = open_clip_get_embeds_of_texts(
-            [t_prompt], models_pack.open_clip["model"], models_pack.open_clip["tokenizer"]
-        )[0]
-        end_open_clip_prompt = time.time()
-        print(
-            f"📜 Open CLIP prompt embedding in: {round((end_open_clip_prompt - start_open_clip_prompt) * 1000)} ms 📜"
-        )
 
     if input.process_type == "upscale" or input.process_type == "generate_and_upscale":
         startTime = time.time()
@@ -263,15 +238,10 @@ def predict(
             pil_image=image,
             target_quality=input.output_image_quality,
             target_extension=input.output_image_extension,
-            clip_image_embed=clip_embeds_of_images[i] if clip_embeds_of_images is not None else None,
-            clip_prompt_embed=clip_embed_of_prompt if clip_embed_of_prompt is not None else None,
             open_clip_image_embed=open_clip_embeds_of_images[i] if open_clip_embeds_of_images is not None else None,
             open_clip_prompt_embed=open_clip_embed_of_prompt if open_clip_embed_of_prompt is not None else None,
         )
         output_objects.append(obj)
-
-    print(f"CLIP prompt embed len: {len(clip_embed_of_prompt)}")
-    print(f"Open CLIP prompt embed: {len(open_clip_embed_of_prompt)}")
 
     result = PredictResult(
         outputs=output_objects,
