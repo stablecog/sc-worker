@@ -18,11 +18,11 @@ clipapi = Flask(__name__)
 def clip_embed():
     with current_app.app_context():
         models_pack: ModelsPack = current_app.models_pack
-    # authheader = request.headers.get("Authorization")
-    # if authheader is None:
-    #     return "Unauthorized", 401
-    # if authheader != os.environ.get("CLIPAPI_AUTH_TOKEN"):
-    #     return "Unauthorized", 401
+    authheader = request.headers.get("Authorization")
+    if authheader is None:
+        return "Unauthorized", 401
+    if authheader != os.environ.get("CLIPAPI_AUTH_TOKEN"):
+        return "Unauthorized", 401
     try:
         req_body = request.get_json()
     except Exception as e:
