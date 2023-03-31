@@ -10,9 +10,9 @@ target_lang_flores = LANG_TO_FLORES[target_lang.name]
 
 def translate_text(
     text: str,
-    flores_200_code: str,
+    flores_200_code: str | None,
     text_2: str,
-    flores_200_code_2: str,
+    flores_200_code_2: str | None,
     translator_url: str,
     detector: LanguageDetector,
     label: str,
@@ -87,10 +87,16 @@ def translate_text(
     return [translated_text, translated_text_2]
 
 
-def get_flores_200_code(text, defined_flores_code, target_lang_flores, detector, label):
+def get_flores_200_code(
+    text,
+    defined_flores_code,
+    target_lang_flores,
+    detector,
+    label,
+):
     if text == "":
         return target_lang_flores
-    if defined_flores_code is not None:
+    if defined_flores_code is not None and defined_flores_code is not "":
         print(
             f'-- {label} - FLORES-200 code is given, skipping language auto-detection: "{defined_flores_code}" --'
         )
