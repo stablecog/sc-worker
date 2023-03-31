@@ -1,4 +1,5 @@
 import os
+import traceback
 
 from flask import Flask, request, current_app, jsonify
 
@@ -24,6 +25,8 @@ def clip_embed():
     try:
         req_body = request.get_json()
     except Exception as e:
+        tb = traceback.format_exc()
+        print(f"Error parsing request body: {tb}\n")
         return str(e), 400
     finally:
         if req_body is None or "text" not in req_body:
@@ -42,6 +45,8 @@ def clip_embed():
                 "CLIP Query",
             )
         except Exception as e:
+            tb = traceback.format_exc()
+            print(f"Failed to translate input: {tb}\n")
             return str(e), 500
 
     try:
@@ -51,6 +56,8 @@ def clip_embed():
             models_pack.open_clip["tokenizer"],
         )[0]
     except Exception as e:
+        tb = traceback.format_exc()
+        print(f"Failed to get openCLIP embeds: {tb}\n")
         return str(e), 500
 
     return jsonify({"embed": text_embed})
