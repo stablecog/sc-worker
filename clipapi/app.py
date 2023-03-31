@@ -29,6 +29,7 @@ def clip_embed():
         print(f"Error parsing request body: {tb}\n")
         return str(e), 400
     finally:
+        print(req_body)
         if req_body is None or "text" not in req_body:
             return "Missing 'text' in request body", 400
 
