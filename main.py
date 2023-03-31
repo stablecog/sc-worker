@@ -74,7 +74,7 @@ if __name__ == "__main__":
     )
 
     # Create clip API thread
-    clipapi_thread = Thread(target=run_clipapi)
+    clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
 
     redis_worker_thread.start()
     upload_thread.start()
