@@ -2,6 +2,7 @@ import os
 import traceback
 
 from flask import Flask, request, current_app, jsonify
+from waitress import serve
 
 from models.nllb.translate import translate_text
 from models.nllb.constants import TRANSLATOR_COG_URL
@@ -69,4 +70,5 @@ def run_clipapi(models_pack: ModelsPack):
     port = os.environ.get("CLIPAPI_PORT", 13339)
     with clipapi.app_context():
         current_app.models_pack = models_pack
-    clipapi.run(host=host, port=port)
+    # clipapi.run(host=host, port=port)
+    serve(clipapi, host=host, port=port)
