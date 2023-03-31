@@ -2,6 +2,7 @@ import os
 import shutil
 from typing import Optional
 import datetime
+import time
 
 
 def clean_folder(folder):
@@ -43,3 +44,14 @@ def format_datetime(timestamp: datetime.datetime) -> str:
     easier parsing by things like Golang.
     """
     return timestamp.isoformat() + "Z"
+
+def time_it(func):
+    # This function shows the execution time of 
+    # the function object passed
+    def wrap_func(*args, **kwargs):
+        t1 = time.time()
+        result = func(*args, **kwargs)
+        t2 = time.time()
+        print(f'Function {func.__name__!r} executed in {((t2-t1)*1000):.0f}ms')
+        return result
+    return wrap_func
