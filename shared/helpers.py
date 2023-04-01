@@ -78,10 +78,13 @@ def download_images(urls, max_workers=10):
 
 
 def download_image_from_s3(key, bucket):
-    image_object = bucket.Object(key)
-    image_data = image_object.get().get("Body").read()
-    image = Image.open(BytesIO(image_data))
-    return image
+    try:
+        image_object = bucket.Object(key)
+        image_data = image_object.get().get("Body").read()
+        image = Image.open(BytesIO(image_data))
+        return image
+    except Exception as e:
+        return None
 
 
 def download_images_from_s3(keys, bucket, max_workers=25):

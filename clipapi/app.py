@@ -149,19 +149,42 @@ def clip_embed():
             tb = traceback.format_exc()
             print(f"Failed to download images: {tb}\n")
             return str(e), 500
+
+        filtered_pil_image_objects = []
+        filtered_pil_images = []
+        for i, pil_image in enumerate(pil_images):
+            if pil_image is not None:
+                filtered_pil_image_objects.append({"image": pil_image, "index": i})
+                filtered_pil_images.append(pil_image)
+
         image_embeds = open_clip_get_embeds_of_images(
-            pil_images,
+            filtered_pil_images,
             models_pack.open_clip["model"],
             models_pack.open_clip["processor"],
         )
+
         for i, embed in enumerate(image_embeds):
-            item = imageIdObjects[i]["item"]
-            index = imageIdObjects[i]["index"]
+            index_f = filtered_pil_image_objects[i]["index"]
+            item = imageIdObjects[index_f]["item"]
+            index = imageIdObjects[index_f]["index"]
             id = item.get("id", None)
-            obj = {"image_id": image_ids[i], "embedding": embed}
+            obj = {"image_id": image_ids[index_f], "embedding": embed}
             if id is not None:
                 obj["id"] = id
             embeds[index] = obj
+
+        for i, pil_image in enumerate(pil_images):
+            item = imageIdObjects[i]["item"]
+            index = imageIdObjects[i]["index"]
+            id = item.get("id", None)
+            if pil_image is None:
+                index = imageIdObjects[i]["index"]
+                embeds[index] = {
+                    "image_id": image_ids[i],
+                    "error": "Image not found in S3",
+                }
+                if id is not None:
+                    embeds[index]["id"] = id
 
     e = time.time()
     print(f"🖥️  Embedded {len(req_body)} items in: {e-s:.2f} seconds  🖥️\n")
