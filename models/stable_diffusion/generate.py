@@ -1,9 +1,11 @@
 import os
 import torch
-from .helpers import get_scheduler, download_image, fit_image
+from .helpers import get_scheduler, fit_image
 from .constants import SD_MODELS
 from models.constants import DEVICE
 import time
+from shared.helpers import download_image
+
 
 def generate(
     prompt,
@@ -67,7 +69,6 @@ def generate(
         extra_kwargs["strength"] = prompt_strength
     else:
         pipe = sd_pipe.text2img
-    
 
     generator = torch.Generator(DEVICE).manual_seed(seed)
     output = pipe(

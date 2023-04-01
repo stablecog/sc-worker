@@ -3,6 +3,10 @@ import shutil
 from typing import Optional
 import datetime
 import time
+import requests
+from PIL import Image
+from io import BytesIO
+from concurrent.futures import ThreadPoolExecutor
 
 
 def clean_folder(folder):
@@ -45,13 +49,43 @@ def format_datetime(timestamp: datetime.datetime) -> str:
     """
     return timestamp.isoformat() + "Z"
 
+
 def time_it(func):
-    # This function shows the execution time of 
+    # This function shows the execution time of
     # the function object passed
     def wrap_func(*args, **kwargs):
         t1 = time.time()
         result = func(*args, **kwargs)
         t2 = time.time()
-        print(f'Function {func.__name__!r} executed in {((t2-t1)*1000):.0f}ms')
+        print(f"Function {func.__name__!r} executed in {((t2-t1)*1000):.0f}ms")
         return result
+
     return wrap_func
+
+
+def download_image(url):
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise Exception(f"Failed to download image from {url}")
+    return Image.open(BytesIO(response.content)).convert("RGB")
+
+
+def download_images(urls, max_workers=10):
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(download_image, url) for url in urls]
+        images = [future.result() for future in futures]
+    return images
+
+
+def download_image_from_s3(key, bucket):
+    image_object = bucket.Object(key)
+    image_data = image_object.get().get("Body").read()
+    image = Image.open(BytesIO(image_data))
+    return image
+
+
+def download_images_from_s3(keys, bucket, max_workers=25):
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        images = list(executor.map(download_image_from_s3, keys, [bucket] * len(keys)))
+
+    return images
