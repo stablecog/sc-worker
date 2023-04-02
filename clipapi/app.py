@@ -143,7 +143,7 @@ def clip_embed():
             image_ids.append(obj["item"]["image_id"])
         try:
             pil_images = download_images_from_s3(
-                keys=image_ids, bucket=bucket, max_workers=200
+                keys=image_ids, bucket=bucket, max_workers=100
             )
         except Exception as e:
             tb = traceback.format_exc()
