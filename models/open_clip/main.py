@@ -3,7 +3,6 @@ from models.constants import DEVICE
 from .constants import OPEN_CLIP_TOKEN_LENGTH_MAX
 from typing import List
 import torch
-import time
 from shared.helpers import time_it
 
 
