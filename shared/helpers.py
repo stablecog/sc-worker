@@ -63,6 +63,22 @@ def time_it(func):
     return wrap_func
 
 
+class time_code_block:
+    def __init__(self, prefix=None):
+        self.prefix = prefix
+
+    def __enter__(self):
+        self.start_time = time.time()
+
+    def __exit__(self):
+        self.end_time = time.time()
+        self.elapsed_time = (self.end_time - self.start_time) * 1000
+        statement = f"Executed in: {self.elapsed_time:.2f} ms"
+        if self.prefix:
+            statement = f"{self.prefix} - {statement}"
+        print(statement)
+
+
 def download_image(url):
     response = requests.get(url)
     if response.status_code != 200:
