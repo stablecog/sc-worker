@@ -33,7 +33,7 @@ s3: ServiceResource = boto3.resource(
     aws_access_key_id=S3_ACCESS_KEY_ID,
     aws_secret_access_key=S3_SECRET_ACCESS_KEY,
     config=Config(
-        retries={"max_attempts": 3, "mode": "standard"}, max_pool_connections=200
+        retries={"max_attempts": 3, "mode": "standard"}, max_pool_connections=300
     ),
 )
 bucket = s3.Bucket(S3_BUCKET_NAME_UPLOAD)
