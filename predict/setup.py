@@ -84,12 +84,6 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
 
     # For translator
     translator = {
-        "tokenizer": AutoTokenizer.from_pretrained(
-            TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_CACHE
-        ),
-        "model": AutoModelForSeq2SeqLM.from_pretrained(
-            TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_CACHE
-        ),
         "detector": (
             LanguageDetectorBuilder.from_all_languages()
             .with_preloaded_language_models()

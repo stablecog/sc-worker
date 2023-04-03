@@ -1,5 +1,5 @@
 from lingua import Language
-
+import os
 
 TRANSLATOR_MODEL_ID = "facebook/nllb-200-distilled-1.3B"
 TRANSLATOR_CACHE = "translator-cache"
@@ -83,3 +83,4 @@ FLORES_TO_LANG = dict([(value, key) for key, value in LANG_TO_FLORES.items()])
 TARGET_LANG = Language.ENGLISH
 TARGET_LANG_FLORES = LANG_TO_FLORES[TARGET_LANG.name]
 TARGET_LANG_SCORE_MAX = 0.88
+TRANSLATOR_COG_URL = os.environ.get("TRANSLATOR_COG_URL", None)

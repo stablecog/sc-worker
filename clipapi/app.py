@@ -4,7 +4,8 @@ import traceback
 from flask import Flask, request, current_app, jsonify
 from waitress import serve
 
-from models.nllb.translate import translate_text
+from models.nllb.translate import translate_text_set_via_api
+from models.nllb.constants import TRANSLATOR_COG_URL
 from models.open_clip.main import (
     open_clip_get_embeds_of_texts,
     open_clip_get_embeds_of_images,
@@ -77,12 +78,22 @@ def clip_embed():
         index = obj["index"]
         input_text = item["text"]
         id = item.get("id", None)
-        translated_text = translate_text(
-            text=input_text,
-            flores=None,
-            translator=current_app.models_pack.translator,
-            label="CLIP Query",
-        )
+        translated_text = None
+        if TRANSLATOR_COG_URL is not None:
+            try:
+                [translated_text, _] = translate_text_set_via_api(
+                    text_1=input_text,
+                    flores_1=None,
+                    text_2="",
+                    flores_2=None,
+                    translator_url=TRANSLATOR_COG_URL,
+                    detector=models_pack.translator["detector"],
+                    label="CLIP Query",
+                )
+            except Exception as e:
+                tb = traceback.format_exc()
+                print(f"Failed to translate input: {tb}\n")
+                return str(e), 500
         try:
             text_embed = open_clip_get_embeds_of_texts(
                 [translated_text],

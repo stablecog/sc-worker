@@ -9,7 +9,8 @@ from models.stable_diffusion.constants import (
 )
 
 from models.stable_diffusion.generate import generate
-from models.nllb.translate import translate_prompt_set
+from models.nllb.translate import translate_text_set_via_api
+from models.nllb.constants import TRANSLATOR_COG_URL
 from models.swinir.upscale import upscale
 
 from typing import List
@@ -124,6 +125,10 @@ class PredictInput(BaseModel):
         description="Choose a process type. Can be 'generate', 'upscale' or 'generate_and_upscale'. Defaults to 'generate'",
         default="generate",
     )
+    translator_cog_url: str = Field(
+        description="URL of the translator cog. If it's blank, TRANSLATOR_COG_URL environment variable will be used (if it exists).",
+        default=TRANSLATOR_COG_URL,
+    )
 
     @validator("process_type")
     def validate_process_type(cls, v):
@@ -147,14 +152,16 @@ def predict(
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
         t_prompt = input.prompt
         t_negative_prompt = input.negative_prompt
-        [t_prompt, t_negative_prompt] = translate_prompt_set(
-            text_1=input.prompt,
-            flores_1=input.prompt_flores_200_code,
-            text_2=input.negative_prompt,
-            flores_2=input.negative_prompt_flores_200_code,
-            translator=models_pack.translator,
-            label="Prompt & Negative Prompt",
-        )
+        if input.translator_cog_url is not None:
+            [t_prompt, t_negative_prompt] = translate_text_set_via_api(
+                text_1=input.prompt,
+                flores_1=input.prompt_flores_200_code,
+                text_2=input.negative_prompt,
+                flores_2=input.negative_prompt_flores_200_code,
+                translator_url=input.translator_cog_url,
+                detector=models_pack.translator["detector"],
+                label="Prompt & Negative Prompt",
+            )
 
         sd_pipe = models_pack.sd_pipes[input.model]
         settings_log_str = f"Model: {input.model} - Width: {input.width} - Height: {input.height} - Steps: {input.num_inference_steps} - Outputs: {input.num_outputs}"
