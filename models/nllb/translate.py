@@ -48,6 +48,7 @@ def translate_text(
     translator: Any,
     label: str,
 ):
+    start = time.time()
     if text == "":
         print(f"-- {label} - No text to translate, skipping --")
         return ""
@@ -82,6 +83,8 @@ def translate_text(
         print(f'-- {label} - Original text is: "{text}" --')
         print(f'-- {label} - Translated text is: "{translated_text}" --')
 
+    end = time.time()
+    print(f"-- {label} - Translated text in: {round((end - start) * 1000)} ms --")
     return translated_text
 
 
