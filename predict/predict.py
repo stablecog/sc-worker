@@ -149,9 +149,9 @@ def predict(
         t_negative_prompt = input.negative_prompt
         [t_prompt, t_negative_prompt] = translate_prompt_set(
             text_1=input.prompt,
-            flores_200_code_1=input.prompt_flores_200_code,
+            flores_200_1=input.prompt_flores_200_code,
             text_2=input.negative_prompt,
-            flored_200_code_2=input.negative_prompt_flores_200_code,
+            flored_200_2=input.negative_prompt_flores_200_code,
             translator=models_pack.translator,
             label="Prompt & Negative Prompt",
         )
