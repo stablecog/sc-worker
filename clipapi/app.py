@@ -78,7 +78,7 @@ def clip_embed():
         index = obj["index"]
         input_text = item["text"]
         id = item.get("id", None)
-        translated_text = None
+        translated_text = input_text
         if TRANSLATOR_COG_URL is not None:
             try:
                 [translated_text, _] = translate_text_set_via_api(
