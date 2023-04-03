@@ -111,7 +111,7 @@ class PredictInput(BaseModel):
     @validator("width")
     def validate_width(cls, v: int, values):
         if values["process_type"] == "upscale":
-            return True
+            return v
         return return_value_if_in_list(
             v,
             SIZE_LIST,
@@ -125,7 +125,7 @@ class PredictInput(BaseModel):
     @validator("height")
     def validate_height(cls, v: int, values):
         if values["process_type"] == "upscale":
-            return True
+            return v
         return return_value_if_in_list(
             v,
             SIZE_LIST,
