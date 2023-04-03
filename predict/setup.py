@@ -1,6 +1,6 @@
 from typing import Any
 
-from lingua import LanguageDetectorBuilder, LanguageDetector
+from lingua import LanguageDetectorBuilder
 from boto3_type_annotations.s3 import ServiceResource
 
 from shared.constants import WORKER_VERSION
@@ -14,14 +14,11 @@ from models.download.download_from_bucket import download_all_models_from_bucket
 from models.download.download_from_hf import download_models_from_hf
 import time
 from models.constants import DEVICE
-from transformers import (
-    AutoProcessor,
-    AutoTokenizer,
-    AutoModel,
-)
+from transformers import AutoProcessor, AutoTokenizer, AutoModel, AutoModelForSeq2SeqLM
 from models.open_clip.constants import OPEN_CLIP_MODEL_ID
 import os
 from huggingface_hub import _login
+from models.nllb.constants import TRANSLATOR_MODEL_ID, TRANSLATOR_CACHE
 
 
 class ModelsPack:
@@ -29,12 +26,12 @@ class ModelsPack:
         self,
         sd_pipes: dict[str, DiffusionPipeline],
         upscaler: Any,
-        language_detector_pipe: LanguageDetector,
-        open_clip: Any
+        translator: Any,
+        open_clip: Any,
     ):
         self.sd_pipes = sd_pipes
         self.upscaler = upscaler
-        self.language_detector_pipe = language_detector_pipe
+        self.translator = translator
         self.open_clip = open_clip
 
 
@@ -86,21 +83,26 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     print("✅ Loaded upscaler")
 
     # For translator
-    language_detector_pipe = (
-        LanguageDetectorBuilder.from_all_languages()
-        .with_preloaded_language_models()
-        .build()
-    )
-    print("✅ Loaded language detector")
+    translator = {
+        "tokenizer": AutoTokenizer.from_pretrained(
+            TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_CACHE
+        ),
+        "model": AutoModelForSeq2SeqLM.from_pretrained(
+            TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_CACHE
+        ),
+        "detector": (
+            LanguageDetectorBuilder.from_all_languages()
+            .with_preloaded_language_models()
+            .build()
+        ),
+    }
+    print("✅ Loaded translator")
 
-    # For Open CLIP    
-    open_clip_model = AutoModel.from_pretrained(OPEN_CLIP_MODEL_ID).to(DEVICE)
-    open_clip_processor = AutoProcessor.from_pretrained(OPEN_CLIP_MODEL_ID)
-    open_clip_tokenizer = AutoTokenizer.from_pretrained(OPEN_CLIP_MODEL_ID)
+    # For Open CLIP
     open_clip = {
-        "model": open_clip_model,
-        "processor": open_clip_processor,
-        "tokenizer": open_clip_tokenizer,
+        "model": AutoModel.from_pretrained(OPEN_CLIP_MODEL_ID).to(DEVICE),
+        "processor": AutoProcessor.from_pretrained(OPEN_CLIP_MODEL_ID),
+        "tokenizer": AutoTokenizer.from_pretrained(OPEN_CLIP_MODEL_ID),
     }
     print("✅ Loaded Open CLIP")
 
@@ -112,6 +114,6 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     return ModelsPack(
         sd_pipes=sd_pipes,
         upscaler=upscaler,
-        language_detector_pipe=language_detector_pipe,
-        open_clip=open_clip
+        translator=translator,
+        open_clip=open_clip,
     )

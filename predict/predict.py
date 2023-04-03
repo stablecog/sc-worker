@@ -10,13 +10,16 @@ from models.stable_diffusion.constants import (
 )
 
 from models.stable_diffusion.generate import generate
-from models.nllb.translate import translate_text
+from models.nllb.translate import translate_prompt_set
 from models.swinir.upscale import upscale
 
 from typing import List
 from .classes import PredictOutput, PredictResult
 from .setup import ModelsPack
-from models.open_clip.main import open_clip_get_embeds_of_images, open_clip_get_embeds_of_texts
+from models.open_clip.main import (
+    open_clip_get_embeds_of_images,
+    open_clip_get_embeds_of_texts,
+)
 from pydantic import BaseModel, Field, validator
 from .helpers import get_value_if_in_list
 
@@ -151,14 +154,13 @@ def predict(
         t_prompt = input.prompt
         t_negative_prompt = input.negative_prompt
         if input.translator_cog_url is not None:
-            [t_prompt, t_negative_prompt] = translate_text(
-                input.prompt,
-                input.prompt_flores_200_code,
-                input.negative_prompt,
-                input.negative_prompt_flores_200_code,
-                input.translator_cog_url,
-                models_pack.language_detector_pipe,
-                "Prompt & Negative Prompt",
+            [t_prompt, t_negative_prompt] = translate_prompt_set(
+                text_1=input.prompt,
+                flores_200_code_1=input.prompt_flores_200_code,
+                text_2=input.negative_prompt,
+                flored_200_code_2=input.negative_prompt_flores_200_code,
+                translator=models_pack.translator,
+                label="Prompt & Negative Prompt",
             )
         else:
             print("-- Translator cog URL is not set. Skipping translation. --")
@@ -197,17 +199,21 @@ def predict(
 
         start_open_clip_prompt = time.time()
         open_clip_embed_of_prompt = open_clip_get_embeds_of_texts(
-            [t_prompt], models_pack.open_clip["model"], models_pack.open_clip["tokenizer"]
+            [t_prompt],
+            models_pack.open_clip["model"],
+            models_pack.open_clip["tokenizer"],
         )[0]
         end_open_clip_prompt = time.time()
         print(
             f"📜 Open CLIP prompt embedding in: {round((end_open_clip_prompt - start_open_clip_prompt) * 1000)} ms 📜"
         )
-        
+
         if len(output_images) > 0:
             start_open_clip_image = time.time()
             open_clip_embeds_of_images = open_clip_get_embeds_of_images(
-                output_images, models_pack.open_clip["model"], models_pack.open_clip["processor"]
+                output_images,
+                models_pack.open_clip["model"],
+                models_pack.open_clip["processor"],
             )
             end_open_clip_image = time.time()
             print(
@@ -215,7 +221,9 @@ def predict(
             )
         else:
             open_clip_embeds_of_images = []
-            print("🖼️ No non-NSFW images generated. Skipping Open CLIP image embeddings. 🖼️")
+            print(
+                "🖼️ No non-NSFW images generated. Skipping Open CLIP image embeddings. 🖼️"
+            )
 
     if input.process_type == "upscale" or input.process_type == "generate_and_upscale":
         startTime = time.time()
@@ -238,8 +246,12 @@ def predict(
             pil_image=image,
             target_quality=input.output_image_quality,
             target_extension=input.output_image_extension,
-            open_clip_image_embed=open_clip_embeds_of_images[i] if open_clip_embeds_of_images is not None else None,
-            open_clip_prompt_embed=open_clip_embed_of_prompt if open_clip_embed_of_prompt is not None else None,
+            open_clip_image_embed=open_clip_embeds_of_images[i]
+            if open_clip_embeds_of_images is not None
+            else None,
+            open_clip_prompt_embed=open_clip_embed_of_prompt
+            if open_clip_embed_of_prompt is not None
+            else None,
         )
         output_objects.append(obj)
 
