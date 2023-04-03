@@ -68,7 +68,7 @@ def translate_text_set_via_api(
                     f"Translation failed with status code: {res.status_code}"
                 )
             resJson = res.json()
-            [translated_text, translated_text_2] = resJson["output"]
+            [translated_text_1, translated_text_2] = resJson["output"]
         except Exception as e:
             raise Exception(f"Translation failed with error: {e}")
 
