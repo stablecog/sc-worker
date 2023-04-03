@@ -21,7 +21,6 @@ from upload.constants import (
     S3_SECRET_ACCESS_KEY,
 )
 from upload.worker import start_upload_worker
-from clipapi.app import run_clipapi
 
 if __name__ == "__main__":
     if torch.cuda.is_available() is False:
@@ -73,12 +72,7 @@ if __name__ == "__main__":
         )
     )
 
-    # Create clip API thread
-    clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
-
     redis_worker_thread.start()
     upload_thread.start()
-    clipapi_thread.start()
     redis_worker_thread.join()
     upload_thread.join()
-    clipapi_thread.join()

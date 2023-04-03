@@ -15,42 +15,19 @@ from models.swinir.upscale import upscale
 
 from typing import List
 from .classes import PredictOutput, PredictResult
+from .constants import SIZE_LIST
 from .setup import ModelsPack
 from models.open_clip.main import (
     open_clip_get_embeds_of_images,
     open_clip_get_embeds_of_texts,
 )
 from pydantic import BaseModel, Field, validator
-from .helpers import get_value_if_in_list
+from .helpers import true_if_value_in_list
 
 
 class PredictInput(BaseModel):
     prompt: str = Field(description="Input prompt.", default="")
     negative_prompt: str = Field(description="Input negative prompt.", default="")
-    width: int = Field(
-        description="Width of output image.",
-        default=512,
-    )
-
-    @validator("width")
-    def validate_width(cls, v: int):
-        return get_value_if_in_list(
-            v,
-            range(384, 1025, 8),
-        )
-
-    height: int = Field(
-        description="Height of output image.",
-        default=512,
-    )
-
-    @validator("height")
-    def validate_height(cls, v: int):
-        return get_value_if_in_list(
-            v,
-            range(384, 1025, 8),
-        )
-
     num_outputs: int = Field(
         description="Number of images to output. If the NSFW filter is triggered, you may get fewer outputs than this.",
         ge=1,
@@ -80,7 +57,7 @@ class PredictInput(BaseModel):
 
     @validator("scheduler")
     def validate_scheduler(cls, v):
-        return get_value_if_in_list(v, SD_SCHEDULER_CHOICES)
+        return true_if_value_in_list(v, SD_SCHEDULER_CHOICES)
 
     model: str = Field(
         default=SD_MODEL_DEFAULT_KEY,
@@ -89,7 +66,7 @@ class PredictInput(BaseModel):
 
     @validator("model")
     def validate_model(cls, v):
-        return get_value_if_in_list(v, SD_MODEL_CHOICES)
+        return true_if_value_in_list(v, SD_MODEL_CHOICES)
 
     seed: int = Field(
         description="Random seed. Leave blank to randomize the seed.", default=None
@@ -113,7 +90,7 @@ class PredictInput(BaseModel):
 
     @validator("output_image_extension")
     def validate_output_image_extension(cls, v):
-        return get_value_if_in_list(v, ["png", "jpeg", "webp"])
+        return true_if_value_in_list(v, ["png", "jpeg", "webp"])
 
     output_image_quality: int = Field(
         description="Output quality of the image. Can be 1-100.", default=90
@@ -125,6 +102,35 @@ class PredictInput(BaseModel):
         description="Choose a process type. Can be 'generate', 'upscale' or 'generate_and_upscale'. Defaults to 'generate'",
         default="generate",
     )
+
+    width: int = Field(
+        description="Width of output image.",
+        default=512,
+    )
+
+    @validator("width")
+    def validate_width(cls, v: int, values):
+        if values["process_type"] == "upscale":
+            return True
+        return true_if_value_in_list(
+            v,
+            SIZE_LIST,
+        )
+
+    height: int = Field(
+        description="Height of output image.",
+        default=512,
+    )
+
+    @validator("height")
+    def validate_height(cls, v: int, values):
+        if values["process_type"] == "upscale":
+            return True
+        return true_if_value_in_list(
+            v,
+            SIZE_LIST,
+        )
+
     translator_cog_url: str = Field(
         description="URL of the translator cog. If it's blank, TRANSLATOR_COG_URL environment variable will be used (if it exists).",
         default=TRANSLATOR_COG_URL,
@@ -132,7 +138,7 @@ class PredictInput(BaseModel):
 
     @validator("process_type")
     def validate_process_type(cls, v):
-        return get_value_if_in_list(v, ["generate", "upscale", "generate_and_upscale"])
+        return true_if_value_in_list(v, ["generate", "upscale", "generate_and_upscale"])
 
 
 @torch.inference_mode()
