@@ -193,7 +193,7 @@ def clip_embed():
 
 def run_clipapi(models_pack: ModelsPack):
     host = os.environ.get("CLIPAPI_HOST", "0.0.0.0")
-    port = os.environ.get("CLIPAPI_PORT", 13339)
+    port = os.environ["CLIPAPI_PORT"]
     with clipapi.app_context():
         current_app.models_pack = models_pack
     # clipapi.run(host=host, port=port)
