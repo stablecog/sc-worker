@@ -13,29 +13,25 @@ from typing import Any
 
 def translate_prompt_set(
     text_1: str,
-    flores_code_1: str | None,
+    flores_1: str | None,
     text_2: str,
-    flores_code_2: str | None,
+    flores_2: str | None,
     translator: Any,
     label: str,
 ):
     startTimeTranslation = time.time()
 
-    args = {
-        "translator": translator,
-        "target_flores": TARGET_LANG_FLORES,
-    }
     translated_text_1 = translate_text(
         text=text_1,
-        text_flores=flores_code_1,
+        flores=flores_1,
         label=f"{label} - #1",
-        **args,
+        translator=translator,
     )
     translated_text_2 = translate_text(
         text=text_2,
-        text_flores=flores_code_2,
+        flores=flores_2,
         label=f"{label} - #1",
-        **args,
+        translator=translator,
     )
 
     endTimeTranslation = time.time()
@@ -48,7 +44,7 @@ def translate_prompt_set(
 
 def translate_text(
     text: str | None,
-    text_flores: str | None,
+    flores: str | None,
     translator: Any,
     label: str,
 ):
@@ -56,16 +52,16 @@ def translate_text(
         print(f"-- {label} - No text to translate, skipping --")
         return ""
 
-    text_lang_flores = TARGET_LANG_FLORES
+    detected_flores = TARGET_LANG_FLORES
     translated_text = ""
-    text_lang_flores = get_flores_200_code(
+    detected_flores = get_flores_200_code(
         text=text,
-        defined_flores_code=text_flores,
+        defined_flores=flores,
         detector=translator["detector"],
         label=label,
     )
 
-    if text_lang_flores == TARGET_LANG_FLORES:
+    if detected_flores == TARGET_LANG_FLORES:
         translated_text = text
         print(
             f"-- {label} - Text is already in the correct language, no translation needed --"
@@ -77,7 +73,7 @@ def translate_text(
             model=translator["model"],
             tokenizer=translator["tokenizer"],
             torch_dtype=torch.float16,
-            src_lang=text_flores,
+            src_lang=detected_flores,
             tgt_lang=TARGET_LANG_FLORES,
             device=0,
         )
@@ -91,18 +87,18 @@ def translate_text(
 
 def get_flores_200_code(
     text,
-    defined_flores_code,
+    defined_flores,
     detector,
     label,
 ):
     if text == "":
         print(f"-- {label} - No text to give FLORES-200 for, skipping --")
         return TARGET_LANG_FLORES
-    if defined_flores_code is not None and defined_flores_code is not "":
+    if defined_flores is not None and defined_flores is not "":
         print(
-            f'-- {label} - FLORES-200 code is given, skipping language auto-detection: "{defined_flores_code}" --'
+            f'-- {label} - FLORES-200 code is given, skipping language auto-detection: "{defined_flores}" --'
         )
-        return defined_flores_code
+        return defined_flores
 
     text_lang_flores = TARGET_LANG_FLORES
     confidence_values = detector.compute_language_confidence_values(text)
