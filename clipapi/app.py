@@ -80,7 +80,7 @@ def clip_embed():
         translated_text = translate_text(
             text=input_text,
             flores=None,
-            translator=current_app.models_pack["translator"],
+            translator=current_app.models_pack.translator,
             label="CLIP Query",
         )
         try:

@@ -54,9 +54,9 @@ def translate_text(
 
     detected_flores = TARGET_LANG_FLORES
     translated_text = ""
-    detected_flores = get_flores_200_code(
+    detected_flores = get_flores(
         text=text,
-        defined_flores=flores,
+        flores=flores,
         detector=translator["detector"],
         label=label,
     )
@@ -85,20 +85,20 @@ def translate_text(
     return translated_text
 
 
-def get_flores_200_code(
+def get_flores(
     text,
-    defined_flores,
+    flores,
     detector,
     label,
 ):
     if text == "":
         print(f"-- {label} - No text to give FLORES-200 for, skipping --")
         return TARGET_LANG_FLORES
-    if defined_flores is not None and defined_flores is not "":
+    if flores is not None and flores is not "":
         print(
-            f'-- {label} - FLORES-200 code is given, skipping language auto-detection: "{defined_flores}" --'
+            f'-- {label} - FLORES-200 code is given, skipping language auto-detection: "{flores}" --'
         )
-        return defined_flores
+        return flores
 
     text_lang_flores = TARGET_LANG_FLORES
     confidence_values = detector.compute_language_confidence_values(text)
