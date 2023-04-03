@@ -22,7 +22,7 @@ from models.open_clip.main import (
     open_clip_get_embeds_of_texts,
 )
 from pydantic import BaseModel, Field, validator
-from .helpers import true_if_value_in_list
+from .helpers import return_value_if_in_list
 
 
 class PredictInput(BaseModel):
@@ -57,7 +57,7 @@ class PredictInput(BaseModel):
 
     @validator("scheduler")
     def validate_scheduler(cls, v):
-        return true_if_value_in_list(v, SD_SCHEDULER_CHOICES)
+        return return_value_if_in_list(v, SD_SCHEDULER_CHOICES)
 
     model: str = Field(
         default=SD_MODEL_DEFAULT_KEY,
@@ -66,7 +66,7 @@ class PredictInput(BaseModel):
 
     @validator("model")
     def validate_model(cls, v):
-        return true_if_value_in_list(v, SD_MODEL_CHOICES)
+        return return_value_if_in_list(v, SD_MODEL_CHOICES)
 
     seed: int = Field(
         description="Random seed. Leave blank to randomize the seed.", default=None
@@ -90,7 +90,7 @@ class PredictInput(BaseModel):
 
     @validator("output_image_extension")
     def validate_output_image_extension(cls, v):
-        return true_if_value_in_list(v, ["png", "jpeg", "webp"])
+        return return_value_if_in_list(v, ["png", "jpeg", "webp"])
 
     output_image_quality: int = Field(
         description="Output quality of the image. Can be 1-100.", default=90
@@ -112,7 +112,7 @@ class PredictInput(BaseModel):
     def validate_width(cls, v: int, values):
         if values["process_type"] == "upscale":
             return True
-        return true_if_value_in_list(
+        return return_value_if_in_list(
             v,
             SIZE_LIST,
         )
@@ -126,7 +126,7 @@ class PredictInput(BaseModel):
     def validate_height(cls, v: int, values):
         if values["process_type"] == "upscale":
             return True
-        return true_if_value_in_list(
+        return return_value_if_in_list(
             v,
             SIZE_LIST,
         )
@@ -138,7 +138,9 @@ class PredictInput(BaseModel):
 
     @validator("process_type")
     def validate_process_type(cls, v):
-        return true_if_value_in_list(v, ["generate", "upscale", "generate_and_upscale"])
+        return return_value_if_in_list(
+            v, ["generate", "upscale", "generate_and_upscale"]
+        )
 
 
 @torch.inference_mode()
