@@ -78,22 +78,12 @@ def clip_embed():
         index = obj["index"]
         input_text = item["text"]
         id = item.get("id", None)
-        translated_text = None
-        if TRANSLATOR_COG_URL is not None:
-            try:
-                [translated_text, _] = translate_text(
-                    input_text,
-                    "",
-                    "",
-                    "",
-                    TRANSLATOR_COG_URL,
-                    models_pack.language_detector_pipe,
-                    "CLIP Query",
-                )
-            except Exception as e:
-                tb = traceback.format_exc()
-                print(f"Failed to translate input: {tb}\n")
-                return str(e), 500
+        translated_text = translate_text(
+            text=input_text,
+            text_flores=None,
+            translator=current_app.models_pack["translator"],
+            label="CLIP Query",
+        )
         try:
             text_embed = open_clip_get_embeds_of_texts(
                 [translated_text],
