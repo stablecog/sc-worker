@@ -90,7 +90,7 @@ def translate_text_set_via_api(
         f"-- {label} - Translation completed in: {round((endTimeTranslation - startTimeTranslation) * 1000)} ms --"
     )
 
-    return [translated_text, translated_text_2]
+    return [translated_text_1, translated_text_2]
 
 
 def translate_prompt_set(
