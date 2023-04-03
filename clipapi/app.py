@@ -5,7 +5,6 @@ from flask import Flask, request, current_app, jsonify
 from waitress import serve
 
 from models.nllb.translate import translate_text
-from models.nllb.constants import TRANSLATOR_COG_URL
 from models.open_clip.main import (
     open_clip_get_embeds_of_texts,
     open_clip_get_embeds_of_images,

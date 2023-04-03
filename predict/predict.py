@@ -1,7 +1,6 @@
 import time
 
 import torch
-from models.nllb.constants import TRANSLATOR_COG_URL
 from models.stable_diffusion.constants import (
     SD_MODEL_CHOICES,
     SD_MODEL_DEFAULT_KEY,
@@ -130,11 +129,6 @@ class PredictInput(BaseModel):
     def validate_process_type(cls, v):
         return get_value_if_in_list(v, ["generate", "upscale", "generate_and_upscale"])
 
-    translator_cog_url: str = Field(
-        description="URL of the translator cog. If it's blank, TRANSLATOR_COG_URL environment variable will be used (if it exists).",
-        default=TRANSLATOR_COG_URL,
-    )
-
 
 @torch.inference_mode()
 def predict(
@@ -153,17 +147,14 @@ def predict(
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
         t_prompt = input.prompt
         t_negative_prompt = input.negative_prompt
-        if input.translator_cog_url is not None:
-            [t_prompt, t_negative_prompt] = translate_prompt_set(
-                text_1=input.prompt,
-                flores_200_code_1=input.prompt_flores_200_code,
-                text_2=input.negative_prompt,
-                flored_200_code_2=input.negative_prompt_flores_200_code,
-                translator=models_pack.translator,
-                label="Prompt & Negative Prompt",
-            )
-        else:
-            print("-- Translator cog URL is not set. Skipping translation. --")
+        [t_prompt, t_negative_prompt] = translate_prompt_set(
+            text_1=input.prompt,
+            flores_200_code_1=input.prompt_flores_200_code,
+            text_2=input.negative_prompt,
+            flored_200_code_2=input.negative_prompt_flores_200_code,
+            translator=models_pack.translator,
+            label="Prompt & Negative Prompt",
+        )
 
         sd_pipe = models_pack.sd_pipes[input.model]
         settings_log_str = f"Model: {input.model} - Width: {input.width} - Height: {input.height} - Steps: {input.num_inference_steps} - Outputs: {input.num_outputs}"
