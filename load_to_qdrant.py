@@ -5,11 +5,12 @@ from qdrant_client import QdrantClient
 from qdrant_client.http import models
 import time
 import json
+from typing import List
 
 
 def main():
     collection_name = "generation_outputs"
-    supabase_row_limit = 2500
+    supabase_row_limit = 1000
     vector_size = 1024
     load_dotenv()
     url: str = os.environ.get("SUPABASE_URL")
@@ -57,7 +58,7 @@ def main():
             if len(data) == 0:
                 has_more_generation_outputs = False
                 break
-            flat_data = []
+            points: List[models.PointStruct] = []
             for row in data:
                 if (
                     row["generation"] is None
@@ -71,18 +72,6 @@ def main():
                 embedding = json.loads(row["embedding"])
                 if type(embedding) != list or len(embedding) != vector_size:
                     continue
-                flat_data.append(
-                    {
-                        "id": row["id"],
-                        "created_at": row["created_at"],
-                        "image_path": row["image_path"],
-                        "prompt": row["generation"]["prompt"]["text"],
-                        "embedding": embedding,
-                    }
-                )
-            points = []
-            for row in flat_data:
-                embedding = row["embedding"]
                 try:
                     points.append(
                         models.PointStruct(
@@ -91,7 +80,7 @@ def main():
                             payload={
                                 "created_at": row["created_at"],
                                 "image_path": row["image_path"],
-                                "prompt": row["prompt"],
+                                "prompt": row["generation"]["prompt"]["text"],
                             },
                         )
                     )
@@ -107,11 +96,11 @@ def main():
                 print(f"Qdrant Error: {e}")
                 raise e
 
-            last_created_at = flat_data[-1]["created_at"]
+            last_created_at = points[-1].payload["created_at"]
             # record last created at to a txt file
             with open("last_created_at.txt", "w") as f:
                 f.write(last_created_at)
-            loaded += len(flat_data)
+            loaded += len(points)
             print(f"Total loaded: {loaded}")
             print(f"Last loaded item: {last_created_at}")
         except Exception as e:
