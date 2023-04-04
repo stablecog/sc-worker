@@ -27,9 +27,11 @@ share/python-wheels/
 MANIFEST
 diffusers-cache
 upscalers-cache
+translator-cache
 experiments
 input_temp
 sc-bootstrapped
+last_created_at.txt
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
