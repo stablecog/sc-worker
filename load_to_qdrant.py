@@ -9,6 +9,8 @@ import json
 
 def main():
     collection_name = "generation_outputs"
+    supabase_row_limit = 2500
+    vector_size = 1024
     load_dotenv()
     url: str = os.environ.get("SUPABASE_URL")
     key: str = os.environ.get("SUPABASE_KEY")
@@ -24,7 +26,7 @@ def main():
         qdrant.recreate_collection(
             collection_name=collection_name,
             vectors_config=models.VectorParams(
-                size=1024, distance=models.Distance.COSINE
+                size=vector_size, distance=models.Distance.COSINE
             ),
         )
     has_more_generation_outputs = True
@@ -46,7 +48,7 @@ def main():
                 )
                 .lt("created_at", last_created_at)
                 .order("created_at", desc=True)
-                .limit(1000)
+                .limit(supabase_row_limit)
                 .execute()
             )
             data = res.data
@@ -67,7 +69,7 @@ def main():
                 ):
                     continue
                 embedding = json.loads(row["embedding"])
-                if type(embedding) != list or len(embedding) != 1024:
+                if type(embedding) != list or len(embedding) != vector_size:
                     continue
                 flat_data.append(
                     {
