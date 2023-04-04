@@ -19,6 +19,8 @@ def main():
     qdrant = QdrantClient("localhost", port=6333)
     res = qdrant.get_collections()
     has_collection = False
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    last_created_at_txt = os.path.join(current_dir, "last_created_at.txt")
     for collection in res.collections:
         if collection.name == collection_name:
             has_collection = True
@@ -34,7 +36,7 @@ def main():
     last_created_at = "2100-01-01T00:00:00.000000+00:00"
     # load last created at from a txt file
     try:
-        with open("last_created_at.txt", "r") as f:
+        with open(last_created_at_txt, "r") as f:
             last_created_at = f.read()
             print(f"Found last created at in txt: {last_created_at}")
     except Exception as e:
@@ -98,7 +100,7 @@ def main():
 
             last_created_at = points[-1].payload["created_at"]
             # record last created at to a txt file
-            with open("last_created_at.txt", "w") as f:
+            with open(last_created_at_txt, "w") as f:
                 f.write(last_created_at)
             loaded += len(points)
             print(f"Total loaded: {loaded}")
