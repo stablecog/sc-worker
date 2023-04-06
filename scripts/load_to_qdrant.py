@@ -28,6 +28,14 @@ def main():
     if not has_collection:
         qdrant.recreate_collection(
             collection_name=collection_name,
+            optimizers_config=models.OptimizersConfigDiff(memmap_threshold=20000),
+            quantization_config=models.ScalarQuantization(
+                scalar=models.ScalarQuantizationConfig(
+                    type=models.ScalarType.INT8,
+                    quantile=0.99,
+                    always_ram=True,
+                ),
+            ),
             vectors_config=models.VectorParams(
                 size=vector_size, distance=models.Distance.COSINE
             ),
