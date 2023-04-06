@@ -14,11 +14,11 @@ from models.download.download_from_bucket import download_all_models_from_bucket
 from models.download.download_from_hf import download_models_from_hf
 import time
 from models.constants import DEVICE
-from transformers import AutoProcessor, AutoTokenizer, AutoModel, AutoModelForSeq2SeqLM
+from transformers import AutoProcessor, AutoTokenizer, AutoModel
 from models.open_clip.constants import OPEN_CLIP_MODEL_ID
 import os
 from huggingface_hub import _login
-from models.nllb.constants import TRANSLATOR_MODEL_ID, TRANSLATOR_CACHE
+from kandinsky2 import get_kandinsky2
 
 
 class ModelsPack:
@@ -28,11 +28,13 @@ class ModelsPack:
         upscaler: Any,
         translator: Any,
         open_clip: Any,
+        kandinsky: Any,
     ):
         self.sd_pipes = sd_pipes
         self.upscaler = upscaler
         self.translator = translator
         self.open_clip = open_clip
+        self.kandinsky = kandinsky
 
 
 def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
@@ -66,6 +68,13 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         sd_pipes[key] = pipe.to(DEVICE)
         sd_pipes[key].enable_xformers_memory_efficient_attention()
         print(f"✅ Loaded SD model: {key}")
+
+    # Kandinsky
+    kandinsky = {
+        "text2img": get_kandinsky2(
+            "cuda", task_type="text2img", model_version="2.1", use_flash_attention=False
+        )
+    }
 
     # For upscaler
     upscaler_args = get_args_swinir()
@@ -110,4 +119,5 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         upscaler=upscaler,
         translator=translator,
         open_clip=open_clip,
+        kandinsky=kandinsky,
     )

@@ -7,6 +7,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor
+from PIL import ImageOps
 
 
 def clean_folder(folder):
@@ -91,6 +92,11 @@ def download_images(urls, max_workers=10):
         futures = [executor.submit(download_image, url) for url in urls]
         images = [future.result() for future in futures]
     return images
+
+
+def fit_image(image, width, height):
+    resized_image = ImageOps.fit(image, (width, height))
+    return resized_image
 
 
 def download_image_from_s3(key, bucket):

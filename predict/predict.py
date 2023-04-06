@@ -1,6 +1,8 @@
 import time
 
 import torch
+from models.kandinsky.constants import KANDIKSKY_SCHEDULERS, KANDINSKY_MODEL_NAME
+from models.kandinsky.generate import generate_with_kandinsky
 from models.stable_diffusion.constants import (
     SD_MODEL_CHOICES,
     SD_MODEL_DEFAULT_KEY,
@@ -50,14 +52,6 @@ class PredictInput(BaseModel):
     guidance_scale: float = Field(
         description="Scale for classifier-free guidance.", ge=1, le=20, default=7.5
     )
-    scheduler: str = Field(
-        default=SD_SCHEDULER_DEFAULT,
-        description=f'Choose a scheduler. Defaults to "{SD_SCHEDULER_DEFAULT}".',
-    )
-
-    @validator("scheduler")
-    def validate_scheduler(cls, v):
-        return return_value_if_in_list(v, SD_SCHEDULER_CHOICES)
 
     model: str = Field(
         default=SD_MODEL_DEFAULT_KEY,
@@ -66,7 +60,20 @@ class PredictInput(BaseModel):
 
     @validator("model")
     def validate_model(cls, v):
-        return return_value_if_in_list(v, SD_MODEL_CHOICES)
+        rest = [KANDINSKY_MODEL_NAME]
+        choices = SD_MODEL_CHOICES + rest
+        return return_value_if_in_list(v, choices)
+
+    scheduler: str = Field(
+        default=SD_SCHEDULER_DEFAULT,
+        description=f'Choose a scheduler. Defaults to "{SD_SCHEDULER_DEFAULT}".',
+    )
+
+    @validator("scheduler")
+    def validate_scheduler(cls, v, values):
+        if values["model"] == KANDINSKY_MODEL_NAME:
+            return return_value_if_in_list(v, KANDIKSKY_SCHEDULERS)
+        return return_value_if_in_list(v, SD_SCHEDULER_CHOICES)
 
     seed: int = Field(
         description="Random seed. Leave blank to randomize the seed.", default=None
@@ -171,7 +178,14 @@ def predict(
                 label="Prompt & Negative Prompt",
             )
 
-        sd_pipe = models_pack.sd_pipes[input.model]
+        print(f"Input model: {input.model}")
+
+        generator_pipe = None
+        if input.model == KANDINSKY_MODEL_NAME:
+            generator_pipe = models_pack.kandinsky["text2img"]
+        else:
+            generator_pipe = models_pack.sd_pipes[input.model]
+
         settings_log_str = f"Model: {input.model} - Width: {input.width} - Height: {input.height} - Steps: {input.num_inference_steps} - Outputs: {input.num_outputs}"
         if input.init_image_url is not None:
             settings_log_str += f" - Init image: {input.init_image_url}"
@@ -179,23 +193,29 @@ def predict(
             settings_log_str += f" - Prompt strength: {input.prompt_strength}"
         print(f"🖥️ Generating - {settings_log_str} 🖥️")
         startTime = time.time()
-        generate_output_images, generate_nsfw_count = generate(
-            t_prompt,
-            t_negative_prompt,
-            input.prompt_prefix,
-            input.negative_prompt_prefix,
-            input.width,
-            input.height,
-            input.num_outputs,
-            input.num_inference_steps,
-            input.guidance_scale,
-            input.init_image_url,
-            input.prompt_strength,
-            input.scheduler,
-            input.seed,
-            input.model,
-            sd_pipe,
-        )
+        args = {
+            "prompt": t_prompt,
+            "negative_prompt": t_negative_prompt,
+            "prompt_prefix": input.prompt_prefix,
+            "negative_prompt_prefix": input.negative_prompt_prefix,
+            "width": input.width,
+            "height": input.height,
+            "num_outputs": input.num_outputs,
+            "num_inference_steps": input.num_inference_steps,
+            "guidance_scale": input.guidance_scale,
+            "init_image_url": input.init_image_url,
+            "prompt_strength": input.prompt_strength,
+            "scheduler": input.scheduler,
+            "seed": input.seed,
+            "model": input.model,
+            "pipe": generator_pipe,
+        }
+        if input.model == KANDINSKY_MODEL_NAME:
+            generate_output_images, generate_nsfw_count = generate_with_kandinsky(
+                **args
+            )
+        else:
+            generate_output_images, generate_nsfw_count = generate(**args)
         output_images = generate_output_images
         nsfw_count = generate_nsfw_count
         endTime = time.time()
