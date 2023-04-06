@@ -82,7 +82,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "📦 Installing Stablecog worker dependencies..."
-python$PYTHON_TARGET_VERSION -m virtualenv venv && source venv/bin/activate && pip install -r requirements.txt && pip install -r requirements-torch.txt
+python$PYTHON_TARGET_VERSION -m virtualenv venv && source venv/bin/activate && pip install -r requirements-torch.txt && pip install -r requirements.txt
 if [ $? -ne 0 ]; then
     echo "❌ Failed to install Stablecog worker dependencies"
     exit 1
