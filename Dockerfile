@@ -1,6 +1,7 @@
 FROM stablecog/cuda-torch:11.7.1-cudnn8-devel-1.13.1-ubuntu22.04
 
 ADD . .
+RUN apt-get -y install git
 RUN pip3 install -r requirements.txt --no-cache-dir
 
 ENV CLIPAPI_PORT=13337
