@@ -19,6 +19,7 @@ from models.open_clip.constants import OPEN_CLIP_MODEL_ID
 import os
 from huggingface_hub import _login
 from kandinsky2 import get_kandinsky2
+import torch
 
 
 class ModelsPack:
@@ -66,13 +67,14 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             cache_dir=SD_MODEL_CACHE,
         )
         sd_pipes[key] = pipe.to(DEVICE)
-        sd_pipes[key].enable_xformers_memory_efficient_attention()
+        sd_pipes[key].unet = torch.compile(sd_pipes[key].unet)
+
         print(f"✅ Loaded SD model: {key}")
 
     # Kandinsky
     kandinsky = {
         "text2img": get_kandinsky2(
-            "cuda", task_type="text2img", model_version="2.1", use_flash_attention=False
+            "cuda", task_type="text2img", model_version="2.1", use_flash_attention=True
         )
     }
 

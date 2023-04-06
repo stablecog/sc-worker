@@ -17,6 +17,7 @@ from typing import Any
 import requests
 
 
+@torch.inference_mode()
 @torch.cuda.amp.autocast()
 def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image:
     if image is None:
@@ -25,13 +26,13 @@ def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image
     args = upscaler["args"]
     pipe = upscaler["pipe"]
     output_image = None
-    
+
     # check if image is a url and download it if sso
     if is_url(image):
         extension = image.split(".")[-1]
         if extension is None:
             extension = "png"
-        else: 
+        else:
             extension.lower()
         temp_dir = tempfile.mkdtemp()
         temp_file = tempfile.NamedTemporaryFile(
@@ -47,7 +48,7 @@ def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image
         )
         cv2.imwrite(temp_file.name, image)
         image = temp_file.name
-        
+
     elif isinstance(image, Image.Image):
         temp_dir = tempfile.mkdtemp()
         temp_file = tempfile.NamedTemporaryFile(
@@ -130,8 +131,10 @@ def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image
     print(f"-- Upscale - Array to PIL Image in: {round((end - start) * 1000)} ms --")
     return pil_image
 
+
 def is_url(url: str) -> bool:
     return url.startswith("http://") or url.startswith("https://")
+
 
 def download_image(url: str, temp_file: Any) -> None:
     start = time.time()

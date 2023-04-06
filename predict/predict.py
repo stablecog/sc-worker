@@ -150,7 +150,9 @@ class PredictInput(BaseModel):
         )
 
 
-@torch.inference_mode()
+""" @torch.inference_mode() """
+
+
 def predict(
     input: PredictInput,
     models_pack: ModelsPack,
