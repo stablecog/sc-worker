@@ -1,6 +1,5 @@
 import time
 
-import torch
 from models.kandinsky.constants import KANDIKSKY_SCHEDULERS, KANDINSKY_MODEL_NAME
 from models.kandinsky.generate import generate_with_kandinsky
 from models.stable_diffusion.constants import (
@@ -116,10 +115,9 @@ class PredictInput(BaseModel):
         return return_value_if_in_list(v, choices)
 
     @validator("scheduler")
-    def validate_scheduler(cls, v, values):
-        if values["model"] == KANDINSKY_MODEL_NAME:
-            return return_value_if_in_list(v, KANDIKSKY_SCHEDULERS)
-        return return_value_if_in_list(v, SD_SCHEDULER_CHOICES)
+    def validate_scheduler(cls, v):
+        choices = SD_SCHEDULER_CHOICES + KANDIKSKY_SCHEDULERS
+        return return_value_if_in_list(v, choices)
 
     @validator("height")
     def validate_height(cls, v: int, values):
@@ -193,7 +191,7 @@ def predict(
             settings_log_str += f" - Init image: {input.init_image_url}"
             settings_log_str += f" - Prompt strength: {input.prompt_strength}"
         print(f"🖥️ Generating - {settings_log_str} 🖥️")
-        
+
         startTime = time.time()
         args = {
             "prompt": t_prompt,
