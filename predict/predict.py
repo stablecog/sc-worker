@@ -191,9 +191,9 @@ def predict(
         settings_log_str = f"Model: {input.model} - Width: {input.width} - Height: {input.height} - Steps: {input.num_inference_steps} - Outputs: {input.num_outputs}"
         if input.init_image_url is not None:
             settings_log_str += f" - Init image: {input.init_image_url}"
-        if input.prompt_strength is not None:
             settings_log_str += f" - Prompt strength: {input.prompt_strength}"
         print(f"🖥️ Generating - {settings_log_str} 🖥️")
+        
         startTime = time.time()
         args = {
             "prompt": t_prompt,
