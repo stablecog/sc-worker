@@ -58,22 +58,10 @@ class PredictInput(BaseModel):
         description=f'Choose a model. Defaults to "{SD_MODEL_DEFAULT_KEY}".',
     )
 
-    @validator("model")
-    def validate_model(cls, v):
-        rest = [KANDINSKY_MODEL_NAME]
-        choices = SD_MODEL_CHOICES + rest
-        return return_value_if_in_list(v, choices)
-
     scheduler: str = Field(
         default=SD_SCHEDULER_DEFAULT,
         description=f'Choose a scheduler. Defaults to "{SD_SCHEDULER_DEFAULT}".',
     )
-
-    @validator("scheduler")
-    def validate_scheduler(cls, v, values):
-        if values["model"] == KANDINSKY_MODEL_NAME:
-            return return_value_if_in_list(v, KANDIKSKY_SCHEDULERS)
-        return return_value_if_in_list(v, SD_SCHEDULER_CHOICES)
 
     seed: int = Field(
         description="Random seed. Leave blank to randomize the seed.", default=None
@@ -95,10 +83,6 @@ class PredictInput(BaseModel):
         default="jpeg",
     )
 
-    @validator("output_image_extension")
-    def validate_output_image_extension(cls, v):
-        return return_value_if_in_list(v, ["png", "jpeg", "webp"])
-
     output_image_quality: int = Field(
         description="Output quality of the image. Can be 1-100.", default=90
     )
@@ -115,19 +99,27 @@ class PredictInput(BaseModel):
         default=512,
     )
 
-    @validator("width")
-    def validate_width(cls, v: int, values):
-        if values["process_type"] == "upscale":
-            return v
-        return return_value_if_in_list(
-            v,
-            SIZE_LIST,
-        )
-
     height: int = Field(
         description="Height of output image.",
         default=512,
     )
+
+    translator_cog_url: str = Field(
+        description="URL of the translator cog. If it's blank, TRANSLATOR_COG_URL environment variable will be used (if it exists).",
+        default=TRANSLATOR_COG_URL,
+    )
+
+    @validator("model")
+    def validate_model(cls, v):
+        rest = [KANDINSKY_MODEL_NAME]
+        choices = SD_MODEL_CHOICES + rest
+        return return_value_if_in_list(v, choices)
+
+    @validator("scheduler")
+    def validate_scheduler(cls, v, values):
+        if values["model"] == KANDINSKY_MODEL_NAME:
+            return return_value_if_in_list(v, KANDIKSKY_SCHEDULERS)
+        return return_value_if_in_list(v, SD_SCHEDULER_CHOICES)
 
     @validator("height")
     def validate_height(cls, v: int, values):
@@ -138,10 +130,18 @@ class PredictInput(BaseModel):
             SIZE_LIST,
         )
 
-    translator_cog_url: str = Field(
-        description="URL of the translator cog. If it's blank, TRANSLATOR_COG_URL environment variable will be used (if it exists).",
-        default=TRANSLATOR_COG_URL,
-    )
+    @validator("width")
+    def validate_width(cls, v: int, values):
+        if values["process_type"] == "upscale":
+            return v
+        return return_value_if_in_list(
+            v,
+            SIZE_LIST,
+        )
+
+    @validator("output_image_extension")
+    def validate_output_image_extension(cls, v):
+        return return_value_if_in_list(v, ["png", "jpeg", "webp"])
 
     @validator("process_type")
     def validate_process_type(cls, v):

@@ -1,4 +1,4 @@
-FROM stablecog/cuda-torch:11.7-2.0.0-cudnn8-devel-ubuntu22.04-v2
+FROM stablecog/cuda-torch:11.7.1-2.0.0-cudnn8-devel-ubuntu22.04-v2
 
 ADD . .
 RUN apt-get update && apt-get -y install git
