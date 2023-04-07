@@ -1,6 +1,6 @@
 import time
 
-from models.kandinsky.constants import KANDIKSKY_SCHEDULERS, KANDINSKY_MODEL_NAME
+from models.kandinsky.constants import KANDINSKY_MODEL_NAME, KANDINSKY_SCHEDULER_CHOICES
 from models.kandinsky.generate import generate_with_kandinsky
 from models.stable_diffusion.constants import (
     SD_MODEL_CHOICES,
@@ -116,7 +116,7 @@ class PredictInput(BaseModel):
 
     @validator("scheduler")
     def validate_scheduler(cls, v):
-        choices = SD_SCHEDULER_CHOICES + KANDIKSKY_SCHEDULERS
+        choices = SD_SCHEDULER_CHOICES + KANDINSKY_SCHEDULER_CHOICES
         return return_value_if_in_list(v, choices)
 
     @validator("height")
