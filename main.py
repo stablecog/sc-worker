@@ -30,6 +30,9 @@ if __name__ == "__main__":
 
     redisUrl = os.environ.get("REDIS_URL")
     redisInputQueue = os.environ.get("REDIS_INPUT_QUEUE")
+    redisWorkerId = os.environ.get("WORKER_NAME", None)
+    if redisWorkerId is None:
+        raise ValueError("Missing WORKER_NAME environment variable.")
 
     # Configure S3 client
     s3: ServiceResource = boto3.resource(
