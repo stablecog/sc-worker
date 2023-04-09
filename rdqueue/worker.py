@@ -30,7 +30,8 @@ def start_redis_queue_worker(
     s3_client = s3_client
     s3_bucket = s3_bucket
     upload_queue = upload_queue
-    consumer_id = f"cog-{uuid.uuid4()}"
+    workerName = os.environ.get("WORKER_NAME")
+    consumer_id = f"cog-{workerName}"
     # 1 minute
     autoclaim_messages_after = 1 * 60
 
