@@ -2,6 +2,7 @@ from typing import Any
 
 from lingua import LanguageDetectorBuilder
 from boto3_type_annotations.s3 import ServiceResource
+from models.nllb.constants import TRANSLATOR_CACHE
 
 from shared.constants import WORKER_VERSION
 from models.stable_diffusion.constants import SD_MODELS, SD_MODEL_CACHE
@@ -105,10 +106,17 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     print("✅ Loaded translator")
 
     # For Open CLIP
+    print("⏳ Loading Open CLIP")
     open_clip = {
-        "model": AutoModel.from_pretrained(OPEN_CLIP_MODEL_ID).to(DEVICE),
-        "processor": AutoProcessor.from_pretrained(OPEN_CLIP_MODEL_ID),
-        "tokenizer": AutoTokenizer.from_pretrained(OPEN_CLIP_MODEL_ID),
+        "model": AutoModel.from_pretrained(
+            OPEN_CLIP_MODEL_ID, cache_dir=TRANSLATOR_CACHE
+        ).to(DEVICE),
+        "processor": AutoProcessor.from_pretrained(
+            OPEN_CLIP_MODEL_ID, cache_dir=TRANSLATOR_CACHE
+        ),
+        "tokenizer": AutoTokenizer.from_pretrained(
+            OPEN_CLIP_MODEL_ID, cache_dir=TRANSLATOR_CACHE
+        ),
     }
     print("✅ Loaded Open CLIP")
 
