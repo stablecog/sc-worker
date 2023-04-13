@@ -179,7 +179,7 @@ def get_flores(
     if text == "":
         print(f"-- {label} - No text to give FLORES-200 for, skipping --")
         return TARGET_LANG_FLORES
-    if flores is not None and flores is not "":
+    if flores is not None and flores != "":
         print(
             f'-- {label} - FLORES-200 code is given, skipping language auto-detection: "{flores}" --'
         )
