@@ -1,5 +1,6 @@
 import os
 import time
+from models.constants import DEVICE
 from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
 from shared.helpers import download_image, fit_image
 import torch
@@ -21,6 +22,7 @@ def generate_with_kandinsky(
     seed,
     model,
     pipe,
+    safety_checker,
 ):
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
@@ -68,4 +70,12 @@ def generate_with_kandinsky(
             prompt,
             **args,
         )
+    safety_checker_input = safety_checker["feature_extractor"](
+        clip_input=safety_checker_input.pixel_values, images=output_images
+    ).to(DEVICE)
+    result, has_nsfw_concepts = safety_checker["checker"].forward(
+        clip_input=safety_checker_input.pixel_values, images=output_images
+    )
+    print(f"Result: {result}")
+    print(f"Has NSFW concepts: {has_nsfw_concepts}")
     return output_images, 0

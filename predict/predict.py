@@ -212,7 +212,7 @@ def predict(
         }
         if input.model == KANDINSKY_MODEL_NAME:
             generate_output_images, generate_nsfw_count = generate_with_kandinsky(
-                **args
+                **args, safety_checker=models_pack.safety_checker
             )
         else:
             generate_output_images, generate_nsfw_count = generate(**args)
