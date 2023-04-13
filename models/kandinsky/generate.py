@@ -72,7 +72,6 @@ def generate_with_kandinsky(
             **args,
         )
     output_images_nsfw_results = []
-    s = time.time()
     with autocast():
         for image in output_images:
             safety_checker_input = safety_checker["feature_extractor"](
@@ -86,8 +85,11 @@ def generate_with_kandinsky(
                 "has_nsfw_concepts": has_nsfw_concepts,
             }
             output_images_nsfw_results.append(res)
-    e = time.time()
-    print(f"NSFW check took: {round((e - s) * 1000)} ms")
-
-    print(f"output_images_nsfw_results: {output_images_nsfw_results}")
-    return output_images, 0
+    nsfw_count = 0
+    filtered_output_images = []
+    for i, res in enumerate(output_images_nsfw_results):
+        if res["has_nsfw_concepts"]:
+            nsfw_count += 1
+        else:
+            filtered_output_images.append(output_images[i])
+    return filtered_output_images, nsfw_count
