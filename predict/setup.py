@@ -81,7 +81,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             )
             safety_checker = {
                 "checker": pipe.safety_checker,
-                "feature_extractor": pipe.safety_checker.feature_extractor,
+                "feature_extractor": pipe.feature_extractor,
             }
 
         print(f"✅ Loaded SD model: {key}")
