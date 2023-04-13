@@ -140,7 +140,6 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     print(f"✅ Predict setup is done in: {round((end - start))} sec.")
     print("//////////////////////////////////////////////////////////////////")
 
-    print(safety_checker)
     return ModelsPack(
         sd_pipes=sd_pipes,
         upscaler=upscaler,

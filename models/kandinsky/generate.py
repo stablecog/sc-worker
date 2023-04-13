@@ -4,6 +4,7 @@ from models.constants import DEVICE
 from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
 from shared.helpers import download_image, fit_image
 import torch
+from torch.cuda.amp import autocast
 
 
 def generate_with_kandinsky(
@@ -70,12 +71,13 @@ def generate_with_kandinsky(
             prompt,
             **args,
         )
-    safety_checker_input = safety_checker["feature_extractor"](
-        images=output_images, return_tensors="pt"
-    ).to("cuda")
-    result, has_nsfw_concepts = safety_checker["checker"].forward(
-        clip_input=safety_checker_input.pixel_values, images=output_images
-    )
+    with autocast():
+        safety_checker_input = safety_checker["feature_extractor"](
+            images=output_images, return_tensors="pt"
+        ).to("cuda")
+        result, has_nsfw_concepts = safety_checker["checker"].forward(
+            clip_input=safety_checker_input.pixel_values, images=output_images
+        )
     print(f"Result: {result}")
     print(f"Has NSFW concepts: {has_nsfw_concepts}")
     return output_images, 0
