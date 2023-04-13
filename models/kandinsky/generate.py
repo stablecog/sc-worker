@@ -70,9 +70,9 @@ def generate_with_kandinsky(
             prompt,
             **args,
         )
-    safety_checker_input = safety_checker["feature_extractor"](
-        clip_input=safety_checker_input.pixel_values, images=output_images
-    ).to(DEVICE)
+    safety_checker_input = safety_checker.feature_extractor(
+        images=output_images, return_tensors="pt"
+    ).to("cuda")
     result, has_nsfw_concepts = safety_checker["checker"].forward(
         clip_input=safety_checker_input.pixel_values, images=output_images
     )
