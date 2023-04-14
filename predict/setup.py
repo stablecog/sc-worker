@@ -128,8 +128,8 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     }
     print("✅ Loaded translator")
 
-    # For Open CLIP
-    print("⏳ Loading Open CLIP")
+    # For OpenCLIP
+    print("⏳ Loading OpenCLIP")
     open_clip = {
         "model": AutoModel.from_pretrained(
             OPEN_CLIP_MODEL_ID, cache_dir=TRANSLATOR_CACHE
@@ -141,7 +141,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             OPEN_CLIP_MODEL_ID, cache_dir=TRANSLATOR_CACHE
         ),
     }
-    print("✅ Loaded Open CLIP")
+    print("✅ Loaded OpenCLIP")
 
     end = time.time()
     print("//////////////////////////////////////////////////////////////////")
