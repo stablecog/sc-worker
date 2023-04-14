@@ -89,8 +89,8 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         forward_inspect, self=pipe.safety_checker
     )
     safety_checker = {
-        "checker": pipe.safety_checker,
-        "feature_extractor": pipe.feature_extractor,
+        "checker": safety_pipe.safety_checker,
+        "feature_extractor": safety_pipe.feature_extractor,
     }
     print("✅ Loaded safety checker")
 
