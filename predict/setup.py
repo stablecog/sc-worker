@@ -86,7 +86,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     )
     safety_pipe = safety_pipe.to(DEVICE)
     safety_pipe.safety_checker.forward = partial(
-        forward_inspect, self=pipe.safety_checker
+        forward_inspect, self=safety_pipe.safety_checker
     )
     safety_checker = {
         "checker": safety_pipe.safety_checker,
