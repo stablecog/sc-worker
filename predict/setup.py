@@ -75,16 +75,23 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             cache_dir=SD_MODEL_CACHE,
         )
         sd_pipes[key] = pipe.to(DEVICE)
-        if key == SD_MODEL_FOR_SAFETY_CHECKER:
-            pipe.safety_checker.forward = partial(
-                forward_inspect, self=pipe.safety_checker
-            )
-            safety_checker = {
-                "checker": pipe.safety_checker,
-                "feature_extractor": pipe.feature_extractor,
-            }
-
         print(f"✅ Loaded SD model: {key}")
+
+    # Safety checker
+    print("⏳ Loading safety checker")
+    safety_pipe = StableDiffusionPipeline.from_pretrained(
+        SD_MODEL_FOR_SAFETY_CHECKER,
+        torch_dtype=SD_MODELS[key]["torch_dtype"],
+        cache_dir=SD_MODEL_CACHE,
+    )
+    safety_pipe.safety_checker.forward = partial(
+        forward_inspect, self=pipe.safety_checker
+    )
+    safety_checker = {
+        "checker": pipe.safety_checker,
+        "feature_extractor": pipe.feature_extractor,
+    }
+    print("✅ Loaded safety checker")
 
     # Kandinsky
     print("⏳ Loading Kandinsky")
