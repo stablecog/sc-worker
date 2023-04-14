@@ -84,6 +84,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         torch_dtype=SD_MODELS[key]["torch_dtype"],
         cache_dir=SD_MODEL_CACHE,
     )
+    safety_pipe = safety_pipe.to(DEVICE)
     safety_pipe.safety_checker.forward = partial(
         forward_inspect, self=pipe.safety_checker
     )
