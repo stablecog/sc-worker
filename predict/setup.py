@@ -80,7 +80,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     # Safety checker
     print("⏳ Loading safety checker")
     safety_pipe = StableDiffusionPipeline.from_pretrained(
-        SD_MODEL_FOR_SAFETY_CHECKER,
+        SD_MODELS[SD_MODEL_FOR_SAFETY_CHECKER]["id"],
         torch_dtype=SD_MODELS[key]["torch_dtype"],
         cache_dir=SD_MODEL_CACHE,
     )
