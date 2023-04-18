@@ -1,4 +1,5 @@
 from lingua import Language, LanguageDetector
+from threading import Lock
 import time
 from .constants import (
     LANG_TO_FLORES,
@@ -11,6 +12,8 @@ import torch
 from typing import Any
 import requests
 
+translator_mutex = Lock()
+
 
 def translate_text_set_via_api(
     text_1: str,
@@ -21,76 +24,77 @@ def translate_text_set_via_api(
     detector: LanguageDetector,
     label: str,
 ):
-    print(f"-- {label} - Translator url is: '{translator_url}' --")
+    with translator_mutex:
+        print(f"-- {label} - Translator url is: '{translator_url}' --")
 
-    if text_1 is None:
-        text_1 = ""
-    if text_2 is None:
-        text_2 = ""
+        if text_1 is None:
+            text_1 = ""
+        if text_2 is None:
+            text_2 = ""
 
-    if text_1 == "" and text_2 == "":
-        print(f"-- {label} - No text to translate, skipping --")
-        return ["", ""]
+        if text_1 == "" and text_2 == "":
+            print(f"-- {label} - No text to translate, skipping --")
+            return ["", ""]
 
-    startTimeTranslation = time.time()
+        startTimeTranslation = time.time()
 
-    translated_text_1 = ""
-    translated_text_2 = ""
+        translated_text_1 = ""
+        translated_text_2 = ""
 
-    text_lang_flores_1 = TARGET_LANG_FLORES
-    text_lang_flores_2 = TARGET_LANG_FLORES
+        text_lang_flores_1 = TARGET_LANG_FLORES
+        text_lang_flores_2 = TARGET_LANG_FLORES
 
-    text_lang_flores_1 = get_flores(text_1, flores_1, detector, f"{label} - #1")
-    text_lang_flores_2 = get_flores(text_2, flores_2, detector, f"{label} - #2")
+        text_lang_flores_1 = get_flores(text_1, flores_1, detector, f"{label} - #1")
+        text_lang_flores_2 = get_flores(text_2, flores_2, detector, f"{label} - #2")
 
-    if (
-        text_lang_flores_1 != TARGET_LANG_FLORES
-        or text_lang_flores_2 != TARGET_LANG_FLORES
-    ):
-        jsonData = {
-            "input": {
-                "text": text_1,
-                "text_lang": text_lang_flores_1,
-                "target_lang": TARGET_LANG_FLORES,
-                "text_2": text_2,
-                "text_lang_2": text_lang_flores_2,
-                "target_lang_2": TARGET_LANG_FLORES,
+        if (
+            text_lang_flores_1 != TARGET_LANG_FLORES
+            or text_lang_flores_2 != TARGET_LANG_FLORES
+        ):
+            jsonData = {
+                "input": {
+                    "text": text_1,
+                    "text_lang": text_lang_flores_1,
+                    "target_lang": TARGET_LANG_FLORES,
+                    "text_2": text_2,
+                    "text_lang_2": text_lang_flores_2,
+                    "target_lang_2": TARGET_LANG_FLORES,
+                }
             }
-        }
-        try:
-            res = requests.post(
-                f"{translator_url}/predictions",
-                json=jsonData,
-                headers={"Content-Type": "application/json"},
-            )
-            if res.status_code != 200:
-                raise Exception(
-                    f"Translation failed with status code: {res.status_code}"
+            try:
+                res = requests.post(
+                    f"{translator_url}/predictions",
+                    json=jsonData,
+                    headers={"Content-Type": "application/json"},
                 )
-            resJson = res.json()
-            [translated_text_1, translated_text_2] = resJson["output"]
-        except Exception as e:
-            raise Exception(f"Translation failed with error: {e}")
+                if res.status_code != 200:
+                    raise Exception(
+                        f"Translation failed with status code: {res.status_code}"
+                    )
+                resJson = res.json()
+                [translated_text_1, translated_text_2] = resJson["output"]
+            except Exception as e:
+                raise Exception(f"Translation failed with error: {e}")
 
-        print(f'-- {label} - #1 - Original text is: "{text_1}" --')
-        print(f'-- {label} - #1 - Translated text is: "{translated_text_1}" --')
-        print(f'-- {label} - #2 - Original text is: "{text_2}" --')
-        print(f'-- {label} - #2 - Translated text is: "{translated_text_2}" --')
-    else:
-        translated_text_1 = text_1
-        translated_text_2 = text_2
+            print(f'-- {label} - #1 - Original text is: "{text_1}" --')
+            print(f'-- {label} - #1 - Translated text is: "{translated_text_1}" --')
+            print(f'-- {label} - #2 - Original text is: "{text_2}" --')
+            print(f'-- {label} - #2 - Translated text is: "{translated_text_2}" --')
+        else:
+            translated_text_1 = text_1
+            translated_text_2 = text_2
+            print(
+                f"-- {label} - Texts are already in the correct language, no translation needed --"
+            )
+            print(f'-- {label} - #1 - Text is: "{translated_text_1}" --')
+            print(f'-- {label} - #2 - Text is: "{translated_text_2}" --')
+
+        endTimeTranslation = time.time()
         print(
-            f"-- {label} - Texts are already in the correct language, no translation needed --"
+            f"-- {label} - Translation completed in: {round((endTimeTranslation - startTimeTranslation) * 1000)} ms --"
         )
-        print(f'-- {label} - #1 - Text is: "{translated_text_1}" --')
-        print(f'-- {label} - #2 - Text is: "{translated_text_2}" --')
 
-    endTimeTranslation = time.time()
-    print(
-        f"-- {label} - Translation completed in: {round((endTimeTranslation - startTimeTranslation) * 1000)} ms --"
-    )
-
-    return [translated_text_1, translated_text_2]
+        return [translated_text_1, translated_text_2]
 
 
 def translate_prompt_set(
