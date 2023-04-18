@@ -77,22 +77,13 @@ if __name__ == "__main__":
             s3_bucket=S3_BUCKET_NAME_UPLOAD,
         )
     )
-    upload_thread2 = Thread(
-        target=lambda: start_upload_worker(
-            q=upload_queue,
-            s3=s3,
-            s3_bucket=S3_BUCKET_NAME_UPLOAD,
-        )
-    )
 
     # Create clip API thread
     clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
 
     redis_worker_thread.start()
     upload_thread.start()
-    upload_thread2.start()
     clipapi_thread.start()
     redis_worker_thread.join()
     upload_thread.join()
-    upload_thread2.join()
     clipapi_thread.join()

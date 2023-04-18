@@ -1,5 +1,5 @@
 import os
-from typing import Any, Callable, Set, Dict, Any
+from typing import Any, Dict, Any
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -24,7 +24,7 @@ def requests_session_with_retries() -> requests.Session:
     session.headers["signature"] = webhook_sig
     adapter = HTTPAdapter(
         max_retries=Retry(
-            total=12,
+            total=3,
             backoff_factor=0.1,
             status_forcelist=[
                 x for x in requests.status_codes._codes if x not in [200, 400, 401]
