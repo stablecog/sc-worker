@@ -37,6 +37,8 @@ if __name__ == "__main__":
     # Configure S3 client
     s3: ServiceResource = boto3.resource(
         "s3",
+        connect_timeout=5,
+        read_timeout=5,
         region_name=S3_REGION,
         endpoint_url=S3_ENDPOINT_URL,
         aws_access_key_id=S3_ACCESS_KEY_ID,
@@ -75,13 +77,22 @@ if __name__ == "__main__":
             s3_bucket=S3_BUCKET_NAME_UPLOAD,
         )
     )
+    upload_thread2 = Thread(
+        target=lambda: start_upload_worker(
+            q=upload_queue,
+            s3=s3,
+            s3_bucket=S3_BUCKET_NAME_UPLOAD,
+        )
+    )
 
     # Create clip API thread
     clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
 
     redis_worker_thread.start()
     upload_thread.start()
+    upload_thread2.start()
     clipapi_thread.start()
     redis_worker_thread.join()
     upload_thread.join()
+    upload_thread2.join()
     clipapi_thread.join()

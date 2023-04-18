@@ -110,6 +110,7 @@ def start_redis_queue_worker(
                 ):
                     print(f"-- Upload: Putting to queue")
                     upload_queue.put(response)
+                    print(f"-- Upload: Put to queue")
                 elif response_event in events_filter:
                     status_code = post_webhook(webhook_url, response)
                     print(f"-- Webhook: {status_code}")
