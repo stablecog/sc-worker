@@ -11,6 +11,7 @@ from transformers import pipeline
 import torch
 from typing import Any
 import requests
+import tabulate
 
 translator_mutex = Lock()
 
@@ -195,7 +196,9 @@ def get_flores(
     detected_lang = None
     detected_lang_score = None
 
-    print(f"-- Confidence values - {confidence_values[:10]} --")
+    print(f"-- Confidence values --")
+    print(tabulate(confidence_values[:10]))
+
     for index in range(len(confidence_values)):
         curr = confidence_values[index]
         if index == 0:
