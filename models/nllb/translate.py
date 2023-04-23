@@ -11,7 +11,7 @@ from transformers import pipeline
 import torch
 from typing import Any
 import requests
-import tabulate
+from tabulate import tabulate
 
 translator_mutex = Lock()
 
