@@ -18,6 +18,7 @@ LANG_TO_FLORES = {
     "BENGALI": "ben_Beng",
     "BOKMAL": "nob_Latn",
     "BOSNIAN": "bos_Latn",
+    "BULGARIAN": "bul_Cyrl",
     "CATALAN": "cat_Latn",
     "CHINESE": "zho_Hans",
     "CROATIAN": "hrv_Latn",
