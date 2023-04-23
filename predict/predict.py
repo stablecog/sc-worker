@@ -167,7 +167,12 @@ def predict(
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
         t_prompt = input.prompt
         t_negative_prompt = input.negative_prompt
-        if input.translator_cog_url is not None:
+        translator_cog_url = (
+            input.translator_cog_url
+            if input.translator_cog_url is not None
+            else TRANSLATOR_COG_URL
+        )
+        if translator_cog_url is not None:
             [t_prompt, t_negative_prompt] = translate_text_set_via_api(
                 text_1=input.prompt,
                 flores_1=input.prompt_flores_200_code,
