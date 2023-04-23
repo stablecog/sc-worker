@@ -6,6 +6,7 @@ from .constants import (
     TARGET_LANG,
     TARGET_LANG_FLORES,
     TARGET_LANG_SCORE_MAX,
+    DETECTED_CONFIDENCE_SCORE_MIN,
 )
 from transformers import pipeline
 import torch
@@ -210,6 +211,7 @@ def get_flores(
     if (
         detected_lang is not None
         and detected_lang != TARGET_LANG
+        and detected_lang_score > DETECTED_CONFIDENCE_SCORE_MIN
         and (target_lang_score is None or target_lang_score < TARGET_LANG_SCORE_MAX)
         and LANG_TO_FLORES.get(detected_lang.name) is not None
     ):
