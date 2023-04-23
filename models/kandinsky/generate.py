@@ -47,8 +47,8 @@ def generate_with_kandinsky(
         "sampler": KANDIKSKY_SCHEDULERS[scheduler],
         "prior_cf_scale": 4,
         "prior_steps": "5",
-        "negative_prior_prompt": "",
-        "negative_decoder_prompt": negative_prompt,
+        "negative_prior_prompt": negative_prompt,
+        "negative_decoder_prompt": "",
     }
     output_images = None
     if init_image_url is not None:
