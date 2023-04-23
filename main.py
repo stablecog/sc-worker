@@ -37,13 +37,15 @@ if __name__ == "__main__":
     # Configure S3 client
     s3: ServiceResource = boto3.resource(
         "s3",
-        connect_timeout=5,
-        read_timeout=5,
         region_name=S3_REGION,
         endpoint_url=S3_ENDPOINT_URL,
         aws_access_key_id=S3_ACCESS_KEY_ID,
         aws_secret_access_key=S3_SECRET_ACCESS_KEY,
-        config=Config(retries={"max_attempts": 3, "mode": "standard"}),
+        config=Config(
+            retries={"max_attempts": 3, "mode": "standard"},
+            connect_timeout=5,
+            read_timeout=5,
+        ),
     )
 
     # Setup predictor
