@@ -30,7 +30,8 @@ def start_redis_queue_worker(
     s3_client = s3_client
     s3_bucket = s3_bucket
     upload_queue = upload_queue
-    consumer_id = f"cog-{uuid.uuid4()}"
+    workerName = os.environ.get("WORKER_NAME")
+    consumer_id = f"cog-{workerName}"
     # 1 minute
     autoclaim_messages_after = 1 * 60
 
@@ -109,6 +110,7 @@ def start_redis_queue_worker(
                 ):
                     print(f"-- Upload: Putting to queue")
                     upload_queue.put(response)
+                    print(f"-- Upload: Put to queue")
                 elif response_event in events_filter:
                     status_code = post_webhook(webhook_url, response)
                     print(f"-- Webhook: {status_code}")
@@ -119,6 +121,11 @@ def start_redis_queue_worker(
         except Exception as e:
             tb = traceback.format_exc()
             print(f"Failed to handle message: {tb}\n")
+            try:
+                redis.xack(input_queue, input_queue, message_id)
+                redis.xdel(input_queue, message_id)
+            except:
+                pass
 
 
 def run_prediction(

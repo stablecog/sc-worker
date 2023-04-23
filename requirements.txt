@@ -1,11 +1,10 @@
 diffusers==0.15.1
+transformers==4.28.1
 safetensors==0.3.0
 ftfy==6.1.1
 scipy==1.9.0
-transformers==4.28.1
-accelerate==0.15.0
-bitsandbytes==0.35.4
-triton==2.0.0.dev20221103
+accelerate==0.18.0
+bitsandbytes==0.37.2
 numpy==1.24.1
 opencv-python==4.7.0.68
 tqdm==4.62.2
@@ -23,4 +22,8 @@ redis>=4,<5
 python-dotenv
 tabulate==0.9.0
 pydantic==1.10.5
-https://pub-6a0b59853e4a4dcfa459b203f5724709.r2.dev/xformers-0.0.16rc396-cp310-cp310-manylinux2014_x86_64.whl
+flask==2.2.3
+waitress==2.1.2
+git+https://github.com/yekta/Kandinsky-2.git
+git+https://github.com/openai/CLIP.git
+https://ba.stablecog.com/flash-attention/flash_attn-0.2.8-cp310-cp310-linux_x86_64.whl

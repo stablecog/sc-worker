@@ -52,14 +52,14 @@ SD_MODELS_ALL = {
         "prompt_prefix": "ghibli style",
         "torch_dtype": torch.float16,
     },
-    "Waifu Diffusion v1.4": {
+    "Waifu Diffusion": {
         "id": "hakurei/waifu-diffusion",
         "prompt_prefix": "masterpiece, best quality, high quality",
         "negative_prompt_prefix": "worst quality, low quality, deleted, nsfw, blurry",
         "torch_dtype": torch.float16,
         "branch": "fp16",
     },
-    "22h Diffusion v0.1": {
+    "22h Diffusion": {
         "id": "22h/vintedois-diffusion-v0-1",
         "prompt_prefix": "estilovintedois",
         "torch_dtype": torch.float16,
@@ -70,6 +70,7 @@ SD_MODELS_ALL = {
     },
 }
 
+SD_MODEL_FOR_SAFETY_CHECKER = "Stable Diffusion v1.5"
 SD_MODELS = {}
 models_from_env = os.environ.get("MODELS", "Stable Diffusion v1.5, Openjourney")
 if models_from_env == "all":

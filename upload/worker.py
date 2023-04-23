@@ -60,7 +60,7 @@ def upload_files(
     s3: ServiceResource,
     s3_bucket: str,
     upload_path_prefix: str,
-) -> Iterable[str]:
+) -> Iterable[Dict[str, Any]]:
     """Send all files to S3 in parallel and return the S3 URLs"""
     print("Started - Upload all files to S3 in parallel and return the S3 URLs")
     start = time.time()
@@ -86,7 +86,9 @@ def upload_files(
     results = []
     for task in tasks:
         print(f"-- Upload: Got result")
-        results.append(task.result())
+        results.append(
+            {"image": task.result(), "image_embed": uo.open_clip_image_embed}
+        )
 
     end = time.time()
     print(
@@ -116,12 +118,17 @@ def start_upload_worker(
                         f"-- Upload: Uploading {len(predict_result.outputs)} files --\n"
                     )
                     try:
-                        uploadMsg["outputs"] = upload_files(
-                            predict_result.outputs,
-                            s3,
-                            s3_bucket,
-                            uploadMsg["upload_prefix"],
-                        )
+                        uploadMsg["output"] = {
+                            "prompt_embed": predict_result.outputs[
+                                0
+                            ].open_clip_prompt_embed,
+                            "images": upload_files(
+                                predict_result.outputs,
+                                s3,
+                                s3_bucket,
+                                uploadMsg["upload_prefix"],
+                            ),
+                        }
                     except Exception as e:
                         tb = traceback.format_exc()
                         print(f"Error uploading files {tb}\n")

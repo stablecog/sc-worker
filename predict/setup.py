@@ -1,27 +1,29 @@
 from typing import Any
 
-from lingua import LanguageDetectorBuilder, LanguageDetector
+from lingua import LanguageDetectorBuilder
 from boto3_type_annotations.s3 import ServiceResource
+from models.nllb.constants import TRANSLATOR_CACHE
 
 from shared.constants import WORKER_VERSION
-from models.stable_diffusion.constants import SD_MODELS, SD_MODEL_CACHE
-from diffusers import (
-    DiffusionPipeline,
+from models.stable_diffusion.constants import (
+    SD_MODEL_FOR_SAFETY_CHECKER,
+    SD_MODELS,
+    SD_MODEL_CACHE,
 )
+from diffusers import DiffusionPipeline, StableDiffusionPipeline
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
 from models.download.download_from_bucket import download_all_models_from_bucket
 from models.download.download_from_hf import download_models_from_hf
 import time
 from models.constants import DEVICE
-from transformers import (
-    AutoProcessor,
-    AutoTokenizer,
-    CLIPModel,
-)
-from models.clip.constants import CLIP_MODEL_ID
+from transformers import AutoProcessor, AutoTokenizer, AutoModel
+from models.open_clip.constants import OPEN_CLIP_MODEL_ID
 import os
 from huggingface_hub import _login
+from kandinsky2 import get_kandinsky2
+from functools import partial
+from models.stable_diffusion.filter import forward_inspect
 
 
 class ModelsPack:
@@ -29,13 +31,17 @@ class ModelsPack:
         self,
         sd_pipes: dict[str, DiffusionPipeline],
         upscaler: Any,
-        language_detector_pipe: LanguageDetector,
-        clip: Any,
+        translator: Any,
+        open_clip: Any,
+        kandinsky: Any,
+        safety_checker: Any,
     ):
         self.sd_pipes = sd_pipes
         self.upscaler = upscaler
-        self.language_detector_pipe = language_detector_pipe
-        self.clip = clip
+        self.translator = translator
+        self.open_clip = open_clip
+        self.kandinsky = kandinsky
+        self.safety_checker = safety_checker
 
 
 def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
@@ -58,6 +64,8 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         DiffusionPipeline,
     ] = {}
 
+    safety_checker = None
+
     for key in SD_MODELS:
         print(f"⏳ Loading SD model: {key}")
         pipe = DiffusionPipeline.from_pretrained(
@@ -67,8 +75,33 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             cache_dir=SD_MODEL_CACHE,
         )
         sd_pipes[key] = pipe.to(DEVICE)
-        sd_pipes[key].enable_xformers_memory_efficient_attention()
         print(f"✅ Loaded SD model: {key}")
+
+    # Safety checker
+    print("⏳ Loading safety checker")
+    safety_pipe = StableDiffusionPipeline.from_pretrained(
+        SD_MODELS[SD_MODEL_FOR_SAFETY_CHECKER]["id"],
+        torch_dtype=SD_MODELS[key]["torch_dtype"],
+        cache_dir=SD_MODEL_CACHE,
+    )
+    safety_pipe = safety_pipe.to(DEVICE)
+    safety_pipe.safety_checker.forward = partial(
+        forward_inspect, self=safety_pipe.safety_checker
+    )
+    safety_checker = {
+        "checker": safety_pipe.safety_checker,
+        "feature_extractor": safety_pipe.feature_extractor,
+    }
+    print("✅ Loaded safety checker")
+
+    # Kandinsky
+    print("⏳ Loading Kandinsky")
+    kandinsky = {
+        "text2img": get_kandinsky2(
+            "cuda", task_type="text2img", model_version="2.1", use_flash_attention=True
+        )
+    }
+    print("✅ Loaded Kandinsky")
 
     # For upscaler
     upscaler_args = get_args_swinir()
@@ -86,23 +119,29 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     print("✅ Loaded upscaler")
 
     # For translator
-    language_detector_pipe = (
-        LanguageDetectorBuilder.from_all_languages()
-        .with_preloaded_language_models()
-        .build()
-    )
-    print("✅ Loaded language detector")
-
-    # For CLIP
-    clip_model = CLIPModel.from_pretrained(CLIP_MODEL_ID).to(DEVICE)
-    clip_processor = AutoProcessor.from_pretrained(CLIP_MODEL_ID)
-    clip_tokenizer = AutoTokenizer.from_pretrained(CLIP_MODEL_ID)
-    clip = {
-        "model": clip_model,
-        "processor": clip_processor,
-        "tokenizer": clip_tokenizer,
+    translator = {
+        "detector": (
+            LanguageDetectorBuilder.from_all_languages()
+            .with_preloaded_language_models()
+            .build()
+        ),
     }
-    print("✅ Loaded CLIP model")
+    print("✅ Loaded translator")
+
+    # For OpenCLIP
+    print("⏳ Loading OpenCLIP")
+    open_clip = {
+        "model": AutoModel.from_pretrained(
+            OPEN_CLIP_MODEL_ID, cache_dir=TRANSLATOR_CACHE
+        ).to(DEVICE),
+        "processor": AutoProcessor.from_pretrained(
+            OPEN_CLIP_MODEL_ID, cache_dir=TRANSLATOR_CACHE
+        ),
+        "tokenizer": AutoTokenizer.from_pretrained(
+            OPEN_CLIP_MODEL_ID, cache_dir=TRANSLATOR_CACHE
+        ),
+    }
+    print("✅ Loaded OpenCLIP")
 
     end = time.time()
     print("//////////////////////////////////////////////////////////////////")
@@ -112,6 +151,8 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     return ModelsPack(
         sd_pipes=sd_pipes,
         upscaler=upscaler,
-        language_detector_pipe=language_detector_pipe,
-        clip=clip,
+        translator=translator,
+        open_clip=open_clip,
+        kandinsky=kandinsky,
+        safety_checker=safety_checker,
     )

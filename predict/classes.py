@@ -7,14 +7,14 @@ class PredictOutput:
         pil_image: Image.Image,
         target_extension: str,
         target_quality: int,
-        image_embed: list[float],
-        prompt_embed: list[float],
+        open_clip_image_embed: list[float],
+        open_clip_prompt_embed: list[float],
     ):
         self.pil_image = pil_image
         self.target_extension = target_extension
         self.target_quality = target_quality
-        self.image_embed = image_embed
-        self.prompt_embed = prompt_embed
+        self.open_clip_image_embed = open_clip_image_embed
+        self.open_clip_prompt_embed = open_clip_prompt_embed
 
 
 class PredictResult:

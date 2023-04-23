@@ -1,0 +1,8 @@
+KANDIKSKY_SCHEDULERS = {
+    "P_SAMPLER": "p_sampler",
+    "DDIM": "ddim_sampler",
+}
+
+KANDINSKY_SCHEDULER_CHOICES = [*KANDIKSKY_SCHEDULERS.keys()]
+
+KANDINSKY_MODEL_NAME = "Kandinsky"

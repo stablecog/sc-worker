@@ -2,6 +2,12 @@ import os
 import shutil
 from typing import Optional
 import datetime
+import time
+import requests
+from PIL import Image
+from io import BytesIO
+from concurrent.futures import ThreadPoolExecutor
+from PIL import ImageOps
 
 
 def clean_folder(folder):
@@ -43,3 +49,68 @@ def format_datetime(timestamp: datetime.datetime) -> str:
     easier parsing by things like Golang.
     """
     return timestamp.isoformat() + "Z"
+
+
+def time_it(func):
+    # This function shows the execution time of
+    # the function object passed
+    def wrap_func(*args, **kwargs):
+        t1 = time.time()
+        result = func(*args, **kwargs)
+        t2 = time.time()
+        print(f"Function {func.__name__!r} executed in {((t2-t1)*1000):.0f}ms")
+        return result
+
+    return wrap_func
+
+
+class time_code_block:
+    def __init__(self, prefix=None):
+        self.prefix = prefix
+
+    def __enter__(self):
+        self.start_time = time.time()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.end_time = time.time()
+        self.elapsed_time = (self.end_time - self.start_time) * 1000
+        statement = f"Executed in: {self.elapsed_time:.2f} ms"
+        if self.prefix:
+            statement = f"{self.prefix} - {statement}"
+        print(statement)
+
+
+def download_image(url):
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise Exception(f"Failed to download image from {url}")
+    return Image.open(BytesIO(response.content)).convert("RGB")
+
+
+def download_images(urls, max_workers=10):
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(download_image, url) for url in urls]
+        images = [future.result() for future in futures]
+    return images
+
+
+def fit_image(image, width, height):
+    resized_image = ImageOps.fit(image, (width, height))
+    return resized_image
+
+
+def download_image_from_s3(key, bucket):
+    try:
+        image_object = bucket.Object(key)
+        image_data = image_object.get().get("Body").read()
+        image = Image.open(BytesIO(image_data))
+        return image
+    except Exception as e:
+        return None
+
+
+def download_images_from_s3(keys, bucket, max_workers=25):
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        images = list(executor.map(download_image_from_s3, keys, [bucket] * len(keys)))
+
+    return images
