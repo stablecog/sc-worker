@@ -198,7 +198,7 @@ def get_flores(
     detected_lang_score = None
 
     print(f"-- Confidence values --")
-    print(tabulate(confidence_values[:10]))
+    print(tabulate(confidence_values[:5]))
 
     for index in range(len(confidence_values)):
         curr = confidence_values[index]
