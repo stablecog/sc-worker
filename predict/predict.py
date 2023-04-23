@@ -172,7 +172,7 @@ def predict(
             if input.translator_cog_url is not None
             else TRANSLATOR_COG_URL
         )
-        print(f"Translator cog url: {translator_cog_url}")
+        print(f"Translator cog url: {translator_cog_url}, {TRANSLATOR_COG_URL}")
         if translator_cog_url is not None:
             [t_prompt, t_negative_prompt] = translate_text_set_via_api(
                 text_1=input.prompt,
