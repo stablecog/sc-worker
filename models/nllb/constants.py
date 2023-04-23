@@ -1,5 +1,8 @@
 from lingua import Language
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 TRANSLATOR_MODEL_ID = "facebook/nllb-200-distilled-1.3B"
 TRANSLATOR_CACHE = "translator-cache"
