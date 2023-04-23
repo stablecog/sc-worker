@@ -177,27 +177,24 @@ def predict(
                 detector=models_pack.translator["detector"],
                 label="Prompt & Negative Prompt",
             )
+        prompt_is_translated = input.prompt is not None and t_prompt != input.prompt
+        translated = " (Translated)"
+        not_translated = ""
         print("---------------------------------------------")
-        prompt_log_text = (
-            "Translated final prompt"
-            if input.prompt is not None and t_prompt != input.prompt
-            else "Final prompt"
-        )
-        negative_prompt_log_text = (
-            "Translated final negative prompt"
-            if input.negative_prompt is not None
-            and t_negative_prompt != input.negative_prompt
-            else "Final negative prompt"
-        )
-        if input.prompt is not None and t_prompt != input.prompt:
+        if prompt_is_translated:
             print(f"💬 Original Prompt: {input.prompt}")
-        print(f"💬 {prompt_log_text}: {t_prompt}")
-        if (
+        print(
+            f"💬 Final Prompt{translated if prompt_is_translated else not_translated}: {t_prompt}"
+        )
+        neg_prompt_is_translated = (
             input.negative_prompt is not None
             and t_negative_prompt != input.negative_prompt
-        ):
-            print(f"💬 Original Negative Prompt: {input.negative_prompt}")
-        print(f"💬 {negative_prompt_log_text}: {t_negative_prompt}")
+        )
+        if neg_prompt_is_translated:
+            print(f"💬🔻 Original Neg. Prompt: {input.negative_prompt}")
+        print(
+            f"💬🔻 Final Neg. Prompt{translated if neg_prompt_is_translated else not_translated}: {t_negative_prompt}"
+        )
         print("---------------------------------------------")
 
         print(f"Input model: {input.model}")
