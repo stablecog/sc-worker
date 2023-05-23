@@ -1,2 +1,2 @@
-torch==2.0.1+cu120
-torchvision==0.15.2+cu120
+torch==2.0.1
+torchvision==0.15.2
