@@ -34,7 +34,7 @@ if __name__ == "__main__":
     if redisWorkerId is None:
         raise ValueError("Missing WORKER_NAME environment variable.")
 
-    # Configure S3 client
+    # S3 client
     s3: ServiceResource = boto3.resource(
         "s3",
         region_name=S3_REGION,
