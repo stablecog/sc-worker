@@ -26,4 +26,4 @@ flask==2.2.3
 waitress==2.1.2
 git+https://github.com/yekta/Kandinsky-2.git
 git+https://github.com/openai/CLIP.git
-https://ba.stablecog.com/flash-attention/flash_attn-0.2.8-cp310-cp310-linux_x86_64.whl
+https://ba.stablecog.com/flash-attention/flash_attn-1.0.5-cp310-cp310-linux_x86_64.whl
