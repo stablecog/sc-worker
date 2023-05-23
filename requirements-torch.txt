@@ -1,4 +1,2 @@
---extra-index-url https://download.pytorch.org/whl/cu117
-torch==2.0.0
---extra-index-url https://download.pytorch.org/whl/cu117
-torchvision==0.15.1
+torch==2.0.1+cu120
+torchvision==0.15.2+cu120
