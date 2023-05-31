@@ -4,8 +4,8 @@ import time
 from .constants import (
     LANG_TO_FLORES,
     TARGET_LANG,
-    TARGET_LANG_FLORES,
     TARGET_LANG_SCORE_MAX,
+    TARGET_LANG_FLORES,
     DETECTED_CONFIDENCE_SCORE_MIN,
 )
 from transformers import pipeline
@@ -43,24 +43,35 @@ def translate_text_set_via_api(
         translated_text_1 = ""
         translated_text_2 = ""
 
-        text_lang_flores_1 = TARGET_LANG_FLORES
-        text_lang_flores_2 = TARGET_LANG_FLORES
+        text_flores_1 = TARGET_LANG_FLORES
+        text_flores_2 = TARGET_LANG_FLORES
 
-        text_lang_flores_1 = get_flores(text_1, flores_1, detector, f"{label} - #1")
-        text_lang_flores_2 = get_flores(text_2, flores_2, detector, f"{label} - #2")
+        text_flores_1 = get_flores(
+            text=text_1,
+            flores=flores_1,
+            detector=detector,
+            label=f"{label} - #1",
+        )
+        text_flores_2 = get_flores(
+            text=text_2,
+            flores=flores_2,
+            detector=detector,
+            label=f"{label} - #2",
+        )
 
-        if (
-            text_lang_flores_1 != TARGET_LANG_FLORES
-            or text_lang_flores_2 != TARGET_LANG_FLORES
-        ):
+        if text_flores_1 != TARGET_LANG_FLORES or text_flores_2 != TARGET_LANG_FLORES:
             jsonData = {
                 "input": {
-                    "text": text_1,
-                    "text_lang": text_lang_flores_1,
-                    "target_lang": TARGET_LANG_FLORES,
+                    "text_1": text_1,
+                    "text_flores_1": text_flores_1,
+                    "target_flores_1": TARGET_LANG_FLORES,
+                    "target_score_max_1": TARGET_LANG_SCORE_MAX,
+                    "detected_confidence_score_min_1": DETECTED_CONFIDENCE_SCORE_MIN,
                     "text_2": text_2,
-                    "text_lang_2": text_lang_flores_2,
-                    "target_lang_2": TARGET_LANG_FLORES,
+                    "text_flores_2": text_flores_2,
+                    "target_flores_2": TARGET_LANG_FLORES,
+                    "target_score_max_2": TARGET_LANG_SCORE_MAX,
+                    "detected_confidence_score_min_2": DETECTED_CONFIDENCE_SCORE_MIN,
                 }
             }
             try:
@@ -177,10 +188,10 @@ def translate_text(
 
 
 def get_flores(
-    text,
-    flores,
-    detector,
-    label,
+    text: str,
+    flores: str,
+    detector: any,
+    label: str,
 ):
     if text == "":
         print(f"-- {label} - No text to give FLORES-200 for, skipping --")
@@ -191,7 +202,7 @@ def get_flores(
         )
         return flores
 
-    text_lang_flores = TARGET_LANG_FLORES
+    text_flores = TARGET_LANG_FLORES
     confidence_values = detector.compute_language_confidence_values(text)
     target_lang_score = None
     detected_lang = None
@@ -215,7 +226,7 @@ def get_flores(
         and (target_lang_score is None or target_lang_score < TARGET_LANG_SCORE_MAX)
         and LANG_TO_FLORES.get(detected_lang.name) is not None
     ):
-        text_lang_flores = LANG_TO_FLORES[detected_lang.name]
+        text_flores = LANG_TO_FLORES[detected_lang.name]
 
     if detected_lang is not None:
         print(
@@ -228,5 +239,5 @@ def get_flores(
     ):
         print(f"-- {label} - Target language score: {target_lang_score} --")
 
-    print(f'-- {label} - Selected text language FLORES-200: "{text_lang_flores}" --')
-    return text_lang_flores
+    print(f'-- {label} - Selected text language FLORES-200: "{text_flores}" --')
+    return text_flores
