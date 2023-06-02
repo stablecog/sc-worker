@@ -10,7 +10,7 @@ from botocore.config import Config
 from dotenv import load_dotenv
 import torch
 
-from predict.setup import setup
+from predict.image.setup import setup
 from rdqueue.worker import start_redis_queue_worker
 from upload.constants import (
     S3_ACCESS_KEY_ID,

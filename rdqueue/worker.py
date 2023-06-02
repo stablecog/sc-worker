@@ -10,9 +10,9 @@ import redis
 import uuid
 
 from rdqueue.events import Status, Event
-from predict.predict import PredictInput, predict, PredictResult
+from predict.image.predict import PredictInput, predict, PredictResult
 from shared.helpers import format_datetime
-from predict.setup import ModelsPack
+from predict.image.setup import ModelsPack
 from shared.webhook import post_webhook
 
 

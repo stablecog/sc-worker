@@ -11,7 +11,7 @@ import redis
 from boto3_type_annotations.s3 import ServiceResource
 from PIL import Image
 
-from predict.predict import PredictResult, PredictOutput
+from predict.image.predict import PredictResult, PredictOutput
 from rdqueue.events import Status
 from shared.helpers import ensure_trailing_slash, parse_content_type
 from shared.webhook import post_webhook

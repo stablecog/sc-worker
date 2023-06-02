@@ -10,7 +10,7 @@ from models.open_clip.main import (
     open_clip_get_embeds_of_texts,
     open_clip_get_embeds_of_images,
 )
-from predict.setup import ModelsPack
+from predict.image.setup import ModelsPack
 from shared.helpers import download_images, download_images_from_s3
 import time
 import boto3
