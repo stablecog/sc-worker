@@ -14,8 +14,8 @@ from predict.image.setup import setup as image_setup
 from rdqueue.worker import start_redis_queue_worker
 from upload.constants import (
     S3_ACCESS_KEY_ID,
-    S3_BUCKET_NAME_MODELS,
-    S3_BUCKET_NAME_UPLOAD,
+    S3_BUCKET_NAME_MODELS_FOR_IMAGE,
+    S3_BUCKET_NAME_UPLOAD_FOR_IMAGE,
     S3_ENDPOINT_URL,
     S3_REGION,
     S3_SECRET_ACCESS_KEY,
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     )
 
     # Setup predictor
-    models_pack = image_setup(s3, S3_BUCKET_NAME_MODELS)
+    models_pack = image_setup(s3, S3_BUCKET_NAME_MODELS_FOR_IMAGE)
 
     # Setup redis
     redisConn = redis.BlockingConnectionPool.from_url(redisUrl)
@@ -65,7 +65,7 @@ if __name__ == "__main__":
             ),
             input_queue=redisInputQueue,
             s3_client=s3,
-            s3_bucket=S3_BUCKET_NAME_UPLOAD,
+            s3_bucket=S3_BUCKET_NAME_UPLOAD_FOR_IMAGE,
             upload_queue=upload_queue,
             models_pack=models_pack,
         )
@@ -76,7 +76,7 @@ if __name__ == "__main__":
         target=lambda: start_upload_worker(
             q=upload_queue,
             s3=s3,
-            s3_bucket=S3_BUCKET_NAME_UPLOAD,
+            s3_bucket=S3_BUCKET_NAME_UPLOAD_FOR_IMAGE,
         )
     )
 

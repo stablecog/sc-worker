@@ -18,7 +18,7 @@ from boto3_type_annotations.s3 import ServiceResource
 from botocore.config import Config
 from upload.constants import (
     S3_ACCESS_KEY_ID,
-    S3_BUCKET_NAME_UPLOAD,
+    S3_BUCKET_NAME_UPLOAD_FOR_IMAGE,
     S3_ENDPOINT_URL,
     S3_REGION,
     S3_SECRET_ACCESS_KEY,
@@ -36,7 +36,7 @@ s3: ServiceResource = boto3.resource(
         retries={"max_attempts": 3, "mode": "standard"}, max_pool_connections=300
     ),
 )
-bucket = s3.Bucket(S3_BUCKET_NAME_UPLOAD)
+bucket = s3.Bucket(S3_BUCKET_NAME_UPLOAD_FOR_IMAGE)
 
 
 @clipapi.route("/clip/embed", methods=["POST"])
