@@ -8,6 +8,7 @@ from PIL import Image
 from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor
 from PIL import ImageOps
+from typing import TypeVar, List
 
 
 def clean_folder(folder):
@@ -114,3 +115,12 @@ def download_images_from_s3(keys, bucket, max_workers=25):
         images = list(executor.map(download_image_from_s3, keys, [bucket] * len(keys)))
 
     return images
+
+
+T = TypeVar("T")
+
+
+def return_value_if_in_list(value: T, list_of_values: List[T]) -> bool:
+    if value not in list_of_values:
+        raise ValueError(f'"{value}" is not in the list of choices')
+    return value

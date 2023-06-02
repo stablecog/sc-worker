@@ -148,14 +148,10 @@ class PredictInput(BaseModel):
         )
 
 
-""" @torch.inference_mode() """
-
-
 def predict(
     input: PredictInput,
     models_pack: ModelsPack,
 ) -> PredictResult:
-    print(input.model)
     process_start = time.time()
     print("//////////////////////////////////////////////////////////////////")
     print(f"⏳ Process started: {input.process_type} ⏳")
