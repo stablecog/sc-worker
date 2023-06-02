@@ -29,7 +29,7 @@ if __name__ == "__main__":
     load_dotenv()
 
     redisUrl = os.environ.get("REDIS_URL")
-    redisInputQueue = os.environ.get("REDIS_INPUT_QUEUE")
+    redisInputQueue = os.environ.get("REDIS_INPUT_QUEUE_FOR_IMAGE")
     redisWorkerId = os.environ.get("WORKER_NAME", None)
     if redisWorkerId is None:
         raise ValueError("Missing WORKER_NAME environment variable.")
