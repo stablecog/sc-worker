@@ -10,7 +10,7 @@ from botocore.config import Config
 from dotenv import load_dotenv
 import torch
 
-from predict.image.setup import setup
+from predict.image.setup import setup as image_setup
 from rdqueue.worker import start_redis_queue_worker
 from upload.constants import (
     S3_ACCESS_KEY_ID,
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     )
 
     # Setup predictor
-    models_pack = setup(s3, S3_BUCKET_NAME_MODELS)
+    models_pack = image_setup(s3, S3_BUCKET_NAME_MODELS)
 
     # Setup redis
     redisConn = redis.BlockingConnectionPool.from_url(redisUrl)
