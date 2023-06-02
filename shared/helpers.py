@@ -9,6 +9,9 @@ from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor
 from PIL import ImageOps
 from typing import TypeVar, List
+from scipy.io.wavfile import write
+from pydub import AudioSegment
+from io import BytesIO
 
 
 def clean_folder(folder):
@@ -124,3 +127,17 @@ def return_value_if_in_list(value: T, list_of_values: List[T]) -> bool:
     if value not in list_of_values:
         raise ValueError(f'"{value}" is not in the list of choices')
     return value
+
+
+def numpy_to_mp3(numpy_array, sample_rate):
+    # Write the numpy data to a .wav file in memory
+    wav_io = BytesIO()
+    write(wav_io, sample_rate, numpy_array)
+    wav_io.seek(0)
+
+    # Convert the .wav data to .mp3 and store it in a BytesIO object
+    audio = AudioSegment.from_file(wav_io, format="wav")
+    mp3_io = BytesIO()
+    audio.export(mp3_io, format="mp3")
+    mp3_io.seek(0)
+    return mp3_io

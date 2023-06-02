@@ -67,7 +67,7 @@ def predict(
     )
 
     process_end = time.time()
-    print(f"✅ Process completed in: {round((process_end - process_start) * 1000)} ms ✅")
+    print(f"✅ Process completed in: {round(process_end - process_start, 2)} sec. ✅")
     print("//////////////////////////////////////////////////////////////////")
 
     return result

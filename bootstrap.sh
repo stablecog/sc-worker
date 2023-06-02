@@ -38,7 +38,8 @@ sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
     git \
     ca-certificates \
     libgl1-mesa-glx \
-    libglib2.0-0
+    libglib2.0-0 \
+    ffmpeg
 
 if [ $? -ne 0 ]; then
     echo "❌ Failed to install system dependencies"

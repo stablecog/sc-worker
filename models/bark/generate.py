@@ -1,11 +1,13 @@
 import nltk
 import pytorch_seed
-from bark.generation import (
-    generate_text_semantic,
-)
+from bark.generation import generate_text_semantic
+from bark import SAMPLE_RATE
 from bark.api import semantic_to_waveform
 import time
 import numpy as np
+from shared.helpers import numpy_to_mp3
+from io import BytesIO
+from typing import List
 
 
 def generate_voiceover(
@@ -13,7 +15,7 @@ def generate_voiceover(
     speaker: str,
     temp: float,
     seed: int,
-):
+) -> List[BytesIO]:
     start = time.time()
     print("//////////////////////////////////////////////////////////////////")
     print("⏳ Generating voiceover ⏳")
@@ -43,4 +45,5 @@ def generate_voiceover(
     print("//////////////////////////////////////////////////////////////////")
 
     result = np.concatenate(pieces)
-    return result
+    mp3 = numpy_to_mp3(result, SAMPLE_RATE)
+    return [mp3]
