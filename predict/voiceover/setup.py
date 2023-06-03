@@ -11,8 +11,6 @@ def setup():
     start = time.time()
     print(f"⏳ Setup has started - Version: {WORKER_VERSION}")
 
-    os.environ["SUNO_USE_SMALL_MODELS"] = "True"
-
     nltk.download("punkt")
     preload_models()
 

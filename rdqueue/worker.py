@@ -123,7 +123,10 @@ def start_redis_queue_worker(
 
             for response_event, response in run_prediction(message, **args):
                 if "upload_output" in response and isinstance(
-                    response["upload_output"], PredictResultForImage
+                    response["upload_output"],
+                    PredictInputForVoiceover
+                    if worker_type == "voiceover"
+                    else PredictResultForImage,
                 ):
                     print(f"-- Upload: Putting to queue")
                     upload_queue.put(response)
