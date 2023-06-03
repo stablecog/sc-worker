@@ -1,6 +1,6 @@
 from boto3_type_annotations.s3 import ServiceResource
 from PIL import Image
-from shared.helpers import ensure_trailing_slash, parse_content_type
+from shared.helpers import ensure_trailing_slash, parse_content_type, convert_wav_to_mp3
 from typing import Any, Dict, Iterable, List
 from predict.image.predict import (
     PredictOutput as PredictOutputForImage,
@@ -98,19 +98,28 @@ def upload_files_for_image(
 def convert_and_upload_audio_file_to_s3(
     s3: ServiceResource,
     s3_bucket: str,
-    audio_file: BytesIO,
+    audio_bytes: BytesIO,
+    sample_rate: int,
+    target_extension: str,
     upload_path_prefix: str,
 ) -> str:
-    extension = "wav"
+    start_conv = time.time()
     content_type = "audio/wav"
+    if target_extension == "mp3":
+        content_type = "audio/mpeg"
+        audio_bytes = convert_wav_to_mp3(audio_bytes, sample_rate)
+    end_conv = time.time()
+    print(
+        f"Converted audio in: {round((end_conv - start_conv) *1000)} ms - {target_extension}"
+    )
 
-    key = f"{str(uuid.uuid4())}.{extension}"
+    key = f"{str(uuid.uuid4())}.{target_extension}"
     if upload_path_prefix is not None and upload_path_prefix != "":
         key = f"{ensure_trailing_slash(upload_path_prefix)}{key}"
 
     start_upload = time.time()
     print(f"-- Upload: Uploading to S3")
-    s3.Bucket(s3_bucket).put_object(Body=audio_file, Key=key, ContentType=content_type)
+    s3.Bucket(s3_bucket).put_object(Body=audio_bytes, Key=key, ContentType=content_type)
     end_upload = time.time()
     print(f"Uploaded audio file in: {round((end_upload - start_upload) *1000)} ms")
 
@@ -137,7 +146,9 @@ def upload_files_for_voiceover(
                     convert_and_upload_audio_file_to_s3,
                     s3,
                     s3_bucket,
-                    uo.audio_file,
+                    uo.audio_bytes,
+                    uo.sample_rate,
+                    uo.target_extension,
                     upload_path_prefix,
                 )
             )

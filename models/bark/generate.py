@@ -5,9 +5,19 @@ from bark import SAMPLE_RATE
 from bark.api import semantic_to_waveform
 import time
 import numpy as np
-from shared.helpers import numpy_to_wav
+from shared.helpers import numpy_to_wav_bytes
 from io import BytesIO
 from typing import List
+
+
+class GenerateVoiceoverOutputBark:
+    def __init__(
+        self,
+        wav_bytes: BytesIO,
+        sample_rate: int,
+    ):
+        self.wav_bytes = wav_bytes
+        self.sample_rate = sample_rate
 
 
 def generate_voiceover(
@@ -15,7 +25,7 @@ def generate_voiceover(
     speaker: str,
     temp: float,
     seed: int,
-) -> List[BytesIO]:
+) -> List[GenerateVoiceoverOutputBark]:
     start = time.time()
     print("//////////////////////////////////////////////////////////////////")
     print("⏳ Generating voiceover ⏳")
@@ -44,6 +54,10 @@ def generate_voiceover(
     print(f"🎤 Generated voiceover in: {round(end - start, 2)} sec. 🎤")
     print("//////////////////////////////////////////////////////////////////")
 
-    result = np.concatenate(pieces)
-    wav = numpy_to_wav(result, SAMPLE_RATE)
-    return [wav]
+    np_array = np.concatenate(pieces)
+    wav = numpy_to_wav_bytes(np_array, SAMPLE_RATE)
+    result = GenerateVoiceoverOutputBark(
+        wav_bytes=wav,
+        sample_rate=SAMPLE_RATE,
+    )
+    return [result]

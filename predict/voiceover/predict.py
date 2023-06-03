@@ -28,10 +28,18 @@ class PredictInput(BaseModel):
         default=modelsSpeakers[models[0]][0],
     )
     seed: int = Field(description="Seed for the voiceover.", default=None)
+    output_audio_extension: str = Field(
+        description="Audio extention for the output. Can be 'mp3' or 'wav'.",
+        default="mp3",
+    )
 
     @validator("model")
     def validate_model(cls, v):
         return return_value_if_in_list(v, models)
+
+    @validator("output_audio_extension")
+    def validate_audio_image_extension(cls, v):
+        return return_value_if_in_list(v, ["wav", "mp3"])
 
 
 def predict(
@@ -55,7 +63,9 @@ def predict(
 
     for i, voiceover in enumerate(voiceovers):
         outputs[i] = PredictOutput(
-            audio_file=voiceover,
+            audio_bytes=voiceover.wav_bytes,
+            sample_rate=voiceover.sample_rate,
+            target_extension=input.output_audio_extension,
         )
 
     result = PredictResult(

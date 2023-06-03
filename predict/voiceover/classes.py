@@ -3,8 +3,15 @@ from io import BytesIO
 
 
 class PredictOutput:
-    def __init__(self, audio_file: BytesIO):
-        self.audio_file = audio_file
+    def __init__(
+        self,
+        audio_bytes: BytesIO,
+        target_extension: str,
+        sample_rate: int,
+    ):
+        self.audio_bytes = audio_bytes
+        self.target_extension = target_extension
+        self.sample_rate = sample_rate
 
 
 class PredictResult:
