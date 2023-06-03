@@ -137,10 +137,7 @@ def numpy_to_wav_bytes(numpy_array, sample_rate):
 
 
 def convert_wav_to_mp3(wav_bytes: BytesIO):
-    wav_io = BytesIO()
-    wav_io.write(wav_bytes)
-    wav_io.seek(0)
-    audio_segment = AudioSegment.from_wav(wav_io)
+    audio_segment = AudioSegment.from_wav(wav_bytes)
     mp3_io = BytesIO()
     audio_segment.export(mp3_io, format="mp3", bitrate="320k")
     mp3_io.seek(0)
