@@ -23,7 +23,7 @@ from models.open_clip.main import (
     open_clip_get_embeds_of_texts,
 )
 from pydantic import BaseModel, Field, validator
-from .helpers import return_value_if_in_list
+from shared.helpers import return_value_if_in_list
 
 
 class PredictInput(BaseModel):
