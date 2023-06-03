@@ -1,7 +1,20 @@
 models = ["bark"]
-modelsSpeakers = {
-    "bark": [
-        "v2/en_speaker_6",
-        "v2/en_speaker_9",
-    ]
-}
+bark_languages = [
+    "en",
+    "zh",
+    "fr",
+    "de",
+    "hi",
+    "it",
+    "ja",
+    "ko",
+    "pl",
+    "pt",
+    "ru",
+    "es",
+    "tr",
+]
+modelsSpeakers = {"bark": []}
+for language in bark_languages:
+    for i in range(0, 10):
+        modelsSpeakers["bark"].append(f"v2/{language}_speaker_{i}")
