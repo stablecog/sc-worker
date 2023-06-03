@@ -1,13 +1,11 @@
 import io
-import json
 import time
 import traceback
 import queue
 import uuid
 from concurrent.futures import Future, ThreadPoolExecutor
-from typing import List, Iterable, Dict, Any, Callable
+from typing import List, Iterable, Dict, Any
 
-import redis
 from boto3_type_annotations.s3 import ServiceResource
 from PIL import Image
 

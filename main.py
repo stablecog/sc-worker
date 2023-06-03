@@ -1,5 +1,5 @@
 from threading import Thread
-from typing import Any, Dict, Callable
+from typing import Any, Dict
 import os
 import queue
 
@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 import torch
 
 from predict.image.setup import setup as image_setup
+from predict.voiceover.setup import setup as voiceover_setup
 from rdqueue.worker import start_redis_queue_worker
 from upload.constants import (
     S3_ACCESS_KEY_ID,
@@ -27,6 +28,8 @@ if __name__ == "__main__":
     if torch.cuda.is_available() is False:
         os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     load_dotenv()
+
+    WORKER_TYPE = os.environ.get("WORKER_TYPE", "image")
 
     redisUrl = os.environ.get("REDIS_URL")
     redisInputQueue = os.environ.get("REDIS_INPUT_QUEUE")
@@ -48,8 +51,10 @@ if __name__ == "__main__":
         ),
     )
 
-    # Setup predictor
-    models_pack = image_setup(s3, S3_BUCKET_NAME_MODELS)
+    if WORKER_TYPE == "voiceover":
+        voiceover_setup()
+    else:
+        models_pack = image_setup(s3, S3_BUCKET_NAME_MODELS)
 
     # Setup redis
     redisConn = redis.BlockingConnectionPool.from_url(redisUrl)
@@ -80,12 +85,14 @@ if __name__ == "__main__":
         )
     )
 
-    # Create clip API thread
-    clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
+    if WORKER_TYPE == "voiceover":
+        print("//TO-DO")
+    else:
+        clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
+        clipapi_thread.start()
+        clipapi_thread.join()
 
     redis_worker_thread.start()
     upload_thread.start()
-    clipapi_thread.start()
     redis_worker_thread.join()
     upload_thread.join()
-    clipapi_thread.join()
