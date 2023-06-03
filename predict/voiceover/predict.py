@@ -39,7 +39,7 @@ def predict(
 ) -> PredictResult:
     process_start = time.time()
     print("//////////////////////////////////////////////////////////////////")
-    print(f"⏳ Process started: Voiceover ⏳")
+    print(f"⏳ Voiceover - Process started ⏳")
 
     if input.seed is None:
         input.seed = int.from_bytes(os.urandom(2), "big")
@@ -63,7 +63,9 @@ def predict(
     )
 
     process_end = time.time()
-    print(f"✅ Process completed in: {round(process_end - process_start, 2)} sec. ✅")
+    print(
+        f"✅ Voiceover - Process completed in: {round(process_end - process_start, 2)} sec. ✅"
+    )
     print("//////////////////////////////////////////////////////////////////")
 
     return result
