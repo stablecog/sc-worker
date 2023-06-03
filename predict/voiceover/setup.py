@@ -21,4 +21,4 @@ def setup():
     print(f"✅ Predict setup is done in: {round((end - start))} sec.")
     print("//////////////////////////////////////////////////////////////////")
 
-    return
+    return None

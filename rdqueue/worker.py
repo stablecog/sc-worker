@@ -7,22 +7,31 @@ from typing import Any, Dict, Iterable, Tuple, Callable
 
 from boto3_type_annotations.s3 import ServiceResource
 import redis
-import uuid
 
 from rdqueue.events import Status, Event
-from predict.image.predict import PredictInput, predict, PredictResult
+from predict.image.predict import (
+    PredictInput as PredictInputForImage,
+    predict as predict_for_image,
+    PredictResult as PredictResultForImage,
+)
+from predict.voiceover.predict import (
+    PredictInput as PredictInputForVoiceover,
+    predict as predict_for_voiceover,
+    PredictResult as PredictResultForVoiceover,
+)
 from shared.helpers import format_datetime
 from predict.image.setup import ModelsPack
 from shared.webhook import post_webhook
 
 
 def start_redis_queue_worker(
+    worker_type: str,
     redis: redis.Redis,
     input_queue: str,
     s3_client: ServiceResource,
     s3_bucket: str,
     upload_queue: queue.Queue[Dict[str, Any]],
-    models_pack: ModelsPack,
+    models_pack: ModelsPack | None,
 ) -> None:
     print(f"Starting redis queue worker, bucket is: {s3_bucket}\n")
 
@@ -104,9 +113,17 @@ def start_redis_queue_worker(
             else:
                 events_filter = Event.default_events()
 
-            for response_event, response in run_prediction(message, models_pack):
+            run_prediction = None
+            args = {}
+            if worker_type == "voiceover":
+                run_prediction = run_prediction_for_voiceover
+            else:
+                run_prediction = run_prediction_for_image
+                args["models_pack"] = models_pack
+
+            for response_event, response in run_prediction(message, **args):
                 if "upload_output" in response and isinstance(
-                    response["upload_output"], PredictResult
+                    response["upload_output"], PredictResultForImage
                 ):
                     print(f"-- Upload: Putting to queue")
                     upload_queue.put(response)
@@ -128,7 +145,7 @@ def start_redis_queue_worker(
                 pass
 
 
-def run_prediction(
+def run_prediction_for_image(
     message: Dict[str, Any],
     models_pack: ModelsPack,
 ) -> Iterable[Tuple[Event, Dict[str, Any]]]:
@@ -160,8 +177,8 @@ def run_prediction(
     yield (Event.START, response)
 
     try:
-        predictResult = predict(
-            input=PredictInput(**input_obj),
+        predictResult = predict_for_image(
+            input=PredictInputForImage(**input_obj),
             models_pack=models_pack,
         )
 
@@ -171,6 +188,65 @@ def run_prediction(
         response["upload_prefix"] = input_obj.get("upload_path_prefix", "")
         response["upload_output"] = predictResult
         response["nsfw_count"] = predictResult.nsfw_count
+
+        completed_at = datetime.datetime.now()
+        response["completed_at"] = format_datetime(completed_at)
+
+        response["status"] = Status.SUCCEEDED
+        response["metrics"] = {
+            "predict_time": (completed_at - started_at).total_seconds()
+        }
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(f"Failed to run prediction: {tb}\n")
+        completed_at = datetime.datetime.now()
+        response["completed_at"] = format_datetime(completed_at)
+        response["status"] = Status.FAILED
+        response["error"] = str(e)
+    finally:
+        yield (Event.COMPLETED, response)
+
+
+def run_prediction_for_voiceover(
+    message: Dict[str, Any],
+) -> Iterable[Tuple[Event, Dict[str, Any]]]:
+    """Runs the prediction and yields events and responses."""
+
+    # use the request message as the basis of our response so
+    # that we echo back any additional fields sent to us
+    response = message
+    response["status"] = Status.PROCESSING
+    response["outputs"] = None
+    response["logs"] = ""
+
+    started_at = datetime.datetime.now()
+
+    try:
+        input_obj: Dict[str, Any] = response["input"]
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(f"Failed to start prediction: {tb}\n")
+        response["status"] = Status.FAILED
+        response["error"] = str(e)
+        yield (Event.COMPLETED, response)
+
+        return
+
+    response["started_at"] = format_datetime(started_at)
+    response["logs"] = ""
+
+    yield (Event.START, response)
+
+    try:
+        predictResult = predict_for_voiceover(
+            input=PredictInputForVoiceover(**input_obj),
+        )
+
+        if len(predictResult.outputs) == 0:
+            raise Exception("Missing outputs")
+
+        response["upload_prefix"] = input_obj.get("upload_path_prefix", "")
+        response["upload_output"] = predictResult
 
         completed_at = datetime.datetime.now()
         response["completed_at"] = format_datetime(completed_at)

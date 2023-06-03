@@ -129,15 +129,15 @@ def return_value_if_in_list(value: T, list_of_values: List[T]) -> bool:
     return value
 
 
-def numpy_to_mp3(numpy_array, sample_rate):
+def numpy_to_wav(numpy_array, sample_rate):
     # Write the numpy data to a .wav file in memory
     wav_io = BytesIO()
     write(wav_io, sample_rate, numpy_array)
     wav_io.seek(0)
 
-    # Convert the .wav data to .mp3 and store it in a BytesIO object
+    """ # Convert the .wav data to .mp3 and store it in a BytesIO object
     audio = AudioSegment.from_file(wav_io, format="wav")
     mp3_io = BytesIO()
     audio.export(mp3_io, format="mp3")
-    mp3_io.seek(0)
-    return mp3_io
+    mp3_io.seek(0) """
+    return wav_io
