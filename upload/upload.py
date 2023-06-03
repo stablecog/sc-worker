@@ -1,7 +1,7 @@
 from boto3_type_annotations.s3 import ServiceResource
 from PIL import Image
 from shared.helpers import ensure_trailing_slash, parse_content_type
-from typing import Any, Dict, Iterable, List, F
+from typing import Any, Dict, Iterable, List
 from predict.image.predict import (
     PredictOutput as PredictOutputForImage,
 )
