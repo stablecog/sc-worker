@@ -39,7 +39,7 @@ def predict(
 ) -> PredictResult:
     process_start = time.time()
     print("//////////////////////////////////////////////////////////////////")
-    print(f"⏳ Process started: {input.process_type} ⏳")
+    print(f"⏳ Process started: Voiceover ⏳")
 
     if input.seed is None:
         input.seed = int.from_bytes(os.urandom(2), "big")
