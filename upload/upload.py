@@ -107,7 +107,7 @@ def convert_and_upload_audio_file_to_s3(
     content_type = "audio/wav"
     if target_extension == "mp3":
         content_type = "audio/mpeg"
-        audio_bytes = convert_wav_to_mp3(audio_bytes, sample_rate)
+        audio_bytes = convert_wav_to_mp3(audio_bytes)
     end_conv = time.time()
     print(
         f"Converted audio in: {round((end_conv - start_conv) *1000)} ms - {target_extension}"
