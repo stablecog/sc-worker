@@ -16,7 +16,7 @@ def setup():
 
     end = time.time()
     print("//////////////////////////////////////////////////////////////////")
-    print(f"✅ Predict setup is done in: {round((end - start))} sec.")
+    print(f"✅ Predict setup is done in: {round(end - start)} sec.")
     print("//////////////////////////////////////////////////////////////////")
 
     return None

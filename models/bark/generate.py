@@ -41,7 +41,7 @@ def generate_voiceover(
         pieces += [audio_array]
 
     end = time.time()
-    print(f"🎤 Generated voiceover in: {round((end - start, 2))} sec. 🎤")
+    print(f"🎤 Generated voiceover in: {round(end - start, 2)} sec. 🎤")
     print("//////////////////////////////////////////////////////////////////")
 
     result = np.concatenate(pieces)
