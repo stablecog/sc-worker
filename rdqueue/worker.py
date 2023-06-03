@@ -117,7 +117,6 @@ def start_redis_queue_worker(
             args = {}
             if worker_type == "voiceover":
                 run_prediction = run_prediction_for_voiceover
-                print(f"Running voiceover prediction")
             else:
                 run_prediction = run_prediction_for_image
                 args["models_pack"] = models_pack

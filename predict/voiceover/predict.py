@@ -33,10 +33,6 @@ class PredictInput(BaseModel):
     def validate_model(cls, v):
         return return_value_if_in_list(v, models)
 
-    @validator("speaker")
-    def validate_speaker(cls, v: int, values):
-        return return_value_if_in_list(v, modelsSpeakers[values["model"]])
-
 
 def predict(
     input: PredictInput,
