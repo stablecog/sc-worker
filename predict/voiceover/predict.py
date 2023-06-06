@@ -13,7 +13,7 @@ import os
 
 class PredictInput(BaseModel):
     prompt: str = Field(description="Prompt for the voiceover.", default="")
-    temp: float = Field(
+    temperature: float = Field(
         description="Temperature for the speech.",
         ge=0,
         le=1,
@@ -52,13 +52,13 @@ def predict(
     if input.seed is None:
         input.seed = int.from_bytes(os.urandom(2), "big")
 
-    settings_log_str = f"Model: {input.model} - Speaker: {input.speaker} - Temp: {input.temp} - Seed: {input.seed} - Extension: {input.output_audio_extension}"
+    settings_log_str = f"Model: {input.model} - Speaker: {input.speaker} - Temperature: {input.temperature} - Seed: {input.seed} - Extension: {input.output_audio_extension}"
     print(f"{settings_log_str}")
 
     voiceovers = generate_voiceover_with_bark(
         prompt=input.prompt,
         speaker=input.speaker,
-        temp=input.temp,
+        temperature=input.temperature,
         seed=input.seed,
     )
 

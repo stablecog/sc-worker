@@ -23,7 +23,7 @@ class GenerateVoiceoverOutputBark:
 def generate_voiceover(
     prompt: str,
     speaker: str,
-    temp: float,
+    temperature: float,
     seed: int,
 ) -> List[GenerateVoiceoverOutputBark]:
     start = time.time()
@@ -41,12 +41,12 @@ def generate_voiceover(
             semantic_tokens = generate_text_semantic(
                 sentence,
                 history_prompt=speaker,
-                temp=temp,
+                temp=temperature,
                 min_eos_p=0.05,  # this controls how likely the generation is to end
                 use_kv_caching=True,
             )
             audio_array = semantic_to_waveform(
-                semantic_tokens, history_prompt=speaker, temp=temp
+                semantic_tokens, history_prompt=speaker, temp=temperature
             )
         pieces += [audio_array]
 
