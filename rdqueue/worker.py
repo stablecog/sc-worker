@@ -7,7 +7,6 @@ from typing import Any, Dict, Iterable, Tuple, Callable
 
 from boto3_type_annotations.s3 import ServiceResource
 import redis
-from predict.voiceover.setup import ModelsPackVoiceover
 
 from rdqueue.events import Status, Event
 from predict.image.predict import (
@@ -32,7 +31,7 @@ def start_redis_queue_worker(
     s3_client: ServiceResource,
     s3_bucket: str,
     upload_queue: queue.Queue[Dict[str, Any]],
-    models_pack: ModelsPack | ModelsPackVoiceover,
+    models_pack: ModelsPack | None,
 ) -> None:
     print(f"Starting redis queue worker, bucket is: {s3_bucket}\n")
 
@@ -120,8 +119,7 @@ def start_redis_queue_worker(
                 run_prediction = run_prediction_for_voiceover
             else:
                 run_prediction = run_prediction_for_image
-
-            args["models_pack"] = models_pack
+                args["models_pack"] = models_pack
 
             for response_event, response in run_prediction(message, **args):
                 if "upload_output" in response and isinstance(
@@ -214,7 +212,6 @@ def run_prediction_for_image(
 
 def run_prediction_for_voiceover(
     message: Dict[str, Any],
-    models_pack: ModelsPackVoiceover,
 ) -> Iterable[Tuple[Event, Dict[str, Any]]]:
     """Runs the prediction and yields events and responses."""
 
@@ -246,7 +243,6 @@ def run_prediction_for_voiceover(
     try:
         predictResult = predict_for_voiceover(
             input=PredictInputForVoiceover(**input_obj),
-            models_pack=models_pack,
         )
 
         if len(predictResult.outputs) == 0:

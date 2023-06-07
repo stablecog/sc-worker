@@ -1,8 +1,6 @@
 import time
 
 from typing import List
-
-from predict.voiceover.setup import ModelsPackVoiceover
 from .classes import PredictOutput, PredictResult
 from .constants import models, modelsSpeakers
 from pydantic import BaseModel, Field, validator
@@ -46,7 +44,6 @@ class PredictInput(BaseModel):
 
 def predict(
     input: PredictInput,
-    models_pack: ModelsPackVoiceover,
 ) -> PredictResult:
     process_start = time.time()
     print("//////////////////////////////////////////////////////////////////")
@@ -63,7 +60,6 @@ def predict(
         speaker=input.speaker,
         temperature=input.temperature,
         seed=input.seed,
-        denoiser_model=models_pack.denoiser_model,
     )
 
     outputs: List[PredictOutput] = [None] * len(voiceovers)

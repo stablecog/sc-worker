@@ -1,4 +1,3 @@
-from models.denoiser.denoise import denoise_audio
 import nltk
 import pytorch_seed
 from bark.generation import generate_text_semantic
@@ -9,7 +8,6 @@ import numpy as np
 from shared.helpers import numpy_to_wav_bytes
 from io import BytesIO
 from typing import List
-from typing import Any
 
 
 class GenerateVoiceoverOutputBark:
@@ -27,7 +25,6 @@ def generate_voiceover(
     speaker: str,
     temperature: float,
     seed: int,
-    denoiser_model: Any,
 ) -> List[GenerateVoiceoverOutputBark]:
     start = time.time()
     print("//////////////////////////////////////////////////////////////////")
@@ -59,9 +56,8 @@ def generate_voiceover(
 
     np_array = np.concatenate(pieces)
     wav = numpy_to_wav_bytes(np_array, SAMPLE_RATE)
-    denoised_wav = denoise_audio(wav=wav, sample_rate=SAMPLE_RATE, model=denoiser_model)
     result = GenerateVoiceoverOutputBark(
-        wav_bytes=denoised_wav,
+        wav_bytes=wav,
         sample_rate=SAMPLE_RATE,
     )
     return [result]
