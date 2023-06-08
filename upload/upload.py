@@ -157,7 +157,9 @@ def upload_files_for_voiceover(
     results = []
     for task in tasks:
         print(f"-- Upload: Got result")
-        results.append({"audio_file": task.result()})
+        results.append(
+            {"audio_file": task.result(), "audio_duration": uo.audio_duration}
+        )
 
     end = time.time()
     print(
