@@ -7,12 +7,11 @@ import torchaudio
 
 
 def denoise_audio(audio: np.array, sample_rate: int, model: Any) -> np.ndarray:
-    reshaped_data = audio.reshape(-1, 2)
-    transposed_data = reshaped_data.T
-    tensor_data = torch.from_numpy(transposed_data).cuda()
+    wavfile.write("temp.wav", sample_rate, audio)
+    wav, sr = torchaudio.load("temp.wav")
     wav = convert_audio(
-        wav=tensor_data,
-        from_samplerate=sample_rate,
+        wav=wav.cuda(),
+        from_samplerate=sr,
         to_samplerate=model.sample_rate,
         channels=model.chin,
     )
