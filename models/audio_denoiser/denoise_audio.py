@@ -23,6 +23,7 @@ def denoise_audio(
     with torch.no_grad():
         denoised_audio = model(wav[None])[0]
     arr = denoised_audio.data.cpu().numpy()
+    arr = arr.reshape(-1)
     e = time.time()
     print(f"🔊 Denoised audio in: {round(e - s, 2)} sec🔊")
     return arr, model.sample_rate
