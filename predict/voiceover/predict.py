@@ -82,9 +82,7 @@ def predict(
     settings_log_str += f"Remove silence: {input.remove_silence}\n"
     settings_log_str += f"RS min silence len: {input.remove_silence_min_silence_len}\n"
     settings_log_str += f"RS silence thresh: {input.remove_silence_silence_thresh}\n"
-    settings_log_str += (
-        f"RS keep silence len: {input.remove_silence_keep_silence_len}\n"
-    )
+    settings_log_str += f"RS keep silence len: {input.remove_silence_keep_silence_len}"
     print(f"{settings_log_str}")
     print("---------------------------------------------------------------------------")
 
