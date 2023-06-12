@@ -120,7 +120,8 @@ def start_redis_queue_worker(
                 run_prediction = run_prediction_for_voiceover
             else:
                 run_prediction = run_prediction_for_image
-                args["models_pack"] = models_pack
+
+            args["models_pack"] = models_pack
 
             for response_event, response in run_prediction(message, **args):
                 if "upload_output" in response and isinstance(
