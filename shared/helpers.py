@@ -140,7 +140,7 @@ def numpy_to_wav_bytes(numpy_array, sample_rate):
 def remove_silence_from_wav(wav_bytes: BytesIO) -> BytesIO:
     audio_segment = AudioSegment.from_wav(wav_bytes)
     audio_chunks = split_on_silence(
-        audio_segment, min_silence_len=250, silence_thresh=-45, keep_silence=100
+        audio_segment, min_silence_len=400, silence_thresh=-45, keep_silence=200
     )
     combined = AudioSegment.empty()
     for chunk in audio_chunks:
