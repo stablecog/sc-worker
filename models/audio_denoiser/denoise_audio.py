@@ -5,12 +5,13 @@ from denoiser.dsp import convert_audio
 
 
 def denoise_audio(audio: np.array, sample_rate: int, model: Any) -> np.ndarray:
+    tensor = torch.from_numpy(audio).cuda()
     wav = convert_audio(
-        wav=audio.cuda(),
+        wav=tensor,
         from_samplerate=sample_rate,
         to_samplerate=model.sample_rate,
         channels=model.chin,
     )
     with torch.no_grad():
         denoised_audio = model(wav[None])[0]
-    return denoised_audio
+    return denoised_audio.data.cpu().numpy(), model.sample_rate
