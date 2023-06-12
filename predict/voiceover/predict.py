@@ -71,7 +71,24 @@ def predict(
     if input.seed is None:
         input.seed = int.from_bytes(os.urandom(2), "big")
 
-    settings_log_str = f"Model: {input.model} - Speaker: {input.speaker} - Temperature: {input.temperature} - Seed: {input.seed} - Extension: {input.output_audio_extension}"
+    settings_log_str = "---- "
+    settings_log_str += f"Prompt: {input.prompt}"
+    settings_log_str += f" -- Speaker: {input.speaker}"
+    settings_log_str += f" -- Model: {input.model}"
+    settings_log_str += f" -- Temperature: {input.temperature}"
+    settings_log_str += f" -- Seed: {input.seed}"
+    settings_log_str += f" -- Output audio extension: {input.output_audio_extension}"
+    settings_log_str += f" -- Denoise audio: {input.denoise_audio}"
+    settings_log_str += f" -- Remove silence: {input.remove_silence}"
+    settings_log_str += (
+        f" -- RS min silence len: {input.remove_silence_min_silence_len}"
+    )
+    settings_log_str += f" -- RS silence thresh: {input.remove_silence_silence_thresh}"
+    settings_log_str += (
+        f" -- RS keep silence len: {input.remove_silence_keep_silence_len}"
+    )
+    settings_log_str += " ----"
+
     print(f"{settings_log_str}")
 
     voiceovers = generate_voiceover_with_bark(
