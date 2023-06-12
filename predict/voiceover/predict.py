@@ -35,8 +35,8 @@ class PredictInput(BaseModel):
         default="mp3",
     )
     denoise_audio: bool = Field(description="Denoise the audio.", default=True)
-    remove_silence: bool = (
-        Field(description="Remove silence from the audio.", default=True),
+    remove_silence: bool = Field(
+        description="Remove silence from the audio.", default=True
     )
     remove_silence_min_silence_len: int = Field(
         description="Minimum silence length in milliseconds.",
