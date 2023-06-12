@@ -1,5 +1,6 @@
 from boto3_type_annotations.s3 import ServiceResource
 from PIL import Image
+from predict.voiceover.classes import RemoveSilenceParams
 from shared.helpers import (
     ensure_trailing_slash,
     parse_content_type,
@@ -104,14 +105,14 @@ def convert_and_upload_audio_file_to_s3(
     s3: ServiceResource,
     s3_bucket: str,
     audio_bytes: BytesIO,
-    remove_silence: bool,
+    remove_silence_params: RemoveSilenceParams,
     sample_rate: int,
     target_extension: str,
     upload_path_prefix: str,
 ) -> str:
-    if remove_silence:
+    if remove_silence_params.should_remove:
         s = time.time()
-        audio_bytes = remove_silence_from_wav(audio_bytes)
+        audio_bytes = remove_silence_from_wav(audio_bytes, remove_silence_params)
         e = time.time()
         print(f"🔊 Removed silence in: {round((e - s) *1000)} ms 🔊")
     s_conv = time.time()
@@ -158,7 +159,7 @@ def upload_files_for_voiceover(
                     s3,
                     s3_bucket,
                     uo.audio_bytes,
-                    uo.remove_silence,
+                    uo.remove_silence_params,
                     uo.sample_rate,
                     uo.target_extension,
                     upload_path_prefix,

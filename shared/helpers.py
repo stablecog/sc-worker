@@ -14,6 +14,8 @@ from pydub import AudioSegment
 from io import BytesIO
 from pydub.silence import split_on_silence
 
+from predict.voiceover.classes import RemoveSilenceParams
+
 
 def clean_folder(folder):
     for filename in os.listdir(folder):
@@ -137,10 +139,16 @@ def numpy_to_wav_bytes(numpy_array, sample_rate):
     return wav_io
 
 
-def remove_silence_from_wav(wav_bytes: BytesIO) -> BytesIO:
+def remove_silence_from_wav(
+    wav_bytes: BytesIO,
+    remove_silence_params: RemoveSilenceParams,
+) -> BytesIO:
     audio_segment = AudioSegment.from_wav(wav_bytes)
     audio_chunks = split_on_silence(
-        audio_segment, min_silence_len=400, silence_thresh=-45, keep_silence=200
+        audio_segment,
+        min_silence_len=remove_silence_params.min_silence_len,
+        silence_thresh=remove_silence_params.silence_thresh,
+        keep_silence=remove_silence_params.keep_silence_len,
     )
     combined = AudioSegment.empty()
     for chunk in audio_chunks:

@@ -3,7 +3,7 @@ import time
 from typing import List
 
 from predict.voiceover.setup import ModelsPack
-from .classes import PredictOutput, PredictResult
+from .classes import PredictOutput, PredictResult, RemoveSilenceParams
 from .constants import models, modelsSpeakers
 from pydantic import BaseModel, Field, validator
 from shared.helpers import return_value_if_in_list
@@ -35,8 +35,20 @@ class PredictInput(BaseModel):
         default="mp3",
     )
     denoise_audio: bool = Field(description="Denoise the audio.", default=True)
-    remove_silence: bool = Field(
-        description="Remove silence from the audio.", default=True
+    remove_silence: bool = (
+        Field(description="Remove silence from the audio.", default=True),
+    )
+    remove_silence_min_silence_len: int = Field(
+        description="Minimum silence length in milliseconds.",
+        default=500,
+    )
+    remove_silence_silence_thresh: int = Field(
+        description="Silence threshold in dB.",
+        default=-45,
+    )
+    remove_silence_keep_silence_len: int = Field(
+        description="Add back silence length in milliseconds.",
+        default=250,
     )
 
     @validator("model")
@@ -80,7 +92,12 @@ def predict(
             audio_duration=voiceover.audio_duration,
             sample_rate=voiceover.sample_rate,
             target_extension=input.output_audio_extension,
-            remove_silence=input.remove_silence,
+            remove_silence_params=RemoveSilenceParams(
+                should_remove=input.remove_silence,
+                min_silence_len=input.remove_silence_min_silence_len,
+                silence_thresh=input.remove_silence_silence_thresh,
+                keep_silence_len=input.remove_silence_keep_silence_len,
+            ),
         )
 
     result = PredictResult(
