@@ -72,6 +72,7 @@ def predict(
         input.seed = int.from_bytes(os.urandom(2), "big")
 
     print("---------------------------------------------------------------------------")
+    settings_log_str = ""
     settings_log_str += f"Prompt: {input.prompt}\n"
     settings_log_str += f"Speaker: {input.speaker}\n"
     settings_log_str += f"Model: {input.model}\n"
