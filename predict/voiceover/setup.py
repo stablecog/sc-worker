@@ -23,12 +23,12 @@ def setup() -> ModelsPack:
     nltk.download("punkt")
     preload_models()
 
+    denoiser_model = pretrained.dns64().cuda()
+
     end = time.time()
     print("//////////////////////////////////////////////////////////////////")
     print(f"✅ Predict setup is done in: {round(end - start)} sec.")
     print("//////////////////////////////////////////////////////////////////")
-
-    denoiser_model = pretrained.dns64().cuda()
 
     pack = ModelsPack(
         denoiser_model=denoiser_model,
