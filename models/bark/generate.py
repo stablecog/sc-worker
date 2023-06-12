@@ -61,6 +61,7 @@ def generate_voiceover(
     print("//////////////////////////////////////////////////////////////////")
 
     np_array = np.concatenate(pieces)
+    print("BEFORE SHAPE", np_array.shape)
     sample_rate = SAMPLE_RATE
 
     if should_denoise:
@@ -71,6 +72,8 @@ def generate_voiceover(
         )
         np_array = arr
         sample_rate = sr
+
+    print("AFTER SHAPE", np_array.shape)
 
     audio_duration = len(np_array) / sample_rate
     wav = numpy_to_wav_bytes(np_array, sample_rate)

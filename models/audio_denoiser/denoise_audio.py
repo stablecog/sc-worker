@@ -5,9 +5,12 @@ from denoiser.dsp import convert_audio
 from scipy.io import wavfile
 import torchaudio
 import time
+from typing import Tuple
 
 
-def denoise_audio(audio: np.array, sample_rate: int, model: Any) -> np.ndarray:
+def denoise_audio(
+    audio: np.array, sample_rate: int, model: Any
+) -> Tuple[np.ndarray, int]:
     s = time.time()
     wavfile.write("temp.wav", sample_rate, audio)
     wav, sr = torchaudio.load("temp.wav")
@@ -21,5 +24,5 @@ def denoise_audio(audio: np.array, sample_rate: int, model: Any) -> np.ndarray:
         denoised_audio = model(wav[None])[0]
     arr = denoised_audio.data.cpu().numpy()
     e = time.time()
-    print(f"🔊 Denoised audio in: {round(e - s, 2)} sec. 🔊")
+    print(f"🔊 Denoised audio in: {round(e - s, 2)} sec.🔊")
     return arr, model.sample_rate
