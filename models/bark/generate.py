@@ -1,3 +1,4 @@
+import torchaudio
 from models.audio_denoiser.denoise_audio import denoise_audio
 import nltk
 import pytorch_seed
@@ -63,9 +64,10 @@ def generate_voiceover(
     np_array = np.concatenate(pieces)
     audio_duration = len(np_array) / SAMPLE_RATE
     if should_denoise:
+        arr, sr = torchaudio.load(BytesIO(np_array), format="wav")[0]
         np_array = denoise_audio(
-            audio=np_array,
-            sample_rate=SAMPLE_RATE,
+            audio=arr,
+            sample_rate=sr,
             model=denoiser_model,
         )
     wav = numpy_to_wav_bytes(np_array, SAMPLE_RATE)
