@@ -71,6 +71,7 @@ def predict(
     if input.seed is None:
         input.seed = int.from_bytes(os.urandom(2), "big")
 
+    print("---------------------------------------------------------------------------")
     settings_log_str = "---- "
     settings_log_str += f"Prompt: {input.prompt}"
     settings_log_str += f" -- Speaker: {input.speaker}"
@@ -88,8 +89,8 @@ def predict(
         f" -- RS keep silence len: {input.remove_silence_keep_silence_len}"
     )
     settings_log_str += " ----"
-
     print(f"{settings_log_str}")
+    print("---------------------------------------------------------------------------")
 
     voiceovers = generate_voiceover_with_bark(
         prompt=input.prompt,
