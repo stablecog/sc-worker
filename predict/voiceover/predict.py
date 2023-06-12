@@ -34,6 +34,10 @@ class PredictInput(BaseModel):
         description="Audio extention for the output. Can be 'mp3' or 'wav'.",
         default="mp3",
     )
+    denoise_audio: bool = Field(description="Denoise the audio.", default=True)
+    remove_silence: bool = Field(
+        description="Remove silence from the audio.", default=True
+    )
 
     @validator("model")
     def validate_model(cls, v):
@@ -64,6 +68,8 @@ def predict(
         temperature=input.temperature,
         seed=input.seed,
         denoiser_model=models_pack.denoiser_model,
+        denoise_audio=input.denoise_audio,
+        remove_silence=input.remove_silence,
     )
 
     outputs: List[PredictOutput] = [None] * len(voiceovers)

@@ -29,6 +29,8 @@ def generate_voiceover(
     temperature: float,
     seed: int,
     denoiser_model: Any,
+    denoise_audio: bool,
+    remove_silence: bool,
 ) -> List[GenerateVoiceoverOutputBark]:
     start = time.time()
     print("//////////////////////////////////////////////////////////////////")
@@ -60,12 +62,13 @@ def generate_voiceover(
 
     np_array = np.concatenate(pieces)
     audio_duration = len(np_array) / SAMPLE_RATE
-    denoised_audio = denoise_audio(
-        model=denoiser_model,
-        audio=np_array,
-        sample_rate=SAMPLE_RATE,
-    )
-    wav = numpy_to_wav_bytes(denoised_audio, SAMPLE_RATE)
+    if denoise_audio:
+        np_array = denoise_audio(
+            model=denoiser_model,
+            audio=np_array,
+            sample_rate=SAMPLE_RATE,
+        )
+    wav = numpy_to_wav_bytes(np_array, SAMPLE_RATE)
     result = GenerateVoiceoverOutputBark(
         wav_bytes=wav,
         sample_rate=SAMPLE_RATE,
