@@ -20,7 +20,8 @@ from predict.voiceover.predict import (
     PredictResult as PredictResultForVoiceover,
 )
 from shared.helpers import format_datetime
-from predict.image.setup import ModelsPack
+from predict.image.setup import ModelsPack as ModelsPackForImage
+from predict.voiceover.setup import ModelsPack as ModelsPackForVoiceover
 from shared.webhook import post_webhook
 
 
@@ -31,7 +32,7 @@ def start_redis_queue_worker(
     s3_client: ServiceResource,
     s3_bucket: str,
     upload_queue: queue.Queue[Dict[str, Any]],
-    models_pack: ModelsPack | None,
+    models_pack: ModelsPackForImage | ModelsPackForVoiceover,
 ) -> None:
     print(f"Starting redis queue worker, bucket is: {s3_bucket}\n")
 

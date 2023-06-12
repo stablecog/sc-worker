@@ -1,13 +1,22 @@
-import os
 import time
 from shared.constants import WORKER_VERSION
 from bark.generation import (
     preload_models,
 )
 import nltk
+from typing import Any
+from denoiser import pretrained
 
 
-def setup():
+class ModelsPack:
+    def __init__(
+        self,
+        denoiser_model: Any,
+    ):
+        self.denoiser_model = denoiser_model
+
+
+def setup() -> ModelsPack:
     start = time.time()
     print(f"⏳ Setup has started - Version: {WORKER_VERSION}")
 
@@ -19,4 +28,9 @@ def setup():
     print(f"✅ Predict setup is done in: {round(end - start)} sec.")
     print("//////////////////////////////////////////////////////////////////")
 
-    return None
+    denoiser_model = pretrained.dns64().cuda()
+
+    pack = ModelsPack(
+        denoiser_model=denoiser_model,
+    )
+    return pack
