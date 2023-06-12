@@ -64,9 +64,9 @@ def generate_voiceover(
     audio_duration = len(np_array) / SAMPLE_RATE
     if should_denoise:
         np_array = denoise_audio(
-            model=denoiser_model,
-            audio=np_array,
+            audio=np_array.cuda(),
             sample_rate=SAMPLE_RATE,
+            model=denoiser_model,
         )
     wav = numpy_to_wav_bytes(np_array, SAMPLE_RATE)
     result = GenerateVoiceoverOutputBark(
