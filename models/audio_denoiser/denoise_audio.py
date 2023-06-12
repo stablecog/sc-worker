@@ -25,5 +25,5 @@ def denoise_audio(
     arr = denoised_audio.data.cpu().numpy()
     arr = arr.reshape(-1)
     e = time.time()
-    print(f"🔊 Denoised audio in: {round(e - s, 2)} sec🔊")
+    print(f"🔊 Denoised audio in: {round((e - s) * 1000)} ms 🔊")
     return arr, model.sample_rate

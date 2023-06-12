@@ -12,6 +12,7 @@ from typing import TypeVar, List
 from scipy.io.wavfile import write
 from pydub import AudioSegment
 from io import BytesIO
+from pydub.silence import split_on_silence
 
 
 def clean_folder(folder):
@@ -132,6 +133,20 @@ def return_value_if_in_list(value: T, list_of_values: List[T]) -> bool:
 def numpy_to_wav_bytes(numpy_array, sample_rate):
     wav_io = BytesIO()
     write(wav_io, sample_rate, numpy_array)
+    wav_io.seek(0)
+    return wav_io
+
+
+def remove_silence_from_wav(wav_bytes: BytesIO) -> BytesIO:
+    audio_segment = AudioSegment.from_wav(wav_bytes)
+    audio_chunks = split_on_silence(
+        audio_segment, min_silence_len=1000, silence_thresh=-45, keep_silence=50
+    )
+    combined = AudioSegment.empty()
+    for chunk in audio_chunks:
+        combined += chunk
+    wav_io = BytesIO()
+    combined.export(wav_io, format="wav")
     wav_io.seek(0)
     return wav_io
 

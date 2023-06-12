@@ -1,6 +1,11 @@
 from boto3_type_annotations.s3 import ServiceResource
 from PIL import Image
-from shared.helpers import ensure_trailing_slash, parse_content_type, convert_wav_to_mp3
+from shared.helpers import (
+    ensure_trailing_slash,
+    parse_content_type,
+    convert_wav_to_mp3,
+    remove_silence_from_wav,
+)
 from typing import Any, Dict, Iterable, List
 from predict.image.predict import (
     PredictOutput as PredictOutputForImage,
@@ -99,18 +104,23 @@ def convert_and_upload_audio_file_to_s3(
     s3: ServiceResource,
     s3_bucket: str,
     audio_bytes: BytesIO,
-    sample_rate: int,
+    remove_silence: bool,
     target_extension: str,
     upload_path_prefix: str,
 ) -> str:
-    start_conv = time.time()
+    if remove_silence:
+        s = time.time()
+        audio_bytes = remove_silence_from_wav(audio_bytes)
+        e = time.time()
+        print(f"🔊 Removed silence in: {round((e - s) *1000)} ms 🔊")
+    s_conv = time.time()
     content_type = "audio/wav"
     if target_extension == "mp3":
         content_type = "audio/mpeg"
         audio_bytes = convert_wav_to_mp3(audio_bytes)
-    end_conv = time.time()
+    e_conv = time.time()
     print(
-        f"Converted audio in: {round((end_conv - start_conv) *1000)} ms - {target_extension}"
+        f"Converted audio in: {round((e_conv - s_conv) *1000)} ms - {target_extension}"
     )
 
     key = f"{str(uuid.uuid4())}.{target_extension}"
@@ -147,6 +157,7 @@ def upload_files_for_voiceover(
                     s3,
                     s3_bucket,
                     uo.audio_bytes,
+                    uo.remove_silence,
                     uo.sample_rate,
                     uo.target_extension,
                     upload_path_prefix,

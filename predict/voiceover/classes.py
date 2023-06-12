@@ -9,11 +9,13 @@ class PredictOutput:
         audio_duration: float,
         target_extension: str,
         sample_rate: int,
+        remove_silence: bool,
     ):
         self.audio_bytes = audio_bytes
         self.audio_duration = audio_duration
         self.target_extension = target_extension
         self.sample_rate = sample_rate
+        self.remove_silence = remove_silence
 
 
 class PredictResult:

@@ -80,6 +80,7 @@ def predict(
             audio_duration=voiceover.audio_duration,
             sample_rate=voiceover.sample_rate,
             target_extension=input.output_audio_extension,
+            remove_silence=input.remove_silence,
         )
 
     result = PredictResult(
