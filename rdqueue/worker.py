@@ -151,7 +151,7 @@ def start_redis_queue_worker(
 
 def run_prediction_for_image(
     message: Dict[str, Any],
-    models_pack: ModelsPack,
+    models_pack: ModelsPackForImage,
 ) -> Iterable[Tuple[Event, Dict[str, Any]]]:
     """Runs the prediction and yields events and responses."""
 
@@ -213,6 +213,7 @@ def run_prediction_for_image(
 
 def run_prediction_for_voiceover(
     message: Dict[str, Any],
+    models_pack: ModelsPackForVoiceover,
 ) -> Iterable[Tuple[Event, Dict[str, Any]]]:
     """Runs the prediction and yields events and responses."""
 
@@ -244,6 +245,7 @@ def run_prediction_for_voiceover(
     try:
         predictResult = predict_for_voiceover(
             input=PredictInputForVoiceover(**input_obj),
+            models_pack=models_pack,
         )
 
         if len(predictResult.outputs) == 0:
