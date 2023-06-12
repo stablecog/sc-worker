@@ -105,6 +105,7 @@ def convert_and_upload_audio_file_to_s3(
     s3_bucket: str,
     audio_bytes: BytesIO,
     remove_silence: bool,
+    sample_rate: int,
     target_extension: str,
     upload_path_prefix: str,
 ) -> str:
