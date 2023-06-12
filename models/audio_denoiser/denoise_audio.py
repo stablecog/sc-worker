@@ -22,4 +22,4 @@ def denoise_audio(audio: np.array, sample_rate: int, model: Any) -> np.ndarray:
     arr = denoised_audio.data.cpu().numpy()
     e = time.time()
     print(f"🔊 Denoised audio in: {round(e - s, 2)} sec. 🔊")
-    return arr, sr
+    return arr, model.sample_rate
