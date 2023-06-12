@@ -2,16 +2,13 @@ import numpy as np
 from typing import Any
 import torch
 from denoiser.dsp import convert_audio
+from io import BytesIO
+import torchaudio
 
 
-def denoise_audio(audio: np.ndarray, sample_rate: int, model: Any) -> np.ndarray:
-    print(audio, sample_rate, model.sample_rate, model.chin)
-    wav = convert_audio(
-        wav=audio,
-        from_samplerate=sample_rate,
-        to_samplerate=model.sample_rate,
-        channels=model.chin,
-    )
+def denoise_audio(audio: BytesIO, model: Any) -> np.ndarray:
+    wav, sr = torchaudio.load(audio)
+    wav = convert_audio(wav, sr, model.sample_rate, model.chin)
     print(wav)
     with torch.no_grad():
         res = model(wav)
