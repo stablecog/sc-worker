@@ -6,6 +6,7 @@ from denoiser.dsp import convert_audio
 
 def denoise_audio(audio: np.ndarray, sample_rate: int, model: Any) -> np.ndarray:
     wav = convert_audio(audio, sample_rate, model.sample_rate, model.chin)
+    print(wav)
     with torch.no_grad():
         res = model(wav)
         print(res.shape)
