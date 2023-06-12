@@ -72,23 +72,19 @@ def predict(
         input.seed = int.from_bytes(os.urandom(2), "big")
 
     print("---------------------------------------------------------------------------")
-    settings_log_str = "---- "
-    settings_log_str += f"Prompt: {input.prompt}"
-    settings_log_str += f" -- Speaker: {input.speaker}"
-    settings_log_str += f" -- Model: {input.model}"
-    settings_log_str += f" -- Temperature: {input.temperature}"
-    settings_log_str += f" -- Seed: {input.seed}"
-    settings_log_str += f" -- Output audio extension: {input.output_audio_extension}"
-    settings_log_str += f" -- Denoise audio: {input.denoise_audio}"
-    settings_log_str += f" -- Remove silence: {input.remove_silence}"
+    settings_log_str += f"Prompt: {input.prompt}\n"
+    settings_log_str += f"Speaker: {input.speaker}\n"
+    settings_log_str += f"Model: {input.model}\n"
+    settings_log_str += f"Temperature: {input.temperature}\n"
+    settings_log_str += f"Seed: {input.seed}\n"
+    settings_log_str += f"Output audio extension: {input.output_audio_extension}\n"
+    settings_log_str += f"Denoise audio: {input.denoise_audio}\n"
+    settings_log_str += f"Remove silence: {input.remove_silence}\n"
+    settings_log_str += f"RS min silence len: {input.remove_silence_min_silence_len}\n"
+    settings_log_str += f"RS silence thresh: {input.remove_silence_silence_thresh}\n"
     settings_log_str += (
-        f" -- RS min silence len: {input.remove_silence_min_silence_len}"
+        f"RS keep silence len: {input.remove_silence_keep_silence_len}\n"
     )
-    settings_log_str += f" -- RS silence thresh: {input.remove_silence_silence_thresh}"
-    settings_log_str += (
-        f" -- RS keep silence len: {input.remove_silence_keep_silence_len}"
-    )
-    settings_log_str += " ----"
     print(f"{settings_log_str}")
     print("---------------------------------------------------------------------------")
 
