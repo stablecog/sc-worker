@@ -65,6 +65,7 @@ def generate_voiceover(
     if should_denoise:
         wav = denoise_audio(
             audio=np_array,
+            sample_rate=SAMPLE_RATE,
             model=denoiser_model,
         )
     wav = numpy_to_wav_bytes(np_array, SAMPLE_RATE)
