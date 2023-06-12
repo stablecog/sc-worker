@@ -8,10 +8,8 @@ import torchaudio
 
 def denoise_audio(audio: BytesIO, model: Any) -> np.ndarray:
     wav, sr = torchaudio.load(audio)
-    wav = convert_audio(wav, sr, model.sample_rate, model.chin)
+    wav = convert_audio(wav.cuda(), sr, model.sample_rate, model.chin)
     print(wav)
     with torch.no_grad():
-        res = model(wav)
-        print(res.shape)
         denoised_audio = model(wav[None])[0]
     return denoised_audio
