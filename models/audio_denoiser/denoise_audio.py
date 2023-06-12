@@ -17,4 +17,4 @@ def denoise_audio(audio: np.array, sample_rate: int, model: Any) -> np.ndarray:
     )
     with torch.no_grad():
         denoised_audio = model(wav[None])[0]
-    return denoised_audio.data.cpu().numpy(), model.sample_rate
+    return denoised_audio.data.cpu().numpy(), sr
