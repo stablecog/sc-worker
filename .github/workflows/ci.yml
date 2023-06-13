@@ -27,6 +27,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
+          no-cache: true
           tags: stablecog/sc-worker:latest
       
       - name: Login to GHCR
