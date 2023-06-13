@@ -10,4 +10,4 @@ RUN . venv/bin/activate && pip install -r requirements.txt --no-cache-dir && dea
 ENV CLIPAPI_PORT=13337
 EXPOSE $CLIPAPI_PORT
 
-CMD . /opt/venv/bin/activate && exec python main.py
+CMD . venv/bin/activate && exec python main.py
