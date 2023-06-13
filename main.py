@@ -87,12 +87,11 @@ if __name__ == "__main__":
         )
     )
 
+    redis_worker_thread.start()
+    upload_thread.start()
     if WORKER_TYPE == "image":
         clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
         clipapi_thread.start()
         clipapi_thread.join()
-
-    redis_worker_thread.start()
-    upload_thread.start()
     redis_worker_thread.join()
     upload_thread.join()
