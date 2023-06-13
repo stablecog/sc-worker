@@ -81,5 +81,4 @@ def generate_voiceover(
         audio_duration=audio_duration,
     )
 
-    # get duration of audio
     return [result]
