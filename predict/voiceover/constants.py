@@ -14,7 +14,7 @@ bark_languages = [
     "es",
     "tr",
 ]
-modelsSpeakers = {"bark": []}
+models_speakers = {"bark": []}
 for language in bark_languages:
     for i in range(0, 10):
-        modelsSpeakers["bark"].append(f"v2/{language}_speaker_{i}")
+        models_speakers["bark"].append(f"v2/{language}_speaker_{i}")

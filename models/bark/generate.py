@@ -30,7 +30,6 @@ def generate_voiceover(
     seed: int,
     denoiser_model: Any,
     should_denoise: bool,
-    should_remove_silence: bool,
 ) -> List[GenerateVoiceoverOutputBark]:
     start = time.time()
     print("//////////////////////////////////////////////////////////////////")

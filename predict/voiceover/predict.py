@@ -4,7 +4,7 @@ from typing import List
 
 from predict.voiceover.setup import ModelsPack
 from .classes import PredictOutput, PredictResult, RemoveSilenceParams
-from .constants import models, modelsSpeakers
+from .constants import models, models_speakers
 from pydantic import BaseModel, Field, validator
 from shared.helpers import return_value_if_in_list
 from models.bark.generate import (
@@ -27,7 +27,7 @@ class PredictInput(BaseModel):
     )
     model: str = Field(
         description="Model for the voiceover.",
-        default=modelsSpeakers[models[0]][0],
+        default=models_speakers[models[0]][0],
     )
     seed: int = Field(description="Seed for the voiceover.", default=None)
     output_audio_extension: str = Field(
