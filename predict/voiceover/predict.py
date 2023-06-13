@@ -94,7 +94,6 @@ def predict(
         seed=input.seed,
         denoiser_model=models_pack.denoiser_model,
         should_denoise=input.denoise_audio,
-        should_remove_silence=input.remove_silence,
     )
 
     outputs: List[PredictOutput] = [None] * len(voiceovers)
