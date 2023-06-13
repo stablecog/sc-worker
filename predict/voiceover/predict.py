@@ -7,7 +7,7 @@ from .classes import PredictOutput, PredictResult, RemoveSilenceParams
 from .constants import models, modelsSpeakers
 from pydantic import BaseModel, Field, validator
 from shared.helpers import return_value_if_in_list
-from models.bark.generate import (
+from models.bark_m.generate import (
     generate_voiceover as generate_voiceover_with_bark,
 )
 import os
