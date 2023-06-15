@@ -47,6 +47,11 @@ SD_MODELS_ALL = {
         "prompt_prefix": "arcane style",
         "torch_dtype": torch.float16,
     },
+    "Ghibli Diffusion": {
+        "id": "nitrosocke/Ghibli-Diffusion",
+        "prompt_prefix": "ghibli style",
+        "torch_dtype": torch.float16,
+    },
     "Waifu Diffusion": {
         "id": "hakurei/waifu-diffusion",
         "prompt_prefix": "masterpiece, best quality, high quality",
@@ -61,10 +66,6 @@ SD_MODELS_ALL = {
     },
     "Luna Diffusion": {
         "id": "proximasanfinetuning/luna-diffusion",
-        "torch_dtype": torch.float16,
-    },
-    "Freedom": {
-        "id": "artificialguybr/freedom",
         "torch_dtype": torch.float16,
     },
 }
