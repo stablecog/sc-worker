@@ -87,11 +87,14 @@ def generate(
     output_images = []
     nsfw_count = 0
 
-    for i, nsfw_flag in enumerate(output.nsfw_content_detected):
-        if nsfw_flag:
-            nsfw_count += 1
-        else:
-            output_images.append(output.images[i])
+    if output.nsfw_content_detected is None:
+        for i, nsfw_flag in enumerate(output.nsfw_content_detected):
+            if nsfw_flag:
+                nsfw_count += 1
+            else:
+                output_images.append(output.images[i])
+    else:
+        output_images = output.images
 
     if nsfw_count > 0:
         print(f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs.")
