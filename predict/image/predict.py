@@ -108,9 +108,9 @@ class PredictInput(BaseModel):
         default=TRANSLATOR_COG_URL,
     )
 
-    translate_prompts: bool = Field(
-        description="Whether to translate the prompt and the negative prompt or not.",
-        default=True,
+    skip_translation: bool = Field(
+        description="Whether to skip translating the prompt and the negative prompt or not.",
+        default=False,
     )
 
     skip_safety_checker: bool = Field(
@@ -173,7 +173,7 @@ def predict(
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
         t_prompt = input.prompt
         t_negative_prompt = input.negative_prompt
-        if input.translator_cog_url is not None and input.translate_prompts:
+        if input.translator_cog_url is not None and input.skip_translation is False:
             [t_prompt, t_negative_prompt] = translate_text_set_via_api(
                 text_1=input.prompt,
                 flores_1=input.prompt_flores_200_code,
@@ -319,7 +319,7 @@ def predict(
     )
     process_end = time.time()
 
-    if saved_safety_checker is not None:
+    if saved_safety_checker is not None and generator_pipe is not None:
         generator_pipe.safety_checker = saved_safety_checker
 
     print(f"✅ Process completed in: {round((process_end - process_start) * 1000)} ms ✅")
