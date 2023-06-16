@@ -113,8 +113,8 @@ class PredictInput(BaseModel):
         default=True,
     )
 
-    skip_safety_check: bool = Field(
-        description="Whether to skip the safety check or not.", default=True
+    skip_safety_checker: bool = Field(
+        description="Whether to skip the safety check or not.", default=False
     )
 
     @validator("model")
@@ -211,7 +211,7 @@ def predict(
             generator_pipe = models_pack.sd_pipes[input.model]
 
         saved_safety_checker = None
-        if input.skip_safety_check:
+        if input.skip_safety_checker:
             saved_safety_checker = generator_pipe.safety_checker
             generator_pipe.safety_checker = None
 
@@ -243,7 +243,7 @@ def predict(
             generate_output_images, generate_nsfw_count = generate_with_kandinsky(
                 **args,
                 safety_checker=models_pack.safety_checker
-                if not input.skip_safety_check
+                if not input.skip_safety_checker
                 else None,
             )
         else:
