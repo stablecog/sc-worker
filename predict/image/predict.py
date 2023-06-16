@@ -210,7 +210,9 @@ def predict(
         else:
             generator_pipe = models_pack.sd_pipes[input.model]
 
+        saved_safety_checker = None
         if input.skip_safety_check:
+            saved_safety_checker = generator_pipe.safety_checker
             generator_pipe.safety_checker = None
 
         settings_log_str = f"Model: {input.model} - Width: {input.width} - Height: {input.height} - Steps: {input.num_inference_steps} - Outputs: {input.num_outputs}"
@@ -316,6 +318,10 @@ def predict(
         nsfw_count=nsfw_count,
     )
     process_end = time.time()
+
+    if saved_safety_checker is not None:
+        generator_pipe.safety_checker = saved_safety_checker
+
     print(f"✅ Process completed in: {round((process_end - process_start) * 1000)} ms ✅")
     print("//////////////////////////////////////////////////////////////////")
 
