@@ -168,6 +168,7 @@ def predict(
     nsfw_count = 0
     open_clip_embeds_of_images = None
     open_clip_embed_of_prompt = None
+    saved_safety_checker = None
 
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
         t_prompt = input.prompt
@@ -210,7 +211,6 @@ def predict(
         else:
             generator_pipe = models_pack.sd_pipes[input.model]
 
-        saved_safety_checker = None
         if input.skip_safety_checker:
             saved_safety_checker = generator_pipe.safety_checker
             generator_pipe.safety_checker = None
