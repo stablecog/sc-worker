@@ -108,9 +108,13 @@ class PredictInput(BaseModel):
         default=TRANSLATOR_COG_URL,
     )
 
-    should_translate_prompts: bool = Field(
+    translate_prompts: bool = Field(
         description="Whether to translate the prompt and the negative prompt or not.",
         default=True,
+    )
+
+    skip_safety_check: bool = Field(
+        description="Whether to skip the safety check or not.", default=False
     )
 
     @validator("model")
@@ -206,6 +210,9 @@ def predict(
         else:
             generator_pipe = models_pack.sd_pipes[input.model]
 
+        if input.skip_safety_check:
+            generator_pipe.safety_checker = None
+
         settings_log_str = f"Model: {input.model} - Width: {input.width} - Height: {input.height} - Steps: {input.num_inference_steps} - Outputs: {input.num_outputs}"
         if input.init_image_url is not None:
             settings_log_str += f" - Init image: {input.init_image_url}"
@@ -232,7 +239,10 @@ def predict(
         }
         if input.model == KANDINSKY_MODEL_NAME:
             generate_output_images, generate_nsfw_count = generate_with_kandinsky(
-                **args, safety_checker=models_pack.safety_checker
+                **args,
+                safety_checker=models_pack.safety_checker
+                if not input.skip_safety_check
+                else None,
             )
         else:
             generate_output_images, generate_nsfw_count = generate(**args)

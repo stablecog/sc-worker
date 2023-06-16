@@ -74,12 +74,14 @@ def generate_with_kandinsky(
     output_images_nsfw_results = []
     with autocast():
         for image in output_images:
-            safety_checker_input = safety_checker["feature_extractor"](
-                images=image, return_tensors="pt"
-            ).to("cuda")
-            result, has_nsfw_concepts = safety_checker["checker"].forward(
-                clip_input=safety_checker_input.pixel_values, images=image
-            )
+            has_nsfw_concepts = False
+            if safety_checker is not None:
+                safety_checker_input = safety_checker["feature_extractor"](
+                    images=image, return_tensors="pt"
+                ).to("cuda")
+                result, has_nsfw_concepts = safety_checker["checker"].forward(
+                    clip_input=safety_checker_input.pixel_values, images=image
+                )
             res = {
                 "result": result,
                 "has_nsfw_concepts": has_nsfw_concepts,
