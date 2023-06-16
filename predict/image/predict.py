@@ -114,7 +114,7 @@ class PredictInput(BaseModel):
     )
 
     skip_safety_check: bool = Field(
-        description="Whether to skip the safety check or not.", default=False
+        description="Whether to skip the safety check or not.", default=True
     )
 
     @validator("model")
