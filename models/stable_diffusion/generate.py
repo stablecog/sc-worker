@@ -87,7 +87,7 @@ def generate(
     output_images = []
     nsfw_count = 0
 
-    if output.nsfw_content_detected is None:
+    if output.nsfw_content_detected is not None:
         for i, nsfw_flag in enumerate(output.nsfw_content_detected):
             if nsfw_flag:
                 nsfw_count += 1
