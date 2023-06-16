@@ -108,6 +108,11 @@ class PredictInput(BaseModel):
         default=TRANSLATOR_COG_URL,
     )
 
+    should_translate_prompts: bool = Field(
+        description="Whether to translate the prompt and the negative prompt or not.",
+        default=True,
+    )
+
     @validator("model")
     def validate_model(cls, v):
         rest = [KANDINSKY_MODEL_NAME]
@@ -163,7 +168,7 @@ def predict(
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
         t_prompt = input.prompt
         t_negative_prompt = input.negative_prompt
-        if input.translator_cog_url is not None:
+        if input.translator_cog_url is not None and input.should_translate_prompts:
             [t_prompt, t_negative_prompt] = translate_text_set_via_api(
                 text_1=input.prompt,
                 flores_1=input.prompt_flores_200_code,
