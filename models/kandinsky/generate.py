@@ -75,6 +75,7 @@ def generate_with_kandinsky(
     with autocast():
         for image in output_images:
             has_nsfw_concepts = False
+            result = None
             if safety_checker is not None:
                 safety_checker_input = safety_checker["feature_extractor"](
                     images=image, return_tensors="pt"
