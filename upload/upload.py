@@ -18,6 +18,7 @@ import time
 from io import BytesIO
 import uuid
 from concurrent.futures import Future, ThreadPoolExecutor
+import wave
 
 
 def convert_and_upload_image_to_s3(
@@ -101,6 +102,34 @@ def upload_files_for_image(
     return results
 
 
+def get_audio_duration(audio_bytes: BytesIO) -> int:
+    # Make sure we're at the start of the BytesIO object
+    audio_bytes.seek(0)
+
+    # Open the BytesIO object as a WAV file
+    wav_file = wave.open(audio_bytes, "rb")
+
+    # Extract the necessary information
+    bit_depth = wav_file.getsampwidth() * 8  # bit_depth in bits
+    num_channels = wav_file.getnchannels()
+    sample_rate = wav_file.getframerate()
+
+    # Calculate the number of samples
+    num_bytes = len(audio_bytes.getvalue())
+    num_samples = (
+        num_bytes * 8 / bit_depth
+    )  # number of samples = total bits / bits per sample
+
+    # If the audio is stereo (2 channels), divide the number of samples by 2
+    if num_channels == 2:
+        num_samples = num_samples // 2
+
+    # Calculate the duration
+    duration = num_samples / sample_rate
+
+    return duration
+
+
 def convert_and_upload_audio_file_to_s3(
     s3: ServiceResource,
     s3_bucket: str,
@@ -109,12 +138,15 @@ def convert_and_upload_audio_file_to_s3(
     sample_rate: int,
     target_extension: str,
     upload_path_prefix: str,
-) -> str:
+) -> tuple[str, int]:
     if remove_silence_params.should_remove:
         s = time.time()
         audio_bytes = remove_silence_from_wav(audio_bytes, remove_silence_params)
         e = time.time()
         print(f"🔊 Removed silence in: {round((e - s) *1000)} ms 🔊")
+
+    audio_duration = get_audio_duration(audio_bytes)
+
     s_conv = time.time()
     content_type = "audio/wav"
     if target_extension == "mp3":
@@ -135,7 +167,7 @@ def convert_and_upload_audio_file_to_s3(
     end_upload = time.time()
     print(f"Uploaded audio file in: {round((end_upload - start_upload) *1000)} ms")
 
-    return f"s3://{s3_bucket}/{key}"
+    return [f"s3://{s3_bucket}/{key}", audio_duration]
 
 
 def upload_files_for_voiceover(
@@ -170,9 +202,8 @@ def upload_files_for_voiceover(
     results = []
     for task in tasks:
         print(f"-- Upload: Got result")
-        results.append(
-            {"audio_file": task.result(), "audio_duration": uo.audio_duration}
-        )
+        [audio_file, audio_duration] = task.result()
+        results.append({"audio_file": audio_file, "audio_duration": audio_duration})
 
     end = time.time()
     print(

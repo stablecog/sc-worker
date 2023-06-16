@@ -101,7 +101,6 @@ def predict(
     for i, voiceover in enumerate(voiceovers):
         outputs[i] = PredictOutput(
             audio_bytes=voiceover.wav_bytes,
-            audio_duration=voiceover.audio_duration,
             sample_rate=voiceover.sample_rate,
             target_extension=input.output_audio_extension,
             remove_silence_params=RemoveSilenceParams(

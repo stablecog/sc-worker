@@ -16,11 +16,9 @@ class GenerateVoiceoverOutputBark:
         self,
         wav_bytes: BytesIO,
         sample_rate: int,
-        audio_duration: float,
     ):
         self.wav_bytes = wav_bytes
         self.sample_rate = sample_rate
-        self.audio_duration = audio_duration
 
 
 def generate_voiceover(
@@ -71,13 +69,11 @@ def generate_voiceover(
         np_array = arr
         sample_rate = sr
 
-    audio_duration = len(np_array) / sample_rate
     wav = numpy_to_wav_bytes(np_array, sample_rate)
 
     result = GenerateVoiceoverOutputBark(
         wav_bytes=wav,
         sample_rate=SAMPLE_RATE,
-        audio_duration=audio_duration,
     )
 
     return [result]

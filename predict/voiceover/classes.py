@@ -20,13 +20,11 @@ class PredictOutput:
     def __init__(
         self,
         audio_bytes: BytesIO,
-        audio_duration: float,
         target_extension: str,
         sample_rate: int,
         remove_silence_params: RemoveSilenceParams,
     ):
         self.audio_bytes = audio_bytes
-        self.audio_duration = audio_duration
         self.target_extension = target_extension
         self.sample_rate = sample_rate
         self.remove_silence_params = remove_silence_params
