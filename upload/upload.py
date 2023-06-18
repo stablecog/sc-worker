@@ -19,6 +19,7 @@ from io import BytesIO
 import uuid
 from concurrent.futures import Future, ThreadPoolExecutor
 import wave
+from pydub import AudioSegment
 
 
 def convert_and_upload_image_to_s3(
@@ -144,6 +145,10 @@ def convert_and_upload_audio_file_to_s3(
         audio_bytes = remove_silence_from_wav(audio_bytes, remove_silence_params)
         e = time.time()
         print(f"🔊 Removed silence in: {round((e - s) *1000)} ms 🔊")
+    else:
+        audio_segment = AudioSegment.from_wav(audio_bytes)
+        audio_segment.export(audio_bytes, format="wav")
+        audio_bytes.seek(0)
 
     audio_duration = get_audio_duration(audio_bytes)
 
