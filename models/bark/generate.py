@@ -36,6 +36,9 @@ def generate_voiceover(
     script = prompt.replace("\n", " ").strip()
     sentences = nltk.sent_tokenize(script)
 
+    if speaker.startswith("c_"):
+        speaker = "./custom_speakers/" + speaker + ".npz"
+
     pieces = []
     stc_len = len(sentences)
     for i, sentence in enumerate(sentences):
