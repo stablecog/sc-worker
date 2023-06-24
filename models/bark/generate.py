@@ -9,6 +9,7 @@ import numpy as np
 from shared.helpers import numpy_to_wav_bytes
 from io import BytesIO
 from typing import List, Any
+import os
 
 
 class GenerateVoiceoverOutputBark:
@@ -37,7 +38,9 @@ def generate_voiceover(
     sentences = nltk.sent_tokenize(script)
 
     if speaker.startswith("c_"):
-        speaker = "./custom_speakers/" + speaker + ".npz"
+        path = os.path.dirname(os.path.abspath(__file__))
+        custom_speakers_dir = os.path.join(path, "custom_speakers")
+        speaker = os.path.join(custom_speakers_dir, speaker + ".npz")
 
     pieces = []
     stc_len = len(sentences)
