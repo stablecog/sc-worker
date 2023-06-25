@@ -1,6 +1,6 @@
---extra-index-url https://download.pytorch.org/whl/cu118
+--extra-index-url https://download.pytorch.org/nightly/cu118/torch_nightly.html
 torch==2.0.1
---extra-index-url https://download.pytorch.org/whl/cu118
+--extra-index-url https://download.pytorch.org/nightly/cu118/torch_nightly.html
 torchvision==0.15.2
---extra-index-url https://download.pytorch.org/whl/cu118
+--extra-index-url https://download.pytorch.org/nightly/cu118/torch_nightly.html
 torchaudio==2.0.2
