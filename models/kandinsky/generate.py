@@ -41,8 +41,8 @@ def generate_with_kandinsky(
         prompt, guidance_scale=4.0
     ).to_tuple()
     args = {
-        "image_embeds": [image_embeds] * num_outputs,
-        "negative_image_embeds": [negative_image_embeds] * num_outputs,
+        "image_embeds": image_embeds,
+        "negative_image_embeds": negative_image_embeds,
         "num_inference_steps": num_inference_steps,
         "guidance_scale": guidance_scale,
         "width": width,
@@ -67,8 +67,9 @@ def generate_with_kandinsky(
         )
     else:
         output_images = pipe["text2img"](
-            prompt=[prompt] * num_outputs,
-            negative_prompt=[negative_prompt] * num_outputs,
+            prompt=prompt,
+            negative_prompt=negative_prompt,
+            num_images_per_prompt=num_outputs,
             **args,
         ).images
     output_images_nsfw_results = []
