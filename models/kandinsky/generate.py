@@ -38,7 +38,7 @@ def generate_with_kandinsky(
         else:
             negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
     image_embeds, negative_image_embeds = pipe["prior"](
-        prompt, guidance_scale=1.0
+        prompt, guidance_scale=4.0
     ).to_tuple()
     args = {
         "image_embeds": [image_embeds] * num_outputs,
