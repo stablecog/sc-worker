@@ -115,9 +115,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     kandinsky_i2i = KandinskyImg2ImgPipeline(**kandinsky_t2i.components)
     kandinsky_inp = KandinskyInpaintPipeline(**kandinsky_t2i.components)
     kandinsky_t2i.unet.to(memory_format=torch.channels_last)
-    kandinsky_t2i.unet = torch.compile(
-        kandinsky_t2i.unet, mode="reduce-overhead", fullgraph=True, dynamic=True
-    )
+    kandinsky_t2i.unet = torch.compile(kandinsky_t2i.unet, mode="reduce-overhead")
     kandinsky = {
         "prior": kandinsky_prior,
         "text2img": kandinsky_t2i,
