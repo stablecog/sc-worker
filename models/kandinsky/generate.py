@@ -68,7 +68,7 @@ def generate_with_kandinsky(
     else:
         output_images = pipe["text2img"](
             prompt=[prompt] * num_outputs,
-            negative_prompt=negative_prompt * num_outputs,
+            negative_prompt=[negative_prompt] * num_outputs,
             **args,
         ).images
     output_images_nsfw_results = []
