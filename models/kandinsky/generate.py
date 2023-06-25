@@ -22,6 +22,7 @@ def generate_with_kandinsky(
     scheduler,
     seed,
     pipe,
+    model,
     safety_checker,
 ):
     if seed is None:
