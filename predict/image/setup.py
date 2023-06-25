@@ -75,8 +75,8 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             cache_dir=SD_MODEL_CACHE,
         )
         pipe = pipe.to(DEVICE)
-        """ pipe.unet.to(memory_format=torch.channels_last)
-        pipe.unet = torch.compile(pipe.unet, mode="reduce-overhead", fullgraph=True) """
+        pipe.unet.to(memory_format=torch.channels_last)
+        pipe.unet = torch.compile(pipe.unet, mode="reduce-overhead", fullgraph=True)
         sd_pipes[key] = pipe
         print(f"✅ Loaded SD model: {key}")
 
