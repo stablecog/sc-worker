@@ -67,7 +67,7 @@ def generate_with_kandinsky(
             **args,
         )
     else:
-        output_images = pipe["t2i"](
+        output_images = pipe["text2img"](
             prompt=[prompt] * num_outputs,
             negative_prompt=negative_prompt * num_outputs,
             **args,
