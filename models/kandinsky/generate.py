@@ -44,11 +44,10 @@ def generate_with_kandinsky(
     args = {
         "image_embeds": [image_embeds] * num_outputs,
         "negative_image_embeds": [negative_image_embeds] * num_outputs,
-        "num_steps": num_inference_steps,
-        "batch_size": num_outputs,
+        "num_inference_steps": num_inference_steps,
         "guidance_scale": guidance_scale,
-        "h": height,
-        "w": width,
+        "width": width,
+        "height": height,
     }
     output_images = None
     if init_image_url is not None:
