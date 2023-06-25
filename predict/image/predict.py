@@ -207,7 +207,7 @@ def predict(
 
         generator_pipe = None
         if input.model == KANDINSKY_MODEL_NAME:
-            generator_pipe = models_pack.kandinsky["text2img"]
+            generator_pipe = models_pack.kandinsky
         else:
             generator_pipe = models_pack.sd_pipes[input.model]
 

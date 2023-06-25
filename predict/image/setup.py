@@ -3,7 +3,6 @@ from typing import Any
 from lingua import LanguageDetectorBuilder
 from boto3_type_annotations.s3 import ServiceResource
 from models.nllb.constants import TRANSLATOR_CACHE
-import torch
 from shared.constants import WORKER_VERSION
 from models.stable_diffusion.constants import (
     SD_MODEL_FOR_SAFETY_CHECKER,
@@ -24,6 +23,13 @@ from huggingface_hub import _login
 from kandinsky2 import get_kandinsky2
 from functools import partial
 from models.stable_diffusion.filter import forward_inspect
+from diffusers import (
+    KandinskyImg2ImgPipeline,
+    KandinskyInpaintPipeline,
+    KandinskyPriorPipeline,
+    DiffusionPipeline,
+)
+import torch
 
 
 class ModelsPack:
@@ -97,10 +103,22 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
 
     # Kandinsky
     print("⏳ Loading Kandinsky")
+    kandinsky_prior = DiffusionPipeline.from_pretrained(
+        "kandinsky-community/kandinsky-2-1-prior", torch_dtype=torch.float16
+    )
+    kandinsky_prior.to("cuda")
+    kandinsky_t2i = DiffusionPipeline.from_pretrained(
+        "kandinsky-community/kandinsky-2-1",
+        torch_dtype=torch.float16,
+    )
+    kandinsky_t2i = kandinsky_t2i.to(DEVICE)
+    kandinsky_i2i = KandinskyImg2ImgPipeline(**kandinsky_t2i.components)
+    kandinsky_inp = KandinskyInpaintPipeline(**kandinsky_t2i.components)
     kandinsky = {
-        "text2img": get_kandinsky2(
-            "cuda", task_type="text2img", model_version="2.1", use_flash_attention=True
-        )
+        "prior": kandinsky_prior,
+        "text2img": kandinsky_t2i,
+        "img2img": kandinsky_i2i,
+        "inpaint": kandinsky_inp,
     }
     print("✅ Loaded Kandinsky")
 

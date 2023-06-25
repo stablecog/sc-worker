@@ -21,7 +21,6 @@ def generate_with_kandinsky(
     prompt_strength,
     scheduler,
     seed,
-    model,
     pipe,
     safety_checker,
 ):
@@ -38,17 +37,17 @@ def generate_with_kandinsky(
             negative_prompt = negative_prompt_prefix
         else:
             negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
+    image_embeds, negative_image_embeds = pipe["prior"](
+        prompt, guidance_scale=1.0
+    ).to_tuple()
     args = {
+        "image_embeds": [image_embeds] * num_outputs,
+        "negative_image_embeds": [negative_image_embeds] * num_outputs,
         "num_steps": num_inference_steps,
         "batch_size": num_outputs,
         "guidance_scale": guidance_scale,
         "h": height,
         "w": width,
-        "sampler": KANDIKSKY_SCHEDULERS[scheduler],
-        "prior_cf_scale": 4,
-        "prior_steps": "5",
-        "negative_prior_prompt": negative_prompt,
-        "negative_decoder_prompt": "",
     }
     output_images = None
     if init_image_url is not None:
@@ -67,10 +66,11 @@ def generate_with_kandinsky(
             **args,
         )
     else:
-        output_images = pipe.generate_text2img(
-            prompt,
+        output_images = pipe.t2i(
+            prompt=[prompt] * num_outputs,
+            negative_prompt=negative_prompt * num_outputs,
             **args,
-        )
+        ).images
     output_images_nsfw_results = []
     with autocast():
         for image in output_images:
