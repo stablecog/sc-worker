@@ -27,7 +27,6 @@ def generate_with_kandinsky(
 ):
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
-    torch.manual_seed(seed)
     print(f"Using seed: {seed}")
 
     if prompt_prefix is not None:
@@ -48,6 +47,7 @@ def generate_with_kandinsky(
         "guidance_scale": guidance_scale,
         "width": width,
         "height": height,
+        "generator": torch.Generator(DEVICE).manual_seed(seed),
     }
     output_images = None
     if init_image_url is not None:
