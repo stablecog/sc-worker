@@ -116,7 +116,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     kandinsky_inp = KandinskyInpaintPipeline(**kandinsky_t2i.components)
     kandinsky_t2i.unet.to(memory_format=torch.channels_last)
     kandinsky_t2i.unet = torch.compile(
-        kandinsky_t2i.unet, mode="reduce-overhead", fullgraph=True
+        kandinsky_t2i.unet, mode="reduce-overhead", fullgraph=True, dynamic=True
     )
     kandinsky = {
         "prior": kandinsky_prior,
