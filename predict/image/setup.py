@@ -3,7 +3,7 @@ from typing import Any
 from lingua import LanguageDetectorBuilder
 from boto3_type_annotations.s3 import ServiceResource
 from models.nllb.constants import TRANSLATOR_CACHE
-
+import torch
 from shared.constants import WORKER_VERSION
 from models.stable_diffusion.constants import (
     SD_MODEL_FOR_SAFETY_CHECKER,
@@ -75,6 +75,8 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             cache_dir=SD_MODEL_CACHE,
         )
         sd_pipes[key] = pipe.to(DEVICE)
+        pipe.unet.to(memory_format=torch.channels_last)
+        pipe.unet = torch.compile(pipe.unet, mode="reduce-overhead", fullgraph=True)
         print(f"✅ Loaded SD model: {key}")
 
     # Safety checker
