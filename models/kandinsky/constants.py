@@ -1,4 +1,7 @@
-KANDIKSKY_SCHEDULERS = {"P_SAMPLER": "p", "DDIM": "d"}
+KANDIKSKY_SCHEDULERS = {
+    "P_SAMPLER": "p_sampler",
+    "DDIM": "ddim_sampler",
+}
 
 KANDINSKY_SCHEDULER_CHOICES = [*KANDIKSKY_SCHEDULERS.keys()]
 

@@ -1,6 +1,7 @@
 import os
 import time
 from models.constants import DEVICE
+from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
 from shared.helpers import download_image, fit_image
 import torch
 from torch.cuda.amp import autocast
@@ -20,12 +21,13 @@ def generate_with_kandinsky(
     prompt_strength,
     scheduler,
     seed,
-    pipe,
     model,
+    pipe,
     safety_checker,
 ):
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
+    torch.manual_seed(seed)
     print(f"Using seed: {seed}")
 
     if prompt_prefix is not None:
@@ -36,24 +38,18 @@ def generate_with_kandinsky(
             negative_prompt = negative_prompt_prefix
         else:
             negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
-
-    image_embeds, negative_image_embeds = pipe["prior"](
-        prompt, negative_prompt, guidance_scale=4
-    ).to_tuple()
-
-    generator = torch.Generator(DEVICE).manual_seed(seed)
     args = {
-        "prompt": prompt,
-        "image_embeds": image_embeds,
-        "negative_image_embeds": negative_image_embeds,
-        "num_images_per_prompt": num_outputs,
-        "num_inference_steps": num_inference_steps,
+        "num_steps": num_inference_steps,
+        "batch_size": num_outputs,
         "guidance_scale": guidance_scale,
-        "width": width,
-        "height": height,
-        "generator": generator,
+        "h": height,
+        "w": width,
+        "sampler": KANDIKSKY_SCHEDULERS[scheduler],
+        "prior_cf_scale": 4,
+        "prior_steps": "5",
+        "negative_prior_prompt": negative_prompt,
+        "negative_decoder_prompt": "",
     }
-
     output_images = None
     if init_image_url is not None:
         start_i = time.time()
@@ -63,16 +59,18 @@ def generate_with_kandinsky(
         print(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
         )
-        output_images = pipe["img2img"](
-            image=init_image,
-            strength=prompt_strength,
+        images_and_texts = [prompt, init_image]
+        weights = [prompt_strength, 1 - prompt_strength]
+        output_images = pipe.mix_images(
+            images_and_texts,
+            weights,
             **args,
-        ).images
+        )
     else:
-        output_images = pipe["text2img"](
+        output_images = pipe.generate_text2img(
+            prompt,
             **args,
-        ).images
-
+        )
     output_images_nsfw_results = []
     with autocast():
         for image in output_images:

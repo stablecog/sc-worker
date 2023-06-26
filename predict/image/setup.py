@@ -103,26 +103,10 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
 
     # Kandinsky
     print("⏳ Loading Kandinsky")
-    kandinsky_prior = DiffusionPipeline.from_pretrained(
-        "kandinsky-community/kandinsky-2-1-prior", torch_dtype=torch.float16
-    )
-    kandinsky_t2i = DiffusionPipeline.from_pretrained(
-        "kandinsky-community/kandinsky-2-1",
-        torch_dtype=torch.float16,
-    )
-    kandinsky_i2i = KandinskyImg2ImgPipeline(**kandinsky_t2i.components)
-    kandinsky_inp = KandinskyInpaintPipeline(**kandinsky_t2i.components)
-
-    kandinsky_t2i = kandinsky_t2i.to(DEVICE)
-    kandinsky_prior = kandinsky_prior.to(DEVICE)
-    kandinsky_i2i = kandinsky_i2i.to(DEVICE)
-    kandinsky_inp = kandinsky_inp.to(DEVICE)
-
     kandinsky = {
-        "prior": kandinsky_prior,
-        "text2img": kandinsky_t2i,
-        "img2img": kandinsky_i2i,
-        "inpaint": kandinsky_inp,
+        "text2img": get_kandinsky2(
+            "cuda", task_type="text2img", model_version="2.1", use_flash_attention=True
+        )
     }
     print("✅ Loaded Kandinsky")
 
