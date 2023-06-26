@@ -37,18 +37,25 @@ def generate_with_kandinsky(
             negative_prompt = negative_prompt_prefix
         else:
             negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
+
     image_embeds, negative_image_embeds = pipe["prior"](
-        prompt, guidance_scale=4.0
+        prompt, negative_prompt
     ).to_tuple()
+
+    generator = torch.Generator(DEVICE).manual_seed(seed)
     args = {
+        "prompt": prompt,
+        "negative_prompt": negative_prompt,
         "image_embeds": image_embeds,
         "negative_image_embeds": negative_image_embeds,
+        "num_images_per_prompt": num_outputs,
         "num_inference_steps": num_inference_steps,
         "guidance_scale": guidance_scale,
         "width": width,
         "height": height,
-        "generator": torch.Generator(DEVICE).manual_seed(seed),
+        "generator": generator,
     }
+
     output_images = None
     if init_image_url is not None:
         start_i = time.time()
@@ -58,20 +65,16 @@ def generate_with_kandinsky(
         print(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
         )
-        images_and_texts = [prompt, init_image]
-        weights = [prompt_strength, 1 - prompt_strength]
-        output_images = pipe.mix_images(
-            images_and_texts,
-            weights,
+        output_images = pipe["img2img"](
+            image=init_image,
+            strength=prompt_strength,
             **args,
         )
     else:
         output_images = pipe["text2img"](
-            prompt=prompt,
-            negative_prompt=negative_prompt,
-            num_images_per_prompt=num_outputs,
             **args,
         ).images
+
     output_images_nsfw_results = []
     with autocast():
         for image in output_images:

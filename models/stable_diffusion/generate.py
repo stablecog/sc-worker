@@ -65,17 +65,16 @@ def generate(
         print(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
         )
-        extra_kwargs["image"] = [init_image] * num_outputs
+        extra_kwargs["image"] = init_image
         extra_kwargs["strength"] = prompt_strength
     else:
         pipe_selected = pipe.text2img
 
     generator = torch.Generator(DEVICE).manual_seed(seed)
     output = pipe_selected(
-        prompt=[prompt] * num_outputs if prompt is not None else None,
-        negative_prompt=[negative_prompt] * num_outputs
-        if negative_prompt is not None
-        else None,
+        prompt=prompt if prompt is not None else None,
+        negative_prompt=negative_prompt if negative_prompt is not None else None,
+        num_images_per_prompt=num_outputs,
         width=width,
         height=height,
         guidance_scale=guidance_scale,
