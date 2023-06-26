@@ -50,6 +50,8 @@ def generate_with_kandinsky(
         "negative_prior_prompt": negative_prompt,
         "negative_decoder_prompt": "",
     }
+
+    pipe = pipe["text2img"]
     output_images = None
     if init_image_url is not None:
         start_i = time.time()
