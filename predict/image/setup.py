@@ -24,12 +24,8 @@ from kandinsky2 import get_kandinsky2
 from functools import partial
 from models.stable_diffusion.filter import forward_inspect
 from diffusers import (
-    KandinskyImg2ImgPipeline,
-    KandinskyInpaintPipeline,
-    KandinskyPriorPipeline,
     DiffusionPipeline,
 )
-import torch
 
 
 class ModelsPack:
