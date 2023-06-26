@@ -44,7 +44,6 @@ def generate_with_kandinsky(
     generator = torch.Generator(DEVICE).manual_seed(seed)
     args = {
         "prompt": prompt,
-        "negative_prompt": negative_prompt,
         "image_embeds": image_embeds,
         "negative_image_embeds": negative_image_embeds,
         "num_images_per_prompt": num_outputs,
