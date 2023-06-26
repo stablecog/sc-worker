@@ -38,7 +38,7 @@ def generate_with_kandinsky(
             negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
 
     image_embeds, negative_image_embeds = pipe["prior"](
-        prompt, negative_prompt
+        prompt, negative_prompt, guidance_scale=4
     ).to_tuple()
 
     generator = torch.Generator(DEVICE).manual_seed(seed)
