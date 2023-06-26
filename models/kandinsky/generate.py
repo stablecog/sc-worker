@@ -1,10 +1,8 @@
 import os
 import time
 from models.constants import DEVICE
-from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
 from shared.helpers import download_image, fit_image
 import torch
-from torch.cuda.amp import autocast
 
 
 def generate_with_kandinsky(
