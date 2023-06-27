@@ -203,8 +203,18 @@ def predict(
             ["Outputs", input.num_outputs],
             ["Scheduler", input.scheduler],
             ["Seed", input.seed],
-            ["Init Image URL", wrap_text(input.init_image_url)],
-            ["Mask Image URL", wrap_text(input.mask_image_url)],
+            [
+                "Init Image URL",
+                wrap_text(input.init_image_url)
+                if input.init_image_url is not None
+                else None,
+            ],
+            [
+                "Mask Image URL",
+                wrap_text(input.mask_image_url)
+                if input.mask_image_url is not None
+                else None,
+            ],
             ["Prompt Strength", input.prompt_strength],
         ]
         if prompt_is_translated:
