@@ -61,7 +61,7 @@ def generate(
         if mask_image_url is not None:
             pipe_selected = pipe.inpaint
             start_i = time.time()
-            extra_kwargs["mask_image"] = download_and_fit_image_mask(
+            extra_kwargs["mask_image"] = download_and_fit_image(
                 url=mask_image_url,
                 width=width,
                 height=height,
