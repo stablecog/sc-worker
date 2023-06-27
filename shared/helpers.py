@@ -89,15 +89,10 @@ class time_code_block:
         print(statement)
 
 
-def download_image(url, keep_transparency=False):
+def download_image(url):
     response = requests.get(url)
     if response.status_code != 200:
         raise Exception(f"Failed to download image from {url}")
-    image = Image.open(BytesIO(response.content))
-
-    if keep_transparency and image.format == "PNG":
-        return Image.open(BytesIO(response.content)).convert("RGBA")
-
     return Image.open(BytesIO(response.content)).convert("RGB")
 
 
@@ -106,8 +101,8 @@ def fit_image(image, width, height):
     return resized_image
 
 
-def download_and_fit_image(url, width, height, keep_transparency=False):
-    image = download_image(url=url, keep_transparency=keep_transparency)
+def download_and_fit_image(url, width, height):
+    image = download_image(url=url)
     if image.width == width and image.height == height:
         return image
     return fit_image(image, width, height)

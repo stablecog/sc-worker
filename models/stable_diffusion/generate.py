@@ -79,7 +79,6 @@ def generate(
             url=init_image_url,
             width=width,
             height=height,
-            keep_transparency=True,
         )
         end_i = time.time()
         print(
