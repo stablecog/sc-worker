@@ -217,7 +217,7 @@ def predict(
         log_table.append(['Neg. Prompt Translated', neg_prompt_is_translated])
         print(
             tabulate(
-                [["🖼️ Generation 🟡", "Started"]] + log_table,
+                [["🖼️  Generation 🟡", "Started"]] + log_table,
                 tablefmt="double_grid"
             )
         )
@@ -256,7 +256,7 @@ def predict(
         endTime = time.time()
         print(
             tabulate(
-                [["🖼️ Generation 🟢", f"{round((endTime - startTime) * 1000)} ms"]] + log_table,
+                [["🖼️  Generation 🟢", f"{round((endTime - startTime) * 1000)} ms"]] + log_table,
                 tablefmt="double_grid",
             ),
         )
