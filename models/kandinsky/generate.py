@@ -22,24 +22,24 @@ def create_scaled_mask(width, height, scale_factor):
     start_y = (height - scaled_height) // 2
 
     # Set the pixels within the scaled region to one (white)
-    mask[start_y : start_y + scaled_height, start_x : start_x + scaled_width] = 1
+    mask[start_y : start_y + scaled_height, start_x : start_x + scaled_width] = 1.0
 
     return mask
 
 
 def resize_to_mask(img, mask):
-    # Identify the "black" region in the mask
-    where_black = np.where(mask == 0)
+    # Identify the "white" region in the mask
+    where_white = np.where(mask == 1.0)
 
-    # Calculate the dimensions of the "black" region
-    min_y, max_y = np.min(where_black[0]), np.max(where_black[0])
-    min_x, max_x = np.min(where_black[1]), np.max(where_black[1])
+    # Calculate the dimensions of the "white" region
+    min_y, max_y = np.min(where_white[0]), np.max(where_white[0])
+    min_x, max_x = np.min(where_white[1]), np.max(where_white[1])
 
-    # Get the width and height of the "black" region
+    # Get the width and height of the "white" region
     region_width = max_x - min_x
     region_height = max_y - min_y
 
-    # Resize the image to match the dimensions of the "black" region
+    # Resize the image to match the dimensions of the "white" region
     resized_img = img.resize((region_width, region_height))
 
     # Create a new image filled with transparent pixels
