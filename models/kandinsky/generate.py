@@ -9,48 +9,6 @@ import numpy as np
 from PIL import Image
 
 
-def create_scaled_mask(width, height, scale_factor):
-    # First, create an initial mask filled with zeros
-    mask = np.zeros((height, width), dtype=np.float32)
-
-    # Calculate the dimensions of the scaled region
-    scaled_width = int(width * scale_factor)
-    scaled_height = int(height * scale_factor)
-
-    # Calculate the top left position of the scaled region
-    start_x = (width - scaled_width) // 2
-    start_y = (height - scaled_height) // 2
-
-    # Set the pixels within the scaled region to one (white)
-    mask[start_y : start_y + scaled_height, start_x : start_x + scaled_width] = 1.0
-
-    return mask
-
-
-def resize_to_mask(img, mask):
-    # Identify the "white" region in the mask
-    where_white = np.where(mask == 1.0)
-
-    # Calculate the dimensions of the "white" region
-    min_y, max_y = np.min(where_white[0]), np.max(where_white[0])
-    min_x, max_x = np.min(where_white[1]), np.max(where_white[1])
-
-    # Get the width and height of the "white" region
-    region_width = max_x - min_x
-    region_height = max_y - min_y
-
-    # Resize the image to match the dimensions of the "white" region
-    resized_img = img.resize((region_width, region_height))
-
-    # Create a new image filled with transparent pixels
-    new_img = Image.new("RGBA", img.size, (0, 0, 0, 0))
-
-    # Paste the resized image onto the new image at the appropriate location
-    new_img.paste(resized_img, (min_x, min_y))
-
-    return new_img
-
-
 def generate_with_kandinsky(
     prompt,
     negative_prompt,
@@ -96,7 +54,6 @@ def generate_with_kandinsky(
     }
 
     pipe_text2img = pipe["text2img"]
-    pipe_inpainting = pipe["inpainting"]
 
     output_images = None
     if init_image_url is not None:
@@ -136,20 +93,14 @@ def generate_with_kandinsky(
                 "has_nsfw_concepts": has_nsfw_concepts,
             }
             output_images_nsfw_results.append(res)
+
     nsfw_count = 0
     filtered_output_images = []
+
     for i, res in enumerate(output_images_nsfw_results):
         if res["has_nsfw_concepts"]:
             nsfw_count += 1
         else:
             filtered_output_images.append(output_images[i])
-    for i, image in enumerate(filtered_output_images):
-        mask = create_scaled_mask(width, height, 0.5)
-        init_image = resize_to_mask(image, mask)
-        filtered_output_images[i] = pipe_inpainting.generate_inpainting(
-            prompt=prompt,
-            pil_img=init_image,
-            img_mask=mask,
-            **args,
-        )[0]
+
     return filtered_output_images, nsfw_count

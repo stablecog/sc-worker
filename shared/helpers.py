@@ -13,6 +13,7 @@ from scipy.io.wavfile import write
 from pydub import AudioSegment
 from io import BytesIO
 from pydub.silence import split_on_silence
+import numpy as np
 
 from predict.voiceover.classes import RemoveSilenceParams
 
@@ -165,3 +166,45 @@ def convert_wav_to_mp3(wav_bytes: BytesIO):
     audio_segment.export(mp3_io, format="mp3", bitrate="320k")
     mp3_io.seek(0)
     return mp3_io
+
+
+def create_scaled_mask(width, height, scale_factor):
+    # First, create an initial mask filled with zeros
+    mask = np.zeros((height, width), dtype=np.float32)
+
+    # Calculate the dimensions of the scaled region
+    scaled_width = int(width * scale_factor)
+    scaled_height = int(height * scale_factor)
+
+    # Calculate the top left position of the scaled region
+    start_x = (width - scaled_width) // 2
+    start_y = (height - scaled_height) // 2
+
+    # Set the pixels within the scaled region to one (white)
+    mask[start_y : start_y + scaled_height, start_x : start_x + scaled_width] = 1.0
+
+    return mask
+
+
+def resize_to_mask(img, mask):
+    # Identify the "white" region in the mask
+    where_white = np.where(mask == 1.0)
+
+    # Calculate the dimensions of the "white" region
+    min_y, max_y = np.min(where_white[0]), np.max(where_white[0])
+    min_x, max_x = np.min(where_white[1]), np.max(where_white[1])
+
+    # Get the width and height of the "white" region
+    region_width = max_x - min_x
+    region_height = max_y - min_y
+
+    # Resize the image to match the dimensions of the "white" region
+    resized_img = img.resize((region_width, region_height))
+
+    # Create a new image filled with transparent pixels
+    new_img = Image.new("RGBA", img.size, (0, 0, 0, 0))
+
+    # Paste the resized image onto the new image at the appropriate location
+    new_img.paste(resized_img, (min_x, min_y))
+
+    return new_img
