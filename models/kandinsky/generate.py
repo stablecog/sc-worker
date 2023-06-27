@@ -51,10 +51,35 @@ def generate(
         "negative_decoder_prompt": "",
     }
 
-    pipe_text2img = pipe["text2img"]
+    pipe = pipe["text2img"]
 
     output_images = None
-    if init_image_url is not None:
+
+    if mask_image_url is not None:
+        pipe.task_type = "inpainting"
+    else:
+        pipe.task_type = "text2img"
+
+    if init_image_url is not None and mask_image_url is not None:
+        start = time.time()
+        init_image = download_and_fit_image(init_image_url, width, height)
+        end = time.time()
+        print(
+            f"-- Downloaded and cropped init image in: {round((end - start) * 1000)} ms"
+        )
+        start = time.time()
+        mask_image = download_and_fit_image(mask_image_url, width, height)
+        end = time.time()
+        print(
+            f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
+        )
+        output_images = pipe.generate_inpainting(
+            prompt,
+            **args,
+            pil_image=init_image,
+            img_mask=mask_image,
+        )
+    elif init_image_url is not None:
         start_i = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
         end_i = time.time()
@@ -63,13 +88,13 @@ def generate(
         )
         images_and_texts = [prompt, init_image]
         weights = [prompt_strength, 1 - prompt_strength]
-        output_images = pipe_text2img.mix_images(
+        output_images = pipe.mix_images(
             images_and_texts,
             weights,
             **args,
         )
     else:
-        output_images = pipe_text2img.generate_text2img(
+        output_images = pipe.generate_text2img(
             prompt,
             **args,
         )
