@@ -101,8 +101,17 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     print("⏳ Loading Kandinsky")
     kandinsky = {
         "text2img": get_kandinsky2(
-            "cuda", task_type="text2img", model_version="2.1", use_flash_attention=True
-        )
+            "cuda",
+            task_type="text2img",
+            model_version="2.1",
+            use_flash_attention=True,
+        ),
+        "inpainting": get_kandinsky2(
+            "cuda",
+            task_type="inpainting",
+            model_version="2.1",
+            use_flash_attention=True,
+        ),
     }
     print("✅ Loaded Kandinsky")
 
