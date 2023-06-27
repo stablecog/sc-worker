@@ -58,7 +58,18 @@ def generate(
     pipe.scheduler = get_scheduler(scheduler, pipe.scheduler.config)
     pipe_selected = None
     if init_image_url is not None:
-        pipe_selected = pipe.img2img
+        if mask_image_url is not None:
+            pipe_selected = pipe.inpaint
+            start_i = time.time()
+            extra_kwargs["mask_image"] = download_and_fit_image(
+                mask_image_url, width, height
+            )
+            end_i = time.time()
+            print(
+                f"-- Downloaded and cropped mask image in: {round((end_i - start_i) * 1000)} ms"
+            )
+        else:
+            pipe_selected = pipe.img2img
         start_i = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
         end_i = time.time()

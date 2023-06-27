@@ -210,11 +210,20 @@ def predict(
             saved_safety_checker = generator_pipe.safety_checker
             generator_pipe.safety_checker = None
 
-        settings_log_str = f"Model: {input.model} - Width: {input.width} - Height: {input.height} - Steps: {input.num_inference_steps} - Outputs: {input.num_outputs}"
-        if input.init_image_url is not None:
-            settings_log_str += f" - Init image: {input.init_image_url}"
-            settings_log_str += f" - Prompt strength: {input.prompt_strength}"
-        print(f"🖥️ Generating - {settings_log_str} 🖥️")
+        settings_log_str = ""
+        settings_log_str += f"Model: {input.model}\n"
+        settings_log_str += f"Width: {input.width}\n"
+        settings_log_str += f"Height: {input.height}\n"
+        settings_log_str += f"Steps: {input.num_inference_steps}\n"
+        settings_log_str += f"Outputs: {input.num_outputs}\n"
+        settings_log_str += f"Scheduler: {input.scheduler}\n"
+        settings_log_str += f"Init Image URL: {input.init_image_url}\n"
+        settings_log_str += f"Mask Image URL: {input.mask_image_url}\n"
+        settings_log_str += f"Prompt Strength: {input.prompt_strength}\n"
+        print("-----------------------------------------------")
+        print(f"🖥️ Generating 🖥️")
+        print(settings_log_str)
+        print("-----------------------------------------------")
 
         startTime = time.time()
         args = {
@@ -247,9 +256,10 @@ def predict(
         output_images = generate_output_images
         nsfw_count = generate_nsfw_count
         endTime = time.time()
-        print(
-            f"🖥️ Generated in {round((endTime - startTime) * 1000)} ms - {settings_log_str} 🖥️"
-        )
+        print("-----------------------------------------------")
+        print(f"🖥️ Generated in {round((endTime - startTime) * 1000)} ms  🖥️")
+        print(settings_log_str)
+        print("-----------------------------------------------")
 
         start_open_clip_prompt = time.time()
         open_clip_embed_of_prompt = open_clip_get_embeds_of_texts(
