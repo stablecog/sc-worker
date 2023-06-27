@@ -23,7 +23,7 @@ from models.open_clip.main import (
     open_clip_get_embeds_of_texts,
 )
 from pydantic import BaseModel, Field, validator
-from shared.helpers import return_value_if_in_list
+from shared.helpers import return_value_if_in_list, wrap_text
 from tabulate import tabulate
 
 
@@ -222,12 +222,12 @@ def predict(
             ['Seed', input.seed],
         ]
         if prompt_is_translated:
-            log_table.append(['Original Prompt', input.prompt[:70]])
-        log_table.append(['Final Prompt', t_prompt[:70]])
+            log_table.append(['Original Prompt', wrap_text(input.prompt)])
+        log_table.append(['Final Prompt', wrap_text(t_prompt)])
         log_table.append(['Prompt Translated', prompt_is_translated])
         if neg_prompt_is_translated:
-            log_table.append(['Original Neg. Prompt', input.negative_prompt[:70]])
-        log_table.append(['Final Neg. Prompt', t_negative_prompt[:70]])
+            log_table.append(['Original Neg. Prompt', wrap_text(input.negative_prompt)])
+        log_table.append(['Final Neg. Prompt', wrap_text(t_negative_prompt)])
         log_table.append(['Neg. Prompt Translated', neg_prompt_is_translated])
         print("-----------------------------------------------")
         print(f"🖥️  Generating")

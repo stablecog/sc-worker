@@ -14,6 +14,7 @@ from pydub import AudioSegment
 from io import BytesIO
 from pydub.silence import split_on_silence
 import numpy as np
+import textwrap
 
 from predict.voiceover.classes import RemoveSilenceParams
 
@@ -215,3 +216,8 @@ def resize_to_mask(img, mask):
     new_img.paste(resized_img, (min_x, min_y))
 
     return new_img
+
+
+def wrap_text(text, width=50):
+    # This function wraps the text to a certain width
+    return "\n".join(textwrap.wrap(text, width=width))
