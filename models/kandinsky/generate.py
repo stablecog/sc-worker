@@ -5,6 +5,25 @@ from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
 from shared.helpers import download_image, fit_image
 import torch
 from torch.cuda.amp import autocast
+import numpy as np
+
+
+def create_scaled_mask(width, height, scale_factor):
+    # First, create an initial mask filled with ones
+    mask = np.ones((height, width), dtype=np.float32)
+
+    # Calculate the dimensions of the scaled region
+    scaled_width = int(width * scale_factor)
+    scaled_height = int(height * scale_factor)
+
+    # Calculate the top left position of the scaled region
+    start_x = (width - scaled_width) // 2
+    start_y = (height - scaled_height) // 2
+
+    # Set the pixels within the scaled region to zero
+    mask[start_y : start_y + scaled_height, start_x : start_x + scaled_width] = 0
+
+    return mask
 
 
 def generate_with_kandinsky(
@@ -52,6 +71,7 @@ def generate_with_kandinsky(
     }
 
     pipe = pipe["text2img"]
+    pipe_inpainting = pipe["inpainting"]
     output_images = None
     if init_image_url is not None:
         start_i = time.time()
@@ -97,4 +117,11 @@ def generate_with_kandinsky(
             nsfw_count += 1
         else:
             filtered_output_images.append(output_images[i])
+    for i, image in enumerate(filtered_output_images):
+        mask = create_scaled_mask(width, height, 0.5)
+        filtered_output_images[i] = pipe_inpainting(
+            init_image=image,
+            mask=mask,
+            **args,
+        )
     return filtered_output_images, nsfw_count
