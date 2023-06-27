@@ -11,6 +11,7 @@ from models.bark.generate import (
     generate_voiceover as generate_voiceover_with_bark,
 )
 import os
+from tabulate import tabulate
 
 
 class PredictInput(BaseModel):
@@ -71,21 +72,20 @@ def predict(
     if input.seed is None:
         input.seed = int.from_bytes(os.urandom(2), "big")
 
-    print("---------------------------------------------------------------------------")
-    settings_log_str = ""
-    settings_log_str += f"Prompt: {input.prompt}\n"
-    settings_log_str += f"Speaker: {input.speaker}\n"
-    settings_log_str += f"Model: {input.model}\n"
-    settings_log_str += f"Temperature: {input.temperature}\n"
-    settings_log_str += f"Seed: {input.seed}\n"
-    settings_log_str += f"Output audio extension: {input.output_audio_extension}\n"
-    settings_log_str += f"Denoise audio: {input.denoise_audio}\n"
-    settings_log_str += f"Remove silence: {input.remove_silence}\n"
-    settings_log_str += f"RS min silence len: {input.remove_silence_min_silence_len}\n"
-    settings_log_str += f"RS silence thresh: {input.remove_silence_silence_thresh}\n"
-    settings_log_str += f"RS keep silence len: {input.remove_silence_keep_silence_len}"
-    print(f"{settings_log_str}")
-    print("---------------------------------------------------------------------------")
+    log_table = [
+        ["Prompt", input.prompt],
+        ["Model", input.model],
+        ["Speaker", input.speaker],
+        ["Temperature", input.temperature],
+        ["Seed", input.seed],
+        ["Output audio extension", input.output_audio_extension],
+        ["Denoise audio", input.denoise_audio],
+        ["Remove silence", input.remove_silence],
+        ["RS min silence len", input.remove_silence_min_silence_len],
+        ["RS silence thresh", input.remove_silence_silence_thresh],
+        ["RS keep silence len", input.remove_silence_keep_silence_len],
+    ]
+    print(tabulate(log_table, tablefmt="double_grid"))
 
     voiceovers = generate_voiceover_with_bark(
         prompt=input.prompt,

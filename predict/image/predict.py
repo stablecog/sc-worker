@@ -211,21 +211,25 @@ def predict(
             saved_safety_checker = generator_pipe.safety_checker
             generator_pipe.safety_checker = None
 
-        log_headers = ["Setting", "Value"]
         log_table = [
-            ["Model", input.model],
+            ['Model', input.model],
             ['Width', input.width],
             ['Height', input.height],
-            ["Steps", input.num_inference_steps],
-            ["Outputs", input.num_outputs],
-            ["Scheduler", input.scheduler],
-            ["Init Image URL", input.init_image_url],
-            ["Mask Image URL", input.mask_image_url],
-            ["Prompt Strength", input.prompt_strength],
+            ['Steps', input.num_inference_steps],
+            ['Outputs', input.num_outputs],
+            ['Prompt', input.prompt],
+            ['Negative Prompt', input.negative_prompt],
+            ['Translated Prompt', t_prompt],
+            ['Translated Negative Prompt', t_negative_prompt],
+            ['Scheduler', input.scheduler],
+            ['Init Image URL', input.init_image_url],
+            ['Mask Image URL', input.mask_image_url],
+            ['Prompt Strength', input.prompt_strength],
+            ['Seed', input.seed],
         ]
         print("-----------------------------------------------")
         print(f"🖥️  Generating  🖥️")
-        print(tabulate(log_table, log_headers, tablefmt="double_grid"))
+        print(tabulate(log_table, tablefmt="double_grid"))
         print("-----------------------------------------------")
 
         startTime = time.time()
@@ -261,7 +265,7 @@ def predict(
         endTime = time.time()
         print("-----------------------------------------------")
         print(f"🖥️  Generated in {round((endTime - startTime) * 1000)} ms   🖥️")
-        print(tabulate(log_table, log_headers, tablefmt="double_grid"))
+        print(tabulate(log_table, tablefmt="double_grid"))
         print("-----------------------------------------------")
 
         start_open_clip_prompt = time.time()
