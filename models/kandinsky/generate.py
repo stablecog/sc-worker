@@ -26,6 +26,24 @@ def create_scaled_mask(width, height, scale_factor):
     return mask
 
 
+def resize_to_mask(img, mask):
+    # Identify the "black" region in the mask
+    where_black = np.where(mask == 0)
+
+    # Calculate the dimensions of the "black" region
+    min_y, max_y = np.min(where_black[0]), np.max(where_black[0])
+    min_x, max_x = np.min(where_black[1]), np.max(where_black[1])
+
+    # Get the width and height of the "black" region
+    region_width = max_x - min_x
+    region_height = max_y - min_y
+
+    # Resize the image to match the dimensions of the "black" region
+    resized_img = img.resize((region_width, region_height))
+
+    return resized_img
+
+
 def generate_with_kandinsky(
     prompt,
     negative_prompt,
@@ -72,6 +90,7 @@ def generate_with_kandinsky(
 
     pipe = pipe["text2img"]
     pipe_inpainting = pipe["inpainting"]
+
     output_images = None
     if init_image_url is not None:
         start_i = time.time()
@@ -119,8 +138,9 @@ def generate_with_kandinsky(
             filtered_output_images.append(output_images[i])
     for i, image in enumerate(filtered_output_images):
         mask = create_scaled_mask(width, height, 0.5)
-        filtered_output_images[i] = pipe_inpainting(
-            init_image=image,
+        init_image = resize_to_mask(image, mask)
+        filtered_output_images[i] = pipe_inpainting.generate_inpainting(
+            init_image=init_image,
             mask=mask,
             **args,
         )
