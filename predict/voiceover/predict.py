@@ -87,7 +87,7 @@ def predict(
     ]
 
     print(
-        tabulate(["🎤⏳ Voiceover Gen.", "Started"] + log_table, tablefmt="double_grid")
+        tabulate([["🎤⏳ Voiceover Gen.", "Started"]] + log_table, tablefmt="double_grid")
     )
 
     voiceover_start = time.time()
@@ -101,12 +101,13 @@ def predict(
     )
     voiceover_end = time.time()
 
-    voiceover_dur = f"{round(voiceover_end - voiceover_start, 2)} sec."
     print(
         tabulate(
             [
-                "🎤✅ Voiceover Gen. Completed",
-                f"{round(voiceover_end - voiceover_start, 2)} sec.",
+                [
+                    "🎤✅ Voiceover Gen. Completed",
+                    f"{round(voiceover_end - voiceover_start, 2)} sec.",
+                ]
             ]
             + log_table,
             tablefmt="double_grid",

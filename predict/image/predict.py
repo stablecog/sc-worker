@@ -217,7 +217,7 @@ def predict(
         log_table.append(['Neg. Prompt Translated', neg_prompt_is_translated])
         print(
             tabulate(
-                ["Image Gen.", "Started"] + log_table,
+                [["🖥️⏳ Image Gen.", "Started"]] + log_table,
                 tablefmt="double_grid"
             )
         )
@@ -252,11 +252,11 @@ def predict(
             generate_output_images, generate_nsfw_count = generate_with_sd(**args)
         output_images = generate_output_images
         nsfw_count = generate_nsfw_count
+
         endTime = time.time()
-        
         print(
             tabulate(
-                ["🖥️✅ Image Gen. Completed", f"{round((endTime - startTime) * 1000)} ms"] + log_table,
+                [["🖥️✅ Image Gen. Completed", f"{round((endTime - startTime) * 1000)} ms"]] + log_table,
                 tablefmt="double_grid",
             ),
         )
