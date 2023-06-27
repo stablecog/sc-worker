@@ -196,29 +196,28 @@ def predict(
             generator_pipe.safety_checker = None
 
         log_table = [
-            ['Model', input.model],
-            ['Width', input.width],
-            ['Height', input.height],
-            ['Steps', input.num_inference_steps],
-            ['Outputs', input.num_outputs],
-            ['Scheduler', input.scheduler],
-            ['Init Image URL', input.init_image_url],
-            ['Mask Image URL', input.mask_image_url],
-            ['Prompt Strength', input.prompt_strength],
-            ['Seed', input.seed],
+            ["Model", input.model],
+            ["Width", input.width],
+            ["Height", input.height],
+            ["Steps", input.num_inference_steps],
+            ["Outputs", input.num_outputs],
+            ["Scheduler", input.scheduler],
+            ["Seed", input.seed],
+            ["Init Image URL", wrap_text(input.init_image_url)],
+            ["Mask Image URL", wrap_text(input.mask_image_url)],
+            ["Prompt Strength", input.prompt_strength],
         ]
         if prompt_is_translated:
-            log_table.append(['Original Prompt', wrap_text(input.prompt)])
-        log_table.append(['Final Prompt', wrap_text(t_prompt)])
-        log_table.append(['Prompt Translated', prompt_is_translated])
+            log_table.append(["Original Prompt", wrap_text(input.prompt)])
+        log_table.append(["Final Prompt", wrap_text(t_prompt)])
+        log_table.append(["Prompt Translated", prompt_is_translated])
         if neg_prompt_is_translated:
-            log_table.append(['Original Neg. Prompt', wrap_text(input.negative_prompt)])
-        log_table.append(['Final Neg. Prompt', wrap_text(t_negative_prompt)])
-        log_table.append(['Neg. Prompt Translated', neg_prompt_is_translated])
+            log_table.append(["Original Neg. Prompt", wrap_text(input.negative_prompt)])
+        log_table.append(["Final Neg. Prompt", wrap_text(t_negative_prompt)])
+        log_table.append(["Neg. Prompt Translated", neg_prompt_is_translated])
         print(
             tabulate(
-                [["🖼️  Generation 🟡", "Started"]] + log_table,
-                tablefmt="double_grid"
+                [["🖼️  Generation 🟡", "Started"]] + log_table, tablefmt="double_grid"
             )
         )
 
@@ -256,7 +255,8 @@ def predict(
         endTime = time.time()
         print(
             tabulate(
-                [["🖼️  Generation 🟢", f"{round((endTime - startTime) * 1000)} ms"]] + log_table,
+                [["🖼️  Generation 🟢", f"{round((endTime - startTime) * 1000)} ms"]]
+                + log_table,
                 tablefmt="double_grid",
             ),
         )
