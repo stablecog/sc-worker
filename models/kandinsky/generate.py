@@ -76,7 +76,7 @@ def generate(
         output_images = pipe.generate_inpainting(
             prompt,
             **args,
-            pil_image=init_image,
+            pil_img=init_image,
             img_mask=mask_image,
         )
     elif init_image_url is not None:
