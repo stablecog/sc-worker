@@ -52,14 +52,12 @@ def generate(
         "negative_decoder_prompt": "",
     }
 
-    pipe = pipe["text2img"]
-
     output_images = None
 
     if mask_image_url is not None:
-        pipe.task_type = "inpainting"
+        pipe = pipe["inpaint"]
     else:
-        pipe.task_type = "text2img"
+        pipe = pipe["text2img"]
 
     if init_image_url is not None and mask_image_url is not None:
         start = time.time()

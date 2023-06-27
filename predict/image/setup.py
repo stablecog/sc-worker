@@ -106,6 +106,12 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             model_version="2.1",
             use_flash_attention=True,
         ),
+        "inpaint": get_kandinsky2(
+            "cuda",
+            task_type="inpainting",
+            model_version="2.1",
+            use_flash_attention=True,
+        ),
     }
     print("✅ Loaded Kandinsky")
 
