@@ -199,8 +199,6 @@ def predict(
         )
         print("---------------------------------------------")
 
-        print(f"Input model: {input.model}")
-
         generator_pipe = None
         if input.model == KANDINSKY_MODEL_NAME:
             generator_pipe = models_pack.kandinsky
@@ -217,10 +215,6 @@ def predict(
             ['Height', input.height],
             ['Steps', input.num_inference_steps],
             ['Outputs', input.num_outputs],
-            ['Prompt', input.prompt],
-            ['Negative Prompt', input.negative_prompt],
-            ['Translated Prompt', t_prompt],
-            ['Translated Negative Prompt', t_negative_prompt],
             ['Scheduler', input.scheduler],
             ['Init Image URL', input.init_image_url],
             ['Mask Image URL', input.mask_image_url],
