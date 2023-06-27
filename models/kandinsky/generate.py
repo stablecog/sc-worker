@@ -64,22 +64,22 @@ def generate(
     if init_image_url is not None and mask_image_url is not None:
         start = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
-        init_image = np.array(init_image)
         end = time.time()
         print(
             f"-- Downloaded and cropped init image in: {round((end - start) * 1000)} ms"
         )
         start = time.time()
         mask_image = download_and_fit_image(mask_image_url, width, height)
+        mask_image = np.array(mask_image)
         end = time.time()
         print(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
         )
         output_images = pipe.generate_inpainting(
             prompt,
-            **args,
             pil_img=init_image,
             img_mask=mask_image,
+            **args,
         )
     elif init_image_url is not None:
         start_i = time.time()
