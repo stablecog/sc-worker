@@ -140,8 +140,8 @@ def generate_with_kandinsky(
         mask = create_scaled_mask(width, height, 0.5)
         init_image = resize_to_mask(image, mask)
         filtered_output_images[i] = pipe_inpainting.generate_inpainting(
-            init_image=init_image,
-            mask=mask,
+            pil_img=init_image,
+            img_mask=mask,
             **args,
         )
     return filtered_output_images, nsfw_count
