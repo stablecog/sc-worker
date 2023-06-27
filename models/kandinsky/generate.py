@@ -88,7 +88,7 @@ def generate_with_kandinsky(
         "negative_decoder_prompt": "",
     }
 
-    pipe = pipe["text2img"]
+    pipe_text2img = pipe["text2img"]
     pipe_inpainting = pipe["inpainting"]
 
     output_images = None
@@ -102,13 +102,13 @@ def generate_with_kandinsky(
         )
         images_and_texts = [prompt, init_image]
         weights = [prompt_strength, 1 - prompt_strength]
-        output_images = pipe.mix_images(
+        output_images = pipe_text2img.mix_images(
             images_and_texts,
             weights,
             **args,
         )
     else:
-        output_images = pipe.generate_text2img(
+        output_images = pipe_text2img.generate_text2img(
             prompt,
             **args,
         )
