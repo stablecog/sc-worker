@@ -70,6 +70,8 @@ def generate(
             )
         else:
             pipe_selected = pipe.img2img
+            extra_kwargs["width"] = width
+            extra_kwargs["height"] = height
         start_i = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
         end_i = time.time()
@@ -80,14 +82,14 @@ def generate(
         extra_kwargs["strength"] = prompt_strength
     else:
         pipe_selected = pipe.text2img
+        extra_kwargs["width"] = width
+        extra_kwargs["height"] = height
 
     generator = torch.Generator(DEVICE).manual_seed(seed)
     output = pipe_selected(
         prompt=prompt if prompt is not None else None,
         negative_prompt=negative_prompt if negative_prompt is not None else None,
         num_images_per_prompt=num_outputs,
-        width=width,
-        height=height,
         guidance_scale=guidance_scale,
         generator=generator,
         num_inference_steps=num_inference_steps,
