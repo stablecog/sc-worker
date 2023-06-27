@@ -69,6 +69,7 @@ def generate(
         start = time.time()
         mask_image = download_and_fit_image(mask_image_url, width, height)
         mask_image = np.array(mask_image)[:, :, 0]
+        print(mask_image)
         end = time.time()
         print(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
