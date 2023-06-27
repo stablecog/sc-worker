@@ -4,6 +4,7 @@ from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
 from shared.helpers import download_and_fit_image
 import torch
 from torch.cuda.amp import autocast
+import numpy as np
 
 
 def generate(
@@ -63,6 +64,7 @@ def generate(
     if init_image_url is not None and mask_image_url is not None:
         start = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
+        init_image = np.array(init_image)
         end = time.time()
         print(
             f"-- Downloaded and cropped init image in: {round((end - start) * 1000)} ms"
