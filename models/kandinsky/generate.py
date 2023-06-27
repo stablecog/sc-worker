@@ -1,15 +1,12 @@
 import os
 import time
-from models.constants import DEVICE
 from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
-from shared.helpers import download_image, fit_image
+from shared.helpers import download_and_fit_image
 import torch
 from torch.cuda.amp import autocast
-import numpy as np
-from PIL import Image
 
 
-def generate_with_kandinsky(
+def generate(
     prompt,
     negative_prompt,
     prompt_prefix,
@@ -20,6 +17,7 @@ def generate_with_kandinsky(
     num_inference_steps,
     guidance_scale,
     init_image_url,
+    mask_image_url,
     prompt_strength,
     scheduler,
     seed,
@@ -58,8 +56,7 @@ def generate_with_kandinsky(
     output_images = None
     if init_image_url is not None:
         start_i = time.time()
-        init_image = download_image(init_image_url)
-        init_image = fit_image(init_image, width, height)
+        init_image = download_and_fit_image(init_image_url, width, height)
         end_i = time.time()
         print(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"

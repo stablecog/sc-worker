@@ -92,7 +92,22 @@ def download_image(url):
     response = requests.get(url)
     if response.status_code != 200:
         raise Exception(f"Failed to download image from {url}")
-    return Image.open(BytesIO(response.content)).convert("RGB")
+    image = Image.open(BytesIO(response.content))
+    convert_format = "RGB" if image.format == "JPEG" else "RGBA"
+    image_converted = image.convert(convert_format)
+    return image_converted
+
+
+def fit_image(image, width, height):
+    resized_image = ImageOps.fit(image, (width, height))
+    return resized_image
+
+
+def download_and_fit_image(url, width, height):
+    image = download_image(url)
+    if image.width == width and image.height == height:
+        return image
+    return fit_image(image, width, height)
 
 
 def download_images(urls, max_workers=10):
@@ -100,11 +115,6 @@ def download_images(urls, max_workers=10):
         futures = [executor.submit(download_image, url) for url in urls]
         images = [future.result() for future in futures]
     return images
-
-
-def fit_image(image, width, height):
-    resized_image = ImageOps.fit(image, (width, height))
-    return resized_image
 
 
 def download_image_from_s3(key, bucket):

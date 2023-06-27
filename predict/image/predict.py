@@ -1,7 +1,7 @@
 import time
 
 from models.kandinsky.constants import KANDINSKY_MODEL_NAME, KANDINSKY_SCHEDULER_CHOICES
-from models.kandinsky.generate import generate_with_kandinsky
+from models.kandinsky.generate import generate as generate_with_kandinsky
 from models.stable_diffusion.constants import (
     SD_MODEL_CHOICES,
     SD_MODEL_DEFAULT_KEY,
@@ -9,7 +9,7 @@ from models.stable_diffusion.constants import (
     SD_SCHEDULER_DEFAULT,
 )
 
-from models.stable_diffusion.generate import generate
+from models.stable_diffusion.generate import generate as generate_with_sd
 from models.nllb.translate import translate_text_set_via_api
 from models.nllb.constants import TRANSLATOR_COG_URL
 from models.swinir.upscale import upscale
@@ -39,6 +39,10 @@ class PredictInput(BaseModel):
         description="Init image url to be used with img2img.",
         default=None,
     )
+    mask_image_url: str = Field(
+        description="Mask image url to be used with img2img.",
+        default=None,
+    )
     prompt_strength: float = Field(
         description="The strength of the prompt when using img2img, between 0-1. When 1, it'll essentially ignore the image.",
         ge=0,
@@ -51,17 +55,14 @@ class PredictInput(BaseModel):
     guidance_scale: float = Field(
         description="Scale for classifier-free guidance.", ge=1, le=20, default=7.5
     )
-
     model: str = Field(
         default=SD_MODEL_DEFAULT_KEY,
         description=f'Choose a model. Defaults to "{SD_MODEL_DEFAULT_KEY}".',
     )
-
     scheduler: str = Field(
         default=SD_SCHEDULER_DEFAULT,
         description=f'Choose a scheduler. Defaults to "{SD_SCHEDULER_DEFAULT}".',
     )
-
     seed: int = Field(
         description="Random seed. Leave blank to randomize the seed.", default=None
     )
@@ -81,7 +82,6 @@ class PredictInput(BaseModel):
         description="Output type of the image. Can be 'png' or 'jpeg' or 'webp'.",
         default="jpeg",
     )
-
     output_image_quality: int = Field(
         description="Output quality of the image. Can be 1-100.", default=90
     )
@@ -92,27 +92,22 @@ class PredictInput(BaseModel):
         description="Choose a process type. Can be 'generate', 'upscale' or 'generate_and_upscale'. Defaults to 'generate'",
         default="generate",
     )
-
     width: int = Field(
         description="Width of output image.",
         default=512,
     )
-
     height: int = Field(
         description="Height of output image.",
         default=512,
     )
-
     translator_cog_url: str = Field(
         description="URL of the translator cog. If it's blank, TRANSLATOR_COG_URL environment variable will be used (if it exists).",
         default=TRANSLATOR_COG_URL,
     )
-
     skip_translation: bool = Field(
         description="Whether to skip translating the prompt and the negative prompt or not.",
         default=False,
     )
-
     skip_safety_checker: bool = Field(
         description="Whether to skip the safety checker or not.", default=False
     )
@@ -233,6 +228,7 @@ def predict(
             "num_inference_steps": input.num_inference_steps,
             "guidance_scale": input.guidance_scale,
             "init_image_url": input.init_image_url,
+            "mask_image_url": input.mask_image_url,
             "prompt_strength": input.prompt_strength,
             "scheduler": input.scheduler,
             "seed": input.seed,
@@ -247,7 +243,7 @@ def predict(
                 else None,
             )
         else:
-            generate_output_images, generate_nsfw_count = generate(**args)
+            generate_output_images, generate_nsfw_count = generate_with_sd(**args)
         output_images = generate_output_images
         nsfw_count = generate_nsfw_count
         endTime = time.time()

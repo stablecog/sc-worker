@@ -4,7 +4,7 @@ from .helpers import get_scheduler
 from .constants import SD_MODELS
 from models.constants import DEVICE
 import time
-from shared.helpers import download_image, fit_image
+from shared.helpers import download_and_fit_image
 
 
 def generate(
@@ -18,6 +18,7 @@ def generate(
     num_inference_steps,
     guidance_scale,
     init_image_url,
+    mask_image_url,
     prompt_strength,
     scheduler,
     seed,
@@ -59,8 +60,7 @@ def generate(
     if init_image_url is not None:
         pipe_selected = pipe.img2img
         start_i = time.time()
-        init_image = download_image(init_image_url)
-        init_image = fit_image(init_image, width, height)
+        init_image = download_and_fit_image(init_image_url, width, height)
         end_i = time.time()
         print(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
