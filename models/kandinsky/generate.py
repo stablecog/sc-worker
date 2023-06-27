@@ -151,5 +151,5 @@ def generate_with_kandinsky(
             pil_img=init_image,
             img_mask=mask,
             **args,
-        )
+        )[0]
     return filtered_output_images, nsfw_count
