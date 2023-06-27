@@ -108,6 +108,13 @@ def download_and_fit_image(url, width, height):
     return fit_image(image, width, height)
 
 
+def download_and_fit_image_mask(url, width, height):
+    image = download_and_fit_image(url, width, height)
+    image = image.convert("L")
+    mask = np.array(image) / 255.0
+    return mask
+
+
 def download_images(urls, max_workers=10):
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [executor.submit(download_image, url) for url in urls]

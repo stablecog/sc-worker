@@ -1,7 +1,11 @@
 import os
 import time
 from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
-from shared.helpers import create_scaled_mask, download_and_fit_image
+from shared.helpers import (
+    create_scaled_mask,
+    download_and_fit_image,
+    download_and_fit_image_mask,
+)
 import torch
 from torch.cuda.amp import autocast
 import numpy as np
@@ -67,8 +71,7 @@ def generate(
             f"-- Downloaded and cropped init image in: {round((end - start) * 1000)} ms"
         )
         start = time.time()
-        mask_image = create_scaled_mask(width, height, 0.5)
-        print(mask_image)
+        mask_image = download_and_fit_image_mask(mask_image_url, width, height)
         end = time.time()
         print(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
