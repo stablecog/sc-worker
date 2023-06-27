@@ -85,8 +85,10 @@ def predict(
         ["RS silence thresh", input.remove_silence_silence_thresh],
         ["RS keep silence len", input.remove_silence_keep_silence_len],
     ]
-    print(tabulate(log_table, tablefmt="double_grid"))
 
+    print(tabulate(["🎤⏳ Voiceover Gen.", "Started"], log_table, tablefmt="double_grid"))
+
+    voiceover_start = time.time()
     voiceovers = generate_voiceover_with_bark(
         prompt=input.prompt,
         speaker=input.speaker,
@@ -94,6 +96,18 @@ def predict(
         seed=input.seed,
         denoiser_model=models_pack.denoiser_model,
         should_denoise=input.denoise_audio,
+    )
+    voiceover_end = time.time()
+
+    print(
+        tabulate(
+            [
+                "🎤✅ Voiceover Gen. Completed",
+                f"{round(voiceover_end - voiceover_start, 2)} sec.",
+            ]
+            + log_table,
+            tablefmt="double_grid",
+        )
     )
 
     outputs: List[PredictOutput] = [None] * len(voiceovers)

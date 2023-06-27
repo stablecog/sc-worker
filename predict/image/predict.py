@@ -180,24 +180,10 @@ def predict(
                 label="Prompt & Negative Prompt",
             )
         prompt_is_translated = input.prompt is not None and t_prompt != input.prompt
-        translated = " (Translated)"
-        not_translated = ""
-        print("---------------------------------------------")
-        if prompt_is_translated:
-            print(f"💬 Original Prompt: {input.prompt}")
-        print(
-            f"💬 Final Prompt{translated if prompt_is_translated else not_translated}: {t_prompt}"
-        )
         neg_prompt_is_translated = (
             input.negative_prompt is not None
             and t_negative_prompt != input.negative_prompt
         )
-        if neg_prompt_is_translated:
-            print(f"💬🔻 Original Neg. Prompt: {input.negative_prompt}")
-        print(
-            f"💬🔻 Final Neg. Prompt{translated if neg_prompt_is_translated else not_translated}: {t_negative_prompt}"
-        )
-        print("---------------------------------------------")
 
         generator_pipe = None
         if input.model == KANDINSKY_MODEL_NAME:
@@ -229,10 +215,12 @@ def predict(
             log_table.append(['Original Neg. Prompt', wrap_text(input.negative_prompt)])
         log_table.append(['Final Neg. Prompt', wrap_text(t_negative_prompt)])
         log_table.append(['Neg. Prompt Translated', neg_prompt_is_translated])
-        print("-----------------------------------------------")
-        print(f"🖥️  Generating")
-        print(tabulate(log_table, tablefmt="double_grid"))
-        print("-----------------------------------------------")
+        print(
+            tabulate(
+                ["🖥️⏳ Image Gen.", "Started"] + log_table,
+                tablefmt="double_grid"
+            )
+        )
 
         startTime = time.time()
         args = {
@@ -265,10 +253,13 @@ def predict(
         output_images = generate_output_images
         nsfw_count = generate_nsfw_count
         endTime = time.time()
-        print("-----------------------------------------------")
-        print(f"🖥️  Generated in {round((endTime - startTime) * 1000)} ms")
-        print(tabulate(log_table, tablefmt="double_grid"))
-        print("-----------------------------------------------")
+        
+        print(
+            tabulate(
+                ["🖥️✅ Image Gen. Completed", f"{round((endTime - startTime) * 1000)} ms"] + log_table,
+                tablefmt="double_grid",
+            ),
+        )
 
         start_open_clip_prompt = time.time()
         open_clip_embed_of_prompt = open_clip_get_embeds_of_texts(
