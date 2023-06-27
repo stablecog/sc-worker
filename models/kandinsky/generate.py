@@ -10,8 +10,8 @@ from PIL import Image
 
 
 def create_scaled_mask(width, height, scale_factor):
-    # First, create an initial mask filled with ones
-    mask = np.ones((height, width), dtype=np.float32)
+    # First, create an initial mask filled with zeros
+    mask = np.zeros((height, width), dtype=np.float32)
 
     # Calculate the dimensions of the scaled region
     scaled_width = int(width * scale_factor)
@@ -21,8 +21,8 @@ def create_scaled_mask(width, height, scale_factor):
     start_x = (width - scaled_width) // 2
     start_y = (height - scaled_height) // 2
 
-    # Set the pixels within the scaled region to zero
-    mask[start_y : start_y + scaled_height, start_x : start_x + scaled_width] = 0
+    # Set the pixels within the scaled region to one (white)
+    mask[start_y : start_y + scaled_height, start_x : start_x + scaled_width] = 1
 
     return mask
 
