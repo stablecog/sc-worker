@@ -222,12 +222,12 @@ def predict(
             ['Seed', input.seed],
         ]
         if prompt_is_translated:
-            log_table.append(['Original Prompt', input.prompt])
-        log_table.append(['Final Prompt', t_prompt])
+            log_table.append(['Original Prompt', input.prompt[:70]])
+        log_table.append(['Final Prompt', t_prompt[:70]])
         log_table.append(['Prompt Translated', prompt_is_translated])
         if neg_prompt_is_translated:
-            log_table.append(['Original Neg. Prompt', input.negative_prompt])
-        log_table.append(['Final Neg. Prompt', t_negative_prompt])
+            log_table.append(['Original Neg. Prompt', input.negative_prompt[:70]])
+        log_table.append(['Final Neg. Prompt', t_negative_prompt[:70]])
         log_table.append(['Neg. Prompt Translated', neg_prompt_is_translated])
         print("-----------------------------------------------")
         print(f"🖥️  Generating")
