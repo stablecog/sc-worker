@@ -24,7 +24,7 @@ from models.open_clip.main import (
 )
 from pydantic import BaseModel, Field, validator
 from shared.helpers import return_value_if_in_list
-import tabulate
+from tabulate import tabulate
 
 
 class PredictInput(BaseModel):
