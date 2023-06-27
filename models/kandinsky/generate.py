@@ -6,6 +6,7 @@ from shared.helpers import download_image, fit_image
 import torch
 from torch.cuda.amp import autocast
 import numpy as np
+from PIL import Image
 
 
 def create_scaled_mask(width, height, scale_factor):
@@ -41,7 +42,13 @@ def resize_to_mask(img, mask):
     # Resize the image to match the dimensions of the "black" region
     resized_img = img.resize((region_width, region_height))
 
-    return resized_img
+    # Create a new image filled with transparent pixels
+    new_img = Image.new("RGBA", img.size, (0, 0, 0, 0))
+
+    # Paste the resized image onto the new image at the appropriate location
+    new_img.paste(resized_img, (min_x, min_y))
+
+    return new_img
 
 
 def generate_with_kandinsky(
@@ -140,6 +147,7 @@ def generate_with_kandinsky(
         mask = create_scaled_mask(width, height, 0.5)
         init_image = resize_to_mask(image, mask)
         filtered_output_images[i] = pipe_inpainting.generate_inpainting(
+            prompt=prompt,
             pil_img=init_image,
             img_mask=mask,
             **args,
