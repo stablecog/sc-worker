@@ -253,10 +253,10 @@ def predict(
         output_images = generate_output_images
         nsfw_count = generate_nsfw_count
         endTime = time.time()
-
+        
         print(
             tabulate(
-                ["Image Gen. Completed", f"{round((endTime - startTime) * 1000)} ms"] + log_table,
+                ["🖥️✅ Image Gen. Completed", f"{round((endTime - startTime) * 1000)} ms"] + log_table,
                 tablefmt="double_grid",
             ),
         )

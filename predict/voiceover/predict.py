@@ -86,7 +86,9 @@ def predict(
         ["RS keep silence len", input.remove_silence_keep_silence_len],
     ]
 
-    print(tabulate(["Voiceover Gen.", "Started"] + log_table, tablefmt="double_grid"))
+    print(
+        tabulate(["🎤⏳ Voiceover Gen.", "Started"] + log_table, tablefmt="double_grid")
+    )
 
     voiceover_start = time.time()
     voiceovers = generate_voiceover_with_bark(
@@ -99,10 +101,11 @@ def predict(
     )
     voiceover_end = time.time()
 
+    voiceover_dur = f"{round(voiceover_end - voiceover_start, 2)} sec."
     print(
         tabulate(
             [
-                "Voiceover Gen. Completed",
+                "🎤✅ Voiceover Gen. Completed",
                 f"{round(voiceover_end - voiceover_start, 2)} sec.",
             ]
             + log_table,
