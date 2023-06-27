@@ -75,7 +75,12 @@ def generate(
             extra_kwargs["width"] = width
             extra_kwargs["height"] = height
         start_i = time.time()
-        init_image = download_and_fit_image(init_image_url, width, height)
+        init_image = download_and_fit_image(
+            url=init_image_url,
+            width=width,
+            height=height,
+            keep_transparency=True,
+        )
         end_i = time.time()
         print(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
