@@ -4,7 +4,7 @@ from .helpers import get_scheduler
 from .constants import SD_MODELS
 from models.constants import DEVICE
 import time
-from shared.helpers import download_and_fit_image
+from shared.helpers import download_and_fit_image, download_and_fit_image_mask
 
 
 def generate(
@@ -61,8 +61,10 @@ def generate(
         if mask_image_url is not None:
             pipe_selected = pipe.inpaint
             start_i = time.time()
-            extra_kwargs["mask_image"] = download_and_fit_image(
-                mask_image_url, width, height
+            extra_kwargs["mask_image"] = download_and_fit_image_mask(
+                url=mask_image_url,
+                width=width,
+                height=height,
             )
             end_i = time.time()
             print(

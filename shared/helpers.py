@@ -108,10 +108,10 @@ def download_and_fit_image(url, width, height):
     return fit_image(image, width, height)
 
 
-def download_and_fit_image_mask(url, width, height):
+def download_and_fit_image_mask(url, width, height, inverted=False):
     image = download_and_fit_image(url, width, height)
     image = image.convert("L")
-    mask = np.array(image) / 255.0
+    mask = 1 - np.array(image) / 255.0 if inverted else np.array(image) / 255.0
     return mask
 
 

@@ -71,7 +71,12 @@ def generate(
             f"-- Downloaded and cropped init image in: {round((end - start) * 1000)} ms"
         )
         start = time.time()
-        mask_image = download_and_fit_image_mask(mask_image_url, width, height)
+        mask_image = download_and_fit_image_mask(
+            url=mask_image_url,
+            width=width,
+            height=height,
+            inverted=True,
+        )
         end = time.time()
         print(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
