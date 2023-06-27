@@ -92,10 +92,7 @@ def download_image(url):
     response = requests.get(url)
     if response.status_code != 200:
         raise Exception(f"Failed to download image from {url}")
-    image = Image.open(BytesIO(response.content))
-    convert_format = "RGB" if image.format == "JPEG" else "RGBA"
-    image_converted = image.convert(convert_format)
-    return image_converted
+    return Image.open(BytesIO(response.content)).convert("RGB")
 
 
 def fit_image(image, width, height):
