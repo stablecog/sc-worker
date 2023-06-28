@@ -25,6 +25,16 @@ def clean_prefix_or_suffix_space(text: str):
     return text
 
 
+SD_ENV_KEY_TO_KEY = {
+    "SD": "Stable Diffusion v1.5",
+    "OJ": "Openjourney",
+    "RSD": "Redshift Diffusion",
+    "AD": "Arcane Diffusion",
+    "GD": "Ghibli Diffusion",
+    "WD": "Waifu Diffusion",
+    "22D": "22h Diffusion",
+    "LD": "Luna Diffusion",
+}
 SD_MODEL_CACHE = "diffusers-cache"
 SD_MODELS_ALL = {
     "Stable Diffusion v1.5": {
@@ -82,6 +92,9 @@ else:
     for model_env in models_from_env_list:
         if model_env in SD_MODELS_ALL:
             SD_MODELS[model_env] = SD_MODELS_ALL[model_env]
+        elif model_env in SD_ENV_KEY_TO_KEY:
+            key = SD_ENV_KEY_TO_KEY[model_env]
+            SD_MODELS[key] = SD_MODELS_ALL[key]
 
 SD_MODEL_CHOICES = list(SD_MODELS.keys())
 SD_MODEL_DEFAULT_KEY = SD_MODEL_CHOICES[0]
