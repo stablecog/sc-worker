@@ -82,7 +82,7 @@ SD_MODELS_ALL = {
 
 SD_MODEL_FOR_SAFETY_CHECKER = "Stable Diffusion v1.5"
 SD_MODELS = {}
-models_from_env = os.environ.get("MODELS", "Stable Diffusion v1.5, Openjourney")
+models_from_env = os.environ.get("MODELS", "Stable Diffusion v1.5")
 if models_from_env == "all":
     SD_MODELS = SD_MODELS_ALL
 else:
