@@ -93,25 +93,19 @@ def convert_audio_to_video(
         new_image = base_image.copy()
 
         if t > 1 / fps and t < audioclip.duration - 1 / fps:
-            position = int(
-                (t - 1 / fps) / (audioclip.duration - 2 / fps) * total_positions
+            position = min(
+                int((t - 1 / fps) / (audioclip.duration - 2 / fps) * total_positions),
+                total_positions,
             )
             position += padding
 
-            if position < moving_image_width:
-                moving_image_cropped = moving_image[:, :position]
-                new_image[:moving_image_height, :position] = moving_image_cropped
-            else:
-                new_image[:moving_image_height, :position] = moving_image
-
-            # Apply moving image onto new_image while preserving transparency
             for c in range(0, 3):
-                new_image[:moving_image_height, :position, c] = moving_image[
-                    :, :, c
-                ] * (moving_image[:, :, 3] / 255.0) + new_image[
-                    :moving_image_height, :position, c
+                new_image[:moving_image_height, padding:position, c] = moving_image[
+                    :, : position - padding, c
+                ] * (moving_image[:, : position - padding, 3] / 255.0) + new_image[
+                    :moving_image_height, padding:position, c
                 ] * (
-                    1.0 - moving_image[:, :, 3] / 255.0
+                    1.0 - moving_image[:, : position - padding, 3] / 255.0
                 )
 
         new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2RGB)
