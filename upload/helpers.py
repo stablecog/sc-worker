@@ -27,7 +27,7 @@ def get_waveform_image_url(
     return f"https://og.stablecog.com/api/voiceover/waveform.png?speaker={encoded_speaker}&prompt={encoded_prompt}=&audio_array={audio_array_string}"
 
 
-def audio_array_from_wav(wav_bytes: BytesIO, count: int = 50, overlap: float = 0.1):
+def audio_array_from_wav(wav_bytes: BytesIO, count: int = 50):
     # Read the WAV data
     wav_bytes.seek(0)
     sample_rate, audio_data = wav_read(wav_bytes)
@@ -39,25 +39,18 @@ def audio_array_from_wav(wav_bytes: BytesIO, count: int = 50, overlap: float = 0
     # Convert to floating point
     audio_data = audio_data.astype(np.float32)
 
-    # Compute RMS over overlapping windows
+    # Pick a specific point (middle) in each window
     window_size = len(audio_data) // count
-    stride = int(window_size * (1 - overlap))
-    rms_values = []
-    for i in range(0, len(audio_data) - window_size, stride):
-        window = audio_data[i : i + window_size]
-        window = window * np.hanning(window_size)  # Apply Hanning window
-        rms = np.sqrt(np.mean(window**2))
-        rms_values.append(rms)
+    audio_data = audio_data[: window_size * count]  # Discard end samples if necessary
+    audio_data = audio_data.reshape(-1, window_size)
+    point_values = audio_data[:, window_size // 2]
 
-    # If we ended up with too many windows due to the overlap, just take the first 'count' ones
-    rms_values = rms_values[:count]
+    # Convert point values to dB
+    point_db = 20 * np.log10(np.maximum(1e-5, np.abs(point_values)))
 
-    # Convert RMS values to dB, adding a small value to avoid log of zero
-    rms_db = 20 * np.log10(np.maximum(1e-5, np.array(rms_values)))
-
-    # Normalize dB values to [0, 1] range, using a standard dB range for audio
-    rms_db_min, rms_db_max = -60.0, 0.0
-    audio_data = (rms_db - rms_db_min) / (rms_db_max - rms_db_min)
+    # Normalize dB values to [0, 1] range
+    point_db_min, point_db_max = point_db.min(), point_db.max()
+    audio_data = (point_db - point_db_min) / (point_db_max - point_db_min)
 
     audio_data_list = [float(x) for x in audio_data]
     return audio_data_list
