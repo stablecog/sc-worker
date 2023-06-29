@@ -44,8 +44,9 @@ def audio_array_from_wav(wav_bytes: BytesIO, count: int = 50):
     audio_data = audio_data[: window_size * count]  # Discard end samples if necessary
     audio_data = audio_data.reshape(-1, window_size)
     point_values1 = audio_data[:, window_size // 4]
-    point_values2 = audio_data[:, window_size * 3 // 4]
-    avg_values = (point_values1 + point_values2) / 2
+    point_values2 = audio_data[:, window_size * 2 // 4]
+    point_values3 = audio_data[:, window_size * 3 // 4]
+    avg_values = (point_values1 + point_values2 + point_values3) / 3
 
     # Convert average values to dB
     avg_db = 20 * np.log10(np.maximum(1e-5, np.abs(avg_values)))
