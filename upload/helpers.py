@@ -62,7 +62,7 @@ def convert_audio_to_video(
     image_url = get_waveform_image_url(speaker, prompt, audio_array)
     cursor_path = os.path.join(os.path.dirname(__file__), "..", "assets", "cursor.png")
 
-    fps = 60
+    fps = 30
 
     # write audio bytes to a temporary file
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as audio_file:
