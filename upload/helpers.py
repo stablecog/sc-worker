@@ -1,12 +1,13 @@
 import os
 import tempfile
 import requests
-from moviepy.editor import AudioFileClip, ImageClip
+from moviepy.editor import AudioFileClip, VideoClip
 from io import BytesIO
 from typing import List
 import base64
 import numpy as np
 from scipy.io.wavfile import read as wav_read
+import cv2
 
 
 def encode_string_as_base64(string: str) -> str:
@@ -59,6 +60,9 @@ def convert_audio_to_video(
     wav_bytes: BytesIO, speaker: str, prompt: str, audio_array: List[float]
 ) -> BytesIO:
     image_url = get_waveform_image_url(speaker, prompt, audio_array)
+    cursor_path = os.path.join(os.path.dirname(__file__), "..", "assets", "cursor.png")
+
+    fps = 30
 
     # write audio bytes to a temporary file
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as audio_file:
@@ -71,14 +75,50 @@ def convert_audio_to_video(
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as img_file:
         img_file.write(response.content)
         img_file_path = img_file.name
+        base_image = cv2.imread(img_file_path)
+        moving_image = cv2.imread(
+            cursor_path, cv2.IMREAD_UNCHANGED
+        )  # include the alpha channel
+        moving_image_height, moving_image_width, _ = moving_image.shape
 
-    # read the temporary audio file into MoviePy
+    total_positions = base_image.shape[1] - moving_image_width - 1
+
+    def make_frame(t):
+        # Create a new image with the moving image at the correct position
+        new_image = base_image.copy()
+
+        # Don't show the moving image in the first and last frame
+        if t > 1 / fps and t < audio_file.duration - 1 / fps:
+            # Calculate the position of the moving image in this frame
+            position = min(
+                int((t - 1 / fps) / (audio_file.duration - 2 / fps) * total_positions),
+                total_positions,
+            )
+
+            # Apply moving image onto new_image while preserving transparency
+            for c in range(0, 3):
+                new_image[
+                    :moving_image_height, position : position + moving_image_width, c
+                ] = moving_image[:, :, c] * (moving_image[:, :, 3] / 255.0) + new_image[
+                    :moving_image_height, position : position + moving_image_width, c
+                ] * (
+                    1.0 - moving_image[:, :, 3] / 255.0
+                )
+
+        # Convert BGR to RGB
+        new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2RGB)
+
+        return new_image
+
     audioclip = AudioFileClip(audio_file_path)
+    # Create a clip from the frames
+    imgclip = (
+        VideoClip(make_frame, duration=audioclip.duration)
+        .set_duration(audioclip.duration)
+        .set_fps(fps)
+    )
 
-    # read the downloaded image file into MoviePy
-    imgclip = ImageClip(img_file_path).set_duration(audioclip.duration).set_fps(1)
-
-    # set the audio of the video to be the mp3 file
+    # Set the audio of the video to be the wav file
     videoclip = imgclip.set_audio(audioclip)
 
     # write the final clip to another temporary file
