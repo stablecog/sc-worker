@@ -87,7 +87,7 @@ def convert_audio_to_video(
         moving_image_height, moving_image_width, _ = moving_image.shape
 
     padding = 48
-    total_positions = base_image.shape[1] - (2 * padding)
+    total_positions = base_image.shape[1] - moving_image_width - (2 * padding) - 1
 
     def make_frame(t):
         new_image = base_image.copy()
@@ -100,12 +100,12 @@ def convert_audio_to_video(
             position += padding
 
             for c in range(0, 3):
-                new_image[:moving_image_height, padding:position, c] = moving_image[
-                    :, : position - padding, c
-                ] * (moving_image[:, : position - padding, 3] / 255.0) + new_image[
-                    :moving_image_height, padding:position, c
+                new_image[:moving_image_height, position + padding :, c] = moving_image[
+                    :, position:, c
+                ] * (moving_image[:, position:, 3] / 255.0) + new_image[
+                    :moving_image_height, position + padding :, c
                 ] * (
-                    1.0 - moving_image[:, : position - padding, 3] / 255.0
+                    1.0 - moving_image[:, position:, 3] / 255.0
                 )
 
         new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2RGB)
