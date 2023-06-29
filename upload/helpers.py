@@ -92,7 +92,7 @@ def convert_audio_to_video(
     def make_frame(t):
         new_image = base_image.copy()
 
-        if t > 1 / fps and t < audioclip.duration - 1 / fps:
+        if 1 / fps <= t < audioclip.duration - 1 / fps:
             position = min(
                 int((t - 1 / fps) / (audioclip.duration - 2 / fps) * total_positions),
                 total_positions,
@@ -128,6 +128,10 @@ def convert_audio_to_video(
 
     with open(output_file_path, "rb") as f:
         output_bytes = BytesIO(f.read())
+
+    print("Audio duration:", audioclip.duration)
+    print("Video duration:", imgclip.duration)
+    print("Final video duration:", videoclip.duration)
 
     os.remove(audio_file_path)
     os.remove(img_file_path)
