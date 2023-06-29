@@ -63,7 +63,9 @@ def convert_audio_to_video(
     wav_bytes: BytesIO, speaker: str, prompt: str, audio_array: List[float]
 ) -> BytesIO:
     image_url = get_waveform_image_url(speaker, prompt, audio_array)
-    cursor_path = os.path.join(os.path.dirname(__file__), "..", "assets", "cursor.png")
+    overlay_path = os.path.join(
+        os.path.dirname(__file__), "..", "assets", "overlay.png"
+    )
 
     fps = 30
 
@@ -82,11 +84,11 @@ def convert_audio_to_video(
         img_file_path = img_file.name
         base_image = cv2.imread(img_file_path)
         moving_image = cv2.imread(
-            cursor_path, cv2.IMREAD_UNCHANGED
+            overlay_path, cv2.IMREAD_UNCHANGED
         )  # include the alpha channel
         moving_image_height, moving_image_width, _ = moving_image.shape
 
-    padding = 48 - moving_image_width // 2
+    padding = 48
 
     # Total number of positions for the moving image (subtract one more to ensure the moving image reaches the end)
     total_positions = base_image.shape[1] - moving_image_width - (2 * padding) - 1
