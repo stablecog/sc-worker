@@ -1,13 +1,15 @@
 import os
 import tempfile
 import requests
-from moviepy.editor import AudioFileClip, VideoClip
+from moviepy.editor import AudioFileClip, ImageSequenceClip
 from io import BytesIO
 from typing import List
 import base64
 import numpy as np
 from scipy.io.wavfile import read as wav_read
 import cv2
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import math
 
 
 def encode_string_as_base64(string: str) -> str:
@@ -82,43 +84,65 @@ def convert_audio_to_video(
         img_file.write(response.content)
         img_file_path = img_file.name
 
-        base_image = cv2.imread(img_file_path)
-        moving_image = cv2.imread(overlay_path, cv2.IMREAD_UNCHANGED)
-        moving_image_height, moving_image_width, _ = moving_image.shape
+    base_image = cv2.imread(img_file_path)
+    moving_image = cv2.imread(overlay_path, cv2.IMREAD_UNCHANGED)
+    moving_image_height, moving_image_width, _ = moving_image.shape
 
     padding = 48
     total_positions = base_image.shape[1] - (2 * padding)
 
-    def make_frame(t):
+    def make_frame(i):
         new_image = base_image.copy()
 
-        if 1 / fps <= t < audioclip.duration - 1 / fps:
+        if i > 0 and i < total_frames - 1:
             position = min(
-                int((t - 1 / fps) / (audioclip.duration - 2 / fps) * total_positions),
+                int((i - 1) / (total_frames - 2) * total_positions),
                 total_positions,
             )
             position += padding
 
+            overlay_width = min(
+                total_positions + padding - position, moving_image_width
+            )
+
             for c in range(0, 3):
                 new_image[
-                    :moving_image_height, position : total_positions + padding, c
-                ] = moving_image[:, : total_positions + padding - position, c] * (
-                    moving_image[:, : total_positions + padding - position, 3] / 255.0
+                    :moving_image_height, position : position + overlay_width, c
+                ] = moving_image[:, :overlay_width, c] * (
+                    moving_image[:, :overlay_width, 3] / 255.0
                 ) + new_image[
-                    :moving_image_height, position : total_positions + padding, c
+                    :moving_image_height, position : position + overlay_width, c
                 ] * (
-                    1.0
-                    - moving_image[:, : total_positions + padding - position, 3] / 255.0
+                    1.0 - moving_image[:, :overlay_width, 3] / 255.0
                 )
 
         new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2RGB)
         return new_image
 
-    imgclip = (
-        VideoClip(make_frame, duration=audioclip.duration)
-        .set_duration(audioclip.duration)
-        .set_fps(fps)
-    )
+    chunk_size = 30
+    total_frames = math.ceil(
+        audioclip.duration * fps
+    )  # round up to ensure we cover the entire audio duration
+    frame_chunks = [
+        range(i, min(i + chunk_size, total_frames))
+        for i in range(0, total_frames, chunk_size)
+    ]
+
+    frames = [None] * total_frames
+
+    def process_frame_chunk(frame_chunk):
+        return [(i, make_frame(i)) for i in frame_chunk]
+
+    with ThreadPoolExecutor() as executor:
+        futures = {
+            executor.submit(process_frame_chunk, frame_chunk)
+            for frame_chunk in frame_chunks
+        }
+        for future in as_completed(futures):
+            for i, frame in future.result():
+                frames[i] = frame
+
+    imgclip = ImageSequenceClip(frames, fps=fps).set_duration(audioclip.duration)
 
     videoclip = imgclip.set_audio(audioclip)
 
@@ -128,10 +152,6 @@ def convert_audio_to_video(
 
     with open(output_file_path, "rb") as f:
         output_bytes = BytesIO(f.read())
-
-    print("Audio duration:", audioclip.duration)
-    print("Video duration:", imgclip.duration)
-    print("Final video duration:", videoclip.duration)
 
     os.remove(audio_file_path)
     os.remove(img_file_path)
