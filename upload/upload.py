@@ -158,9 +158,9 @@ def convert_and_upload_audio_file_to_s3(
     audio_array = audio_array_from_wav(audio_bytes, 50)
 
     s_conv = time.time()
-    content_type = "audio/wav"
+    content_type_audio = "audio/wav"
     if target_extension == "mp3":
-        content_type = "audio/mpeg"
+        content_type_audio = "audio/mpeg"
         audio_bytes = convert_wav_to_mp3(audio_bytes)
     e_conv = time.time()
     print(
@@ -168,7 +168,7 @@ def convert_and_upload_audio_file_to_s3(
     )
 
     s_vid = time.time()
-    content_type = "video/mp4"
+    content_type_video = "video/mp4"
     video_bytes = convert_audio_to_video(
         wav_bytes=audio_bytes,
         speaker=speaker,
@@ -185,7 +185,9 @@ def convert_and_upload_audio_file_to_s3(
         key = f"{ensure_trailing_slash(upload_path_prefix)}{key}"
     start_upload = time.time()
     print(f"-- Upload: Uploading to S3")
-    s3.Bucket(s3_bucket).put_object(Body=audio_bytes, Key=key, ContentType=content_type)
+    s3.Bucket(s3_bucket).put_object(
+        Body=audio_bytes, Key=key, ContentType=content_type_audio
+    )
     end_upload = time.time()
     print(f"Uploaded audio file in: {round((end_upload - start_upload) *1000)} ms")
     audio_url = f"s3://{s3_bucket}/{key}"
@@ -196,7 +198,7 @@ def convert_and_upload_audio_file_to_s3(
     start_upload = time.time()
     print(f"-- Upload: Uploading to S3")
     s3.Bucket(s3_bucket).put_object(
-        Body=video_bytes, Key=key_video, ContentType=content_type
+        Body=video_bytes, Key=key_video, ContentType=content_type_video
     )
     end_upload = time.time()
     print(f"Uploaded video file in: {round((end_upload - start_upload) *1000)} ms")
