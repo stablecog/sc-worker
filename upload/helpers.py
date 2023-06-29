@@ -27,7 +27,7 @@ def get_waveform_image_url(
     return f"https://og.stablecog.com/api/voiceover/waveform.png?speaker={encoded_speaker}&prompt={encoded_prompt}=&audio_array={audio_array_string}"
 
 
-def audio_array_from_wav(wav_bytes: BytesIO, count: int):
+def audio_array_from_wav(wav_bytes: BytesIO, count: int = 50):
     # Read the WAV data
     wav_bytes.seek(0)
     sample_rate, audio_data = wav_read(wav_bytes)
