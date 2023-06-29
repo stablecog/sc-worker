@@ -156,6 +156,7 @@ def convert_and_upload_audio_file_to_s3(
 
     audio_duration = get_audio_duration(audio_bytes)
     audio_array = audio_array_from_wav(audio_bytes, 50)
+    print(audio_array)
 
     s_conv = time.time()
     content_type_audio = "audio/wav"
