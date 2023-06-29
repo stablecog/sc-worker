@@ -23,11 +23,15 @@ class PredictOutput:
         target_extension: str,
         sample_rate: int,
         remove_silence_params: RemoveSilenceParams,
+        speaker: str,
+        prompt: str,
     ):
         self.audio_bytes = audio_bytes
         self.target_extension = target_extension
         self.sample_rate = sample_rate
         self.remove_silence_params = remove_silence_params
+        self.speaker = speaker
+        self.prompt = prompt
 
 
 class PredictResult:

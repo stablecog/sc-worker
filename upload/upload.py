@@ -21,6 +21,8 @@ from concurrent.futures import Future, ThreadPoolExecutor
 import wave
 from pydub import AudioSegment
 
+from upload.helpers import audio_array_from_wav, convert_audio_to_video
+
 
 def convert_and_upload_image_to_s3(
     s3: ServiceResource,
@@ -139,6 +141,8 @@ def convert_and_upload_audio_file_to_s3(
     sample_rate: int,
     target_extension: str,
     upload_path_prefix: str,
+    speaker: str,
+    prompt: str,
 ) -> tuple[str, int]:
     if remove_silence_params.should_remove:
         s = time.time()
@@ -151,6 +155,7 @@ def convert_and_upload_audio_file_to_s3(
         audio_bytes.seek(0)
 
     audio_duration = get_audio_duration(audio_bytes)
+    audio_array = audio_array_from_wav(audio_bytes, 50)
 
     s_conv = time.time()
     content_type = "audio/wav"
@@ -162,17 +167,42 @@ def convert_and_upload_audio_file_to_s3(
         f"Converted audio in: {round((e_conv - s_conv) *1000)} ms - {target_extension}"
     )
 
-    key = f"{str(uuid.uuid4())}.{target_extension}"
+    s_vid = time.time()
+    content_type = "video/mp4"
+    video_bytes = convert_audio_to_video(
+        wav_bytes=audio_bytes,
+        speaker=speaker,
+        prompt=prompt,
+        audio_array=audio_array,
+    )
+    e_vid = time.time()
+    print(f"Created video in: {round((e_vid - s_vid) *1000)} ms")
+
+    new_uuid = str(uuid.uuid4())
+
+    key = f"{new_uuid}.{target_extension}"
     if upload_path_prefix is not None and upload_path_prefix != "":
         key = f"{ensure_trailing_slash(upload_path_prefix)}{key}"
-
     start_upload = time.time()
     print(f"-- Upload: Uploading to S3")
     s3.Bucket(s3_bucket).put_object(Body=audio_bytes, Key=key, ContentType=content_type)
     end_upload = time.time()
     print(f"Uploaded audio file in: {round((end_upload - start_upload) *1000)} ms")
+    audio_url = f"s3://{s3_bucket}/{key}"
 
-    return [f"s3://{s3_bucket}/{key}", audio_duration]
+    key_video = f"{new_uuid}.mp4"
+    if upload_path_prefix is not None and upload_path_prefix != "":
+        key_video = f"{ensure_trailing_slash(upload_path_prefix)}{key_video}"
+    start_upload = time.time()
+    print(f"-- Upload: Uploading to S3")
+    s3.Bucket(s3_bucket).put_object(
+        Body=video_bytes, Key=key_video, ContentType=content_type
+    )
+    end_upload = time.time()
+    print(f"Uploaded video file in: {round((end_upload - start_upload) *1000)} ms")
+    video_url = f"s3://{s3_bucket}/{key_video}"
+
+    return [audio_url, audio_duration, video_url, audio_array]
 
 
 def upload_files_for_voiceover(
@@ -200,6 +230,8 @@ def upload_files_for_voiceover(
                     uo.sample_rate,
                     uo.target_extension,
                     upload_path_prefix,
+                    uo.speaker,
+                    uo.prompt,
                 )
             )
 
@@ -207,8 +239,20 @@ def upload_files_for_voiceover(
     results = []
     for task in tasks:
         print(f"-- Upload: Got result")
-        [audio_file, audio_duration] = task.result()
-        results.append({"audio_file": audio_file, "audio_duration": audio_duration})
+        [
+            audio_file,
+            audio_duration,
+            video_file,
+            audio_array,
+        ] = task.result()
+        results.append(
+            {
+                "audio_file": audio_file,
+                "audio_duration": audio_duration,
+                "video_file": video_file,
+                "audio_array": audio_array,
+            }
+        )
 
     end = time.time()
     print(

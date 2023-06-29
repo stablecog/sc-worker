@@ -125,6 +125,8 @@ def predict(
                 silence_thresh=input.remove_silence_silence_thresh,
                 keep_silence_len=input.remove_silence_keep_silence_len,
             ),
+            speaker=input.speaker,
+            prompt=input.prompt,
         )
 
     result = PredictResult(
