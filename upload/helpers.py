@@ -51,7 +51,8 @@ def audio_array_from_wav(wav_bytes: BytesIO, count: int):
     rms_db_min, rms_db_max = rms_db.min(), rms_db.max()
     audio_data = (rms_db - rms_db_min) / (rms_db_max - rms_db_min)
 
-    return list(audio_data)
+    audio_data_list = [float(x) for x in audio_data]
+    return audio_data_list
 
 
 def convert_audio_to_video(
