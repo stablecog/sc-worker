@@ -83,7 +83,7 @@ def convert_audio_to_video(
         )  # include the alpha channel
         moving_image_height, moving_image_width, _ = moving_image.shape
 
-    padding = 48
+    padding = 40
 
     # Total number of positions for the moving image (subtract one more to ensure the moving image reaches the end)
     total_positions = base_image.shape[1] - moving_image_width - (2 * padding) - 1
