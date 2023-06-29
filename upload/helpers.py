@@ -69,79 +69,69 @@ def convert_audio_to_video(
 
     fps = 30
 
-    # write audio bytes to a temporary file
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as audio_file:
         audio_file.write(wav_bytes.getbuffer())
         audio_file_path = audio_file.name
 
     audioclip = AudioFileClip(audio_file_path)
 
-    # download the image and save it to a temporary file
     response = requests.get(image_url)
-    response.raise_for_status()  # ensure we downloaded the image successfully
+    response.raise_for_status()
+
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as img_file:
         img_file.write(response.content)
         img_file_path = img_file.name
+
         base_image = cv2.imread(img_file_path)
-        moving_image = cv2.imread(
-            overlay_path, cv2.IMREAD_UNCHANGED
-        )  # include the alpha channel
+        moving_image = cv2.imread(overlay_path, cv2.IMREAD_UNCHANGED)
         moving_image_height, moving_image_width, _ = moving_image.shape
 
     padding = 48
-
-    # Total number of positions for the moving image (subtract one more to ensure the moving image reaches the end)
-    total_positions = base_image.shape[1] - moving_image_width - (2 * padding) - 1
+    total_positions = base_image.shape[1] - (2 * padding)
 
     def make_frame(t):
-        # Create a new image with the moving image at the correct position
         new_image = base_image.copy()
-        # Don't show the moving image in the first and last frame
-        if t > 1 / fps and t < audioclip.duration - 1 / fps:
-            # Calculate the position of the moving image in this frame
-            position = min(
-                int((t - 1 / fps) / (audioclip.duration - 2 / fps) * total_positions),
-                total_positions,
-            )
 
-            # Adjust position by the padding
+        if t > 1 / fps and t < audioclip.duration - 1 / fps:
+            position = int(
+                (t - 1 / fps) / (audioclip.duration - 2 / fps) * total_positions
+            )
             position += padding
+
+            if position < moving_image_width:
+                moving_image_cropped = moving_image[:, :position]
+                new_image[:moving_image_height, :position] = moving_image_cropped
+            else:
+                new_image[:moving_image_height, :position] = moving_image
 
             # Apply moving image onto new_image while preserving transparency
             for c in range(0, 3):
-                new_image[
-                    :moving_image_height, position : position + moving_image_width, c
-                ] = moving_image[:, :, c] * (moving_image[:, :, 3] / 255.0) + new_image[
-                    :moving_image_height, position : position + moving_image_width, c
+                new_image[:moving_image_height, :position, c] = moving_image[
+                    :, :, c
+                ] * (moving_image[:, :, 3] / 255.0) + new_image[
+                    :moving_image_height, :position, c
                 ] * (
                     1.0 - moving_image[:, :, 3] / 255.0
                 )
 
-        # Convert BGR to RGB
         new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2RGB)
-
         return new_image
 
-    # Create a clip from the frames
     imgclip = (
         VideoClip(make_frame, duration=audioclip.duration)
         .set_duration(audioclip.duration)
         .set_fps(fps)
     )
 
-    # Set the audio of the video to be the wav file
     videoclip = imgclip.set_audio(audioclip)
 
-    # write the final clip to another temporary file
     with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as output_file:
         videoclip.write_videofile(output_file.name, codec="libx264", audio_codec="aac")
         output_file_path = output_file.name
 
-    # read the temporary output file into a BytesIO object
     with open(output_file_path, "rb") as f:
         output_bytes = BytesIO(f.read())
 
-    # Delete the temporary files
     os.remove(audio_file_path)
     os.remove(img_file_path)
     os.remove(output_file_path)
