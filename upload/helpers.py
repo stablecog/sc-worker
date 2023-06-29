@@ -27,7 +27,7 @@ def get_waveform_image_url(
     return f"https://og.stablecog.com/api/voiceover/waveform.png?speaker={encoded_speaker}&prompt={encoded_prompt}=&audio_array={audio_array_string}"
 
 
-def audio_array_from_wav(wav_bytes: BytesIO, count: int):
+def audio_array_from_wav(wav_bytes: BytesIO, count: int, overlap: float = 0.5):
     # Read the WAV data
     wav_bytes.seek(0)
     sample_rate, audio_data = wav_read(wav_bytes)
@@ -39,17 +39,24 @@ def audio_array_from_wav(wav_bytes: BytesIO, count: int):
     # Convert to floating point
     audio_data = audio_data.astype(np.float32)
 
-    # Compute RMS over windows
+    # Compute RMS over overlapping windows
     window_size = len(audio_data) // count
-    audio_data = audio_data[: window_size * count]  # Discard end samples if necessary
-    audio_data = audio_data.reshape(-1, window_size)
-    rms_values = np.sqrt(np.mean(audio_data**2, axis=1))
+    stride = int(window_size * (1 - overlap))
+    rms_values = []
+    for i in range(0, len(audio_data) - window_size, stride):
+        window = audio_data[i : i + window_size]
+        window = window * np.hanning(window_size)  # Apply Hanning window
+        rms = np.sqrt(np.mean(window**2))
+        rms_values.append(rms)
 
-    # Convert RMS values to dB
-    rms_db = 20 * np.log10(rms_values)
+    # If we ended up with too many windows due to the overlap, just take the first 'count' ones
+    rms_values = rms_values[:count]
 
-    # Normalize dB values to [0, 1] range
-    rms_db_min, rms_db_max = rms_db.min(), rms_db.max()
+    # Convert RMS values to dB, adding a small value to avoid log of zero
+    rms_db = 20 * np.log10(np.maximum(1e-5, np.array(rms_values)))
+
+    # Normalize dB values to [0, 1] range, using a standard dB range for audio
+    rms_db_min, rms_db_max = -60.0, 0.0
     audio_data = (rms_db - rms_db_min) / (rms_db_max - rms_db_min)
 
     audio_data_list = [float(x) for x in audio_data]
