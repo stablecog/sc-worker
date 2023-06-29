@@ -62,7 +62,7 @@ def convert_audio_to_video(
     image_url = get_waveform_image_url(speaker, prompt, audio_array)
     cursor_path = os.path.join(os.path.dirname(__file__), "..", "assets", "cursor.png")
 
-    fps = 30
+    fps = 60
 
     # write audio bytes to a temporary file
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as audio_file:
@@ -83,12 +83,14 @@ def convert_audio_to_video(
         )  # include the alpha channel
         moving_image_height, moving_image_width, _ = moving_image.shape
 
-    total_positions = base_image.shape[1] - moving_image_width - 1
+    padding = 48
+
+    # Total number of positions for the moving image (subtract one more to ensure the moving image reaches the end)
+    total_positions = base_image.shape[1] - moving_image_width - (2 * padding) - 1
 
     def make_frame(t):
         # Create a new image with the moving image at the correct position
         new_image = base_image.copy()
-
         # Don't show the moving image in the first and last frame
         if t > 1 / fps and t < audioclip.duration - 1 / fps:
             # Calculate the position of the moving image in this frame
@@ -96,6 +98,9 @@ def convert_audio_to_video(
                 int((t - 1 / fps) / (audioclip.duration - 2 / fps) * total_positions),
                 total_positions,
             )
+
+            # Adjust position by the padding
+            position += padding
 
             # Apply moving image onto new_image while preserving transparency
             for c in range(0, 3):
