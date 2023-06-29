@@ -69,6 +69,8 @@ def convert_audio_to_video(
         audio_file.write(wav_bytes.getbuffer())
         audio_file_path = audio_file.name
 
+    audioclip = AudioFileClip(audio_file_path)
+
     # download the image and save it to a temporary file
     response = requests.get(image_url)
     response.raise_for_status()  # ensure we downloaded the image successfully
@@ -88,10 +90,10 @@ def convert_audio_to_video(
         new_image = base_image.copy()
 
         # Don't show the moving image in the first and last frame
-        if t > 1 / fps and t < audio_file.duration - 1 / fps:
+        if t > 1 / fps and t < audioclip.duration - 1 / fps:
             # Calculate the position of the moving image in this frame
             position = min(
-                int((t - 1 / fps) / (audio_file.duration - 2 / fps) * total_positions),
+                int((t - 1 / fps) / (audioclip.duration - 2 / fps) * total_positions),
                 total_positions,
             )
 
@@ -110,7 +112,6 @@ def convert_audio_to_video(
 
         return new_image
 
-    audioclip = AudioFileClip(audio_file_path)
     # Create a clip from the frames
     imgclip = (
         VideoClip(make_frame, duration=audioclip.duration)
