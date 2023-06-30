@@ -157,11 +157,14 @@ def convert_and_upload_audio_file_to_s3(
     audio_duration = get_audio_duration(audio_bytes)
     audio_array = audio_array_from_wav(audio_bytes)
 
+    audio_bytes_converted = None
     s_conv = time.time()
     content_type_audio = "audio/wav"
     if target_extension == "mp3":
         content_type_audio = "audio/mpeg"
-        audio_bytes = convert_wav_to_mp3(audio_bytes)
+        audio_bytes_converted = convert_wav_to_mp3(audio_bytes)
+    else:
+        audio_bytes_converted = audio_bytes
     e_conv = time.time()
     print(
         f"Converted audio in: {round((e_conv - s_conv) *1000)} ms - {target_extension}"
@@ -186,7 +189,7 @@ def convert_and_upload_audio_file_to_s3(
     start_upload = time.time()
     print(f"-- Upload: Uploading to S3")
     s3.Bucket(s3_bucket).put_object(
-        Body=audio_bytes, Key=key, ContentType=content_type_audio
+        Body=audio_bytes_converted, Key=key, ContentType=content_type_audio
     )
     end_upload = time.time()
     print(f"Uploaded audio file in: {round((end_upload - start_upload) *1000)} ms")
