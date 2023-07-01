@@ -7,7 +7,42 @@ import tempfile
 import requests
 import math
 from io import BytesIO
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 from upload.helpers.get_waveform_image_url import get_waveform_image_url
+
+
+def process_frame(
+    i,
+    total_frames,
+    base_image,
+    moving_image,
+    total_positions,
+    padding,
+    moving_image_width,
+    moving_image_height,
+):
+    new_image = base_image.copy()
+    if i > 0 and i < total_frames - 1:
+        position = min(
+            int((i - 1) / (total_frames - 2) * total_positions),
+            total_positions,
+        )
+        position += padding
+
+        overlay_width = min(total_positions + padding - position, moving_image_width)
+
+        for c in range(0, 3):
+            new_image[
+                :moving_image_height, position : position + overlay_width, c
+            ] = moving_image[:, :overlay_width, c] * (
+                moving_image[:, :overlay_width, 3] / 255.0
+            ) + new_image[
+                :moving_image_height, position : position + overlay_width, c
+            ] * (
+                1.0 - moving_image[:, :overlay_width, 3] / 255.0
+            )
+    return new_image
 
 
 def convert_audio_to_video(
@@ -52,31 +87,19 @@ def convert_audio_to_video(
         (base_image.shape[1], base_image.shape[0]),
     )
 
-    for i in range(total_frames):
-        new_image = base_image.copy()
-        if i > 0 and i < total_frames - 1:
-            position = min(
-                int((i - 1) / (total_frames - 2) * total_positions),
-                total_positions,
-            )
-            position += padding
-
-            overlay_width = min(
-                total_positions + padding - position, moving_image_width
-            )
-
-            for c in range(0, 3):
-                new_image[
-                    :moving_image_height, position : position + overlay_width, c
-                ] = moving_image[:, :overlay_width, c] * (
-                    moving_image[:, :overlay_width, 3] / 255.0
-                ) + new_image[
-                    :moving_image_height, position : position + overlay_width, c
-                ] * (
-                    1.0 - moving_image[:, :overlay_width, 3] / 255.0
-                )
-
-        video.write(new_image)
+    with ThreadPoolExecutor() as executor:
+        process_partial = partial(
+            process_frame,
+            total_frames=total_frames,
+            base_image=base_image,
+            moving_image=moving_image,
+            total_positions=total_positions,
+            padding=padding,
+            moving_image_width=moving_image_width,
+            moving_image_height=moving_image_height,
+        )
+        for frame in executor.map(process_partial, range(total_frames)):
+            video.write(frame)
 
     video.release()
 
