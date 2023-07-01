@@ -236,13 +236,13 @@ def wrap_text(text, width=50):
 
 
 def do_normalize_audio_loudness(audio_arr, sample_rate, target_lufs=-16):
+    s = time.time()
     # Create a meter instance
     meter = Meter(sample_rate)
-
     # Measure the loudness of the audio
     loudness = meter.integrated_loudness(audio_arr)
-
     # Normalize the audio to the target LUFS
     normalized_audio_arr = normalize.loudness(audio_arr, loudness, target_lufs)
-
+    e = time.time()
+    print(f"🔊 Normalized audio loudness in: {round((e - s) * 1000)} ms 🔊")
     return normalized_audio_arr
