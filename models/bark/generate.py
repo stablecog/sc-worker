@@ -6,7 +6,7 @@ from bark import SAMPLE_RATE
 from bark.api import semantic_to_waveform
 import time
 import numpy as np
-from shared.helpers import numpy_to_wav_bytes
+from shared.helpers import do_normalize_audio_loudness, numpy_to_wav_bytes
 from io import BytesIO
 from typing import List, Any
 import os
@@ -29,6 +29,7 @@ def generate_voiceover(
     seed: int,
     denoiser_model: Any,
     should_denoise: bool,
+    normalize_audio_loudness: bool,
 ) -> List[GenerateVoiceoverOutputBark]:
     start = time.time()
     print("//////////////////////////////////////////////////////////////////")
@@ -65,6 +66,11 @@ def generate_voiceover(
 
     np_array = np.concatenate(pieces)
     sample_rate = SAMPLE_RATE
+
+    if normalize_audio_loudness:
+        np_array = do_normalize_audio_loudness(
+            audio_arr=np_array, sample_rate=sample_rate
+        )
 
     if should_denoise:
         arr, sr = denoise_audio(

@@ -23,6 +23,7 @@ class PredictOutput:
         target_extension: str,
         sample_rate: int,
         remove_silence_params: RemoveSilenceParams,
+        normalize_audio_loudness: bool,
         speaker: str,
         prompt: str,
     ):
@@ -30,6 +31,7 @@ class PredictOutput:
         self.target_extension = target_extension
         self.sample_rate = sample_rate
         self.remove_silence_params = remove_silence_params
+        self.normalize_audio_loudness = normalize_audio_loudness
         self.speaker = speaker
         self.prompt = prompt
 

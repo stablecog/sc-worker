@@ -23,6 +23,7 @@ from pydub import AudioSegment
 
 from upload.helpers.audio_array_from_wav import audio_array_from_wav
 from upload.helpers.convert_audio_to_video import convert_audio_to_video
+from upload.helpers.get_audio_duration import get_audio_duration
 
 
 def convert_and_upload_image_to_s3(
@@ -104,34 +105,6 @@ def upload_files_for_image(
     )
 
     return results
-
-
-def get_audio_duration(audio_bytes: BytesIO) -> int:
-    # Make sure we're at the start of the BytesIO object
-    audio_bytes.seek(0)
-
-    # Open the BytesIO object as a WAV file
-    wav_file = wave.open(audio_bytes, "rb")
-
-    # Extract the necessary information
-    bit_depth = wav_file.getsampwidth() * 8  # bit_depth in bits
-    num_channels = wav_file.getnchannels()
-    sample_rate = wav_file.getframerate()
-
-    # Calculate the number of samples
-    num_bytes = len(audio_bytes.getvalue())
-    num_samples = (
-        num_bytes * 8 / bit_depth
-    )  # number of samples = total bits / bits per sample
-
-    # If the audio is stereo (2 channels), divide the number of samples by 2
-    if num_channels == 2:
-        num_samples = num_samples // 2
-
-    # Calculate the duration
-    duration = num_samples / sample_rate
-
-    return duration
 
 
 def convert_and_upload_audio_file_to_s3(

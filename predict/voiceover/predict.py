@@ -36,6 +36,9 @@ class PredictInput(BaseModel):
         default="mp3",
     )
     denoise_audio: bool = Field(description="Denoise the audio.", default=True)
+    normalize_audio_loudness: bool = Field(
+        description="Normalize the loudness of the audio.", default=True
+    )
     remove_silence: bool = Field(
         description="Remove silence from the audio.", default=True
     )
@@ -80,6 +83,7 @@ def predict(
         ["Seed", input.seed],
         ["Output audio extension", input.output_audio_extension],
         ["Denoise audio", input.denoise_audio],
+        ["Normalize audio loudness", input.normalize_audio_loudness],
         ["Remove silence", input.remove_silence],
         ["RS min silence len", input.remove_silence_min_silence_len],
         ["RS silence thresh", input.remove_silence_silence_thresh],
@@ -96,6 +100,7 @@ def predict(
         seed=input.seed,
         denoiser_model=models_pack.denoiser_model,
         should_denoise=input.denoise_audio,
+        normalize_audio_loudness=input.normalize_audio_loudness,
     )
     voiceover_end = time.time()
 
@@ -125,6 +130,7 @@ def predict(
                 silence_thresh=input.remove_silence_silence_thresh,
                 keep_silence_len=input.remove_silence_keep_silence_len,
             ),
+            normalize_audio_loudness=input.normalize_audio_loudness,
             speaker=input.speaker,
             prompt=input.prompt,
         )
