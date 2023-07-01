@@ -21,7 +21,8 @@ from concurrent.futures import Future, ThreadPoolExecutor
 import wave
 from pydub import AudioSegment
 
-from upload.helpers import audio_array_from_wav, convert_audio_to_video
+from upload.helpers.audio_array_from_wav import audio_array_from_wav
+from upload.helpers.convert_audio_to_video import convert_audio_to_video
 
 
 def convert_and_upload_image_to_s3(
