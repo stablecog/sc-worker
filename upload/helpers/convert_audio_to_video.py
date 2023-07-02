@@ -73,7 +73,7 @@ def convert_audio_to_video(
     moving_image = cv2.imread(overlay_path, cv2.IMREAD_UNCHANGED)
     moving_image_height, moving_image_width, _ = moving_image.shape
 
-    padding = 48
+    padding = 58
     total_positions = base_image.shape[1] - (2 * padding)
 
     fourcc = cv2.VideoWriter_fourcc(*"RGBA")
