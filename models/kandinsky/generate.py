@@ -34,7 +34,7 @@ def generate(
         seed = int.from_bytes(os.urandom(2), "big")
     print(f"Using seed: {seed}")
     generator = [
-        torch.Generator(device=DEVICE).manual_seed(seed)
+        torch.Generator(device=DEVICE).manual_seed(seed + i)
         for i in range(seed, seed + num_outputs)
     ]
 
