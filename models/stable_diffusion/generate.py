@@ -96,6 +96,7 @@ def generate(
         negative_prompt=negative_prompt,
         guidance_scale=guidance_scale,
         generator=generator,
+        num_images_per_prompt=num_outputs,
         num_inference_steps=num_inference_steps,
         **extra_kwargs,
     )
