@@ -54,12 +54,13 @@ def generate(
     output_images = None
 
     pipe_prior = pipe["prior"]
+    pipe_main = None
     if init_image_url is not None and mask_image_url is not None:
-        pipe = pipe["inpaint"]
+        pipe_main = pipe["inpaint"]
     elif init_image_url is not None:
-        pipe = pipe["img2img"]
+        pipe_main = pipe["img2img"]
     else:
-        pipe = pipe["text2img"]
+        pipe_main = pipe["text2img"]
 
     prior_output = pipe_prior(
         prompt, negative_prompt, guidance_scale=4.0, num_inference_steps=5
@@ -88,7 +89,7 @@ def generate(
         print(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
         )
-        output_images = pipe(
+        output_images = pipe_main(
             image=init_image,
             mask_image=mask_image,
             strength=prompt_strength,
@@ -101,13 +102,13 @@ def generate(
         print(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
         )
-        output_images = pipe(
+        output_images = pipe_main(
             **args,
             image=init_image,
             strength=prompt_strength,
         ).images
     else:
-        output_images = pipe(
+        output_images = pipe_main(
             **args,
         ).images
     output_images_nsfw_results = []
