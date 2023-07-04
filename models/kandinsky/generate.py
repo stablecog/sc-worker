@@ -102,6 +102,7 @@ def generate(
 
     output_images = pipe_main(
         prompt=[prompt] * num_outputs,
+        negative_prompt=[negative_prompt] * num_outputs,
         num_inference_steps=num_inference_steps,
         guidance_scale=guidance_scale,
         width=width,

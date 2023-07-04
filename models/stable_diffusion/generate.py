@@ -2,9 +2,8 @@ import os
 import torch
 from .helpers import get_scheduler
 from .constants import SD_MODELS
-from models.constants import DEVICE
 import time
-from shared.helpers import download_and_fit_image, download_and_fit_image_mask
+from shared.helpers import download_and_fit_image
 
 
 def generate(
@@ -96,9 +95,10 @@ def generate(
         extra_kwargs["height"] = height
 
     output = pipe_selected(
-        prompt=prompt if prompt is not None else None,
-        negative_prompt=negative_prompt if negative_prompt is not None else None,
-        num_images_per_prompt=num_outputs,
+        prompt=[prompt] * num_outputs if prompt is not None else None,
+        negative_prompt=[negative_prompt] * num_outputs
+        if negative_prompt is not None
+        else None,
         guidance_scale=guidance_scale,
         generator=generator,
         num_inference_steps=num_inference_steps,
