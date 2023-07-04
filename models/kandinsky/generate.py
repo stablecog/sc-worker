@@ -1,8 +1,8 @@
 import os
 import time
-from models.constants import DEVICE
 from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
 from shared.helpers import (
+    create_scaled_mask,
     download_and_fit_image,
     download_and_fit_image_mask,
 )
@@ -32,11 +32,8 @@ def generate(
 ):
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
+    torch.manual_seed(seed)
     print(f"Using seed: {seed}")
-    generator = [
-        torch.Generator(device=DEVICE).manual_seed(seed + i)
-        for i in range(seed, seed + num_outputs)
-    ]
 
     if prompt_prefix is not None:
         prompt = f"{prompt_prefix} {prompt}"
@@ -46,28 +43,25 @@ def generate(
             negative_prompt = negative_prompt_prefix
         else:
             negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
-    if negative_prompt == "":
-        negative_prompt = None
-
-    extra_kwargs = {}
+    args = {
+        "num_steps": num_inference_steps,
+        "batch_size": num_outputs,
+        "guidance_scale": guidance_scale,
+        "h": height,
+        "w": width,
+        "sampler": KANDIKSKY_SCHEDULERS[scheduler],
+        "prior_cf_scale": 4,
+        "prior_steps": "5",
+        "negative_prior_prompt": negative_prompt,
+        "negative_decoder_prompt": "",
+    }
 
     output_images = None
 
-    pipe_prior = pipe["prior"]
-    pipe_main = None
-    if init_image_url is not None and mask_image_url is not None:
-        pipe_main = pipe["inpaint"]
-    elif init_image_url is not None:
-        pipe_main = pipe["img2img"]
+    if mask_image_url is not None:
+        pipe = pipe["inpaint"]
     else:
-        pipe_main = pipe["text2img"]
-
-    prior_output = pipe_prior(
-        prompt=[prompt] * num_outputs,
-        negative_prompt=[negative_prompt] * num_outputs,
-        guidance_scale=4,
-        num_inference_steps=5,
-    )
+        pipe = pipe["text2img"]
 
     if init_image_url is not None and mask_image_url is not None:
         start = time.time()
@@ -87,31 +81,31 @@ def generate(
         print(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
         )
-        extra_kwargs["mask_image"] = mask_image
-        extra_kwargs["strength"] = prompt_strength
-        extra_kwargs["image"] = init_image
+        output_images = pipe.generate_inpainting(
+            prompt,
+            pil_img=init_image,
+            img_mask=mask_image,
+            **args,
+        )
     elif init_image_url is not None:
         start_i = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
-        extra_kwargs["image"] = init_image
-        extra_kwargs["strength"] = prompt_strength
         end_i = time.time()
         print(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
         )
-
-    output_images = pipe_main(
-        prompt=[prompt] * num_outputs,
-        negative_prompt=[negative_prompt] * num_outputs,
-        num_inference_steps=num_inference_steps,
-        guidance_scale=guidance_scale,
-        width=width,
-        height=height,
-        generator=generator,
-        **prior_output,
-        **extra_kwargs,
-    ).images
-
+        images_and_texts = [prompt, init_image]
+        weights = [prompt_strength, 1 - prompt_strength]
+        output_images = pipe.mix_images(
+            images_and_texts,
+            weights,
+            **args,
+        )
+    else:
+        output_images = pipe.generate_text2img(
+            prompt,
+            **args,
+        )
     output_images_nsfw_results = []
     with autocast():
         for image in output_images:
