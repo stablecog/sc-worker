@@ -119,10 +119,10 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     kandinsky_inp = KandinskyInpaintPipeline(**kandinsky_t2i.components)
 
     kandinsky = {
+        "prior": kandinsky_prior.to(DEVICE),
         "text2img": kandinsky_t2i.to(DEVICE),
         "inpaint": kandinsky_inp.to(DEVICE),
         "img2img": kandinsky_i2i.to(DEVICE),
-        "prior": kandinsky_prior.to(DEVICE),
     }
     print("✅ Loaded Kandinsky")
 
