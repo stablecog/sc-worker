@@ -47,6 +47,8 @@ def generate(
             negative_prompt = negative_prompt_prefix
         else:
             negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
+    if negative_prompt is None:
+        negative_prompt = ""
     args = {
         "prompt": prompt,
         "num_inference_steps": num_inference_steps,
@@ -69,7 +71,8 @@ def generate(
         pipe_main = pipe["text2img"]
 
     prior_output = pipe_prior(
-        prompt,
+        prompt=prompt,
+        negative_prompt=negative_prompt,
         guidance_scale=4,
         num_inference_steps=5,
         generator=generator_prior,
