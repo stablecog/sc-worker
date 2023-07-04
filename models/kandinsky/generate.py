@@ -63,10 +63,10 @@ def generate(
         pipe_main = pipe["text2img"]
 
     prior_output = pipe_prior(
-        prompt,
+        [prompt] * num_outputs,
         guidance_scale=4,
         num_inference_steps=5,
-        generator=torch.Generator(device=DEVICE).manual_seed(seed),
+        generator=generator,
     )
 
     if init_image_url is not None and mask_image_url is not None:
