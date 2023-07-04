@@ -2,6 +2,7 @@ from typing import Any
 
 from lingua import LanguageDetectorBuilder
 from boto3_type_annotations.s3 import ServiceResource
+from models.kandinsky.constants import KANDINSKY_MODEL_ID, KANDINSKY_PRIOR_MODEL_ID
 from models.nllb.constants import TRANSLATOR_CACHE
 from shared.constants import WORKER_VERSION
 from models.stable_diffusion.constants import (
@@ -25,7 +26,10 @@ from functools import partial
 from models.stable_diffusion.filter import forward_inspect
 from diffusers import (
     DiffusionPipeline,
+    KandinskyImg2ImgPipeline,
+    KandinskyInpaintPipeline,
 )
+import torch
 
 
 class ModelsPack:
@@ -99,19 +103,25 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
 
     # Kandinsky
     print("⏳ Loading Kandinsky")
+
+    kandinsky_prior = DiffusionPipeline.from_pretrained(
+        KANDINSKY_PRIOR_MODEL_ID,
+        torch_dtype=torch.float16,
+        cache_dir=SD_MODEL_CACHE,
+    )
+    kandinsky_t2i = DiffusionPipeline.from_pretrained(
+        KANDINSKY_MODEL_ID,
+        torch_dtype=torch.float16,
+        cache_dir=SD_MODEL_CACHE,
+    )
+    kandinsky_i2i = KandinskyImg2ImgPipeline.from_pretrained(**kandinsky_t2i.components)
+    kandinsky_inp = KandinskyInpaintPipeline.from_pretrained(**kandinsky_t2i.components)
+
     kandinsky = {
-        "text2img": get_kandinsky2(
-            "cuda",
-            task_type="text2img",
-            model_version="2.1",
-            use_flash_attention=True,
-        ),
-        "inpaint": get_kandinsky2(
-            "cuda",
-            task_type="inpainting",
-            model_version="2.1",
-            use_flash_attention=True,
-        ),
+        "text2img": kandinsky_t2i.to(DEVICE),
+        "inpaint": kandinsky_inp.to(DEVICE),
+        "img2img": kandinsky_i2i.to(DEVICE),
+        "prior": kandinsky_prior.to(DEVICE),
     }
     print("✅ Loaded Kandinsky")
 

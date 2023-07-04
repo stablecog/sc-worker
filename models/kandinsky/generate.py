@@ -2,7 +2,6 @@ import os
 import time
 from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
 from shared.helpers import (
-    create_scaled_mask,
     download_and_fit_image,
     download_and_fit_image_mask,
 )
@@ -44,16 +43,12 @@ def generate(
         else:
             negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
     args = {
-        "num_steps": num_inference_steps,
-        "batch_size": num_outputs,
+        "num_inference_steps": num_inference_steps,
+        "num_images_per_prompt": num_outputs,
         "guidance_scale": guidance_scale,
-        "h": height,
-        "w": width,
-        "sampler": KANDIKSKY_SCHEDULERS[scheduler],
-        "prior_cf_scale": 4,
-        "prior_steps": "5",
-        "negative_prior_prompt": negative_prompt,
-        "negative_decoder_prompt": "",
+        "width": width,
+        "height": height,
+        "negative_prompt": negative_prompt,
     }
 
     output_images = None
@@ -62,6 +57,15 @@ def generate(
         pipe = pipe["inpaint"]
     else:
         pipe = pipe["text2img"]
+
+    prior_output = pipe["prior"](
+        prompt, negative_prompt, guidance_scale=4.0, num_inference_steps=5
+    )
+
+    args = {
+        **args,
+        **prior_output,
+    }
 
     if init_image_url is not None and mask_image_url is not None:
         start = time.time()
@@ -81,12 +85,12 @@ def generate(
         print(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
         )
-        output_images = pipe.generate_inpainting(
-            prompt,
-            pil_img=init_image,
-            img_mask=mask_image,
+        output_images = pipe["inpaint"](
+            image=init_image,
+            mask_image=mask_image,
+            strength=prompt_strength,
             **args,
-        )
+        ).images
     elif init_image_url is not None:
         start_i = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
@@ -94,18 +98,15 @@ def generate(
         print(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
         )
-        images_and_texts = [prompt, init_image]
-        weights = [prompt_strength, 1 - prompt_strength]
-        output_images = pipe.mix_images(
-            images_and_texts,
-            weights,
+        output_images = pipe["img2img"](
             **args,
-        )
+            image=init_image,
+            strength=prompt_strength,
+        ).images
     else:
-        output_images = pipe.generate_text2img(
-            prompt,
+        output_images = pipe["text2img"](
             **args,
-        )
+        ).images
     output_images_nsfw_results = []
     with autocast():
         for image in output_images:
