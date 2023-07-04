@@ -26,6 +26,7 @@ from functools import partial
 from models.stable_diffusion.filter import forward_inspect
 from diffusers import (
     DiffusionPipeline,
+    KandinskyPipeline,
     KandinskyImg2ImgPipeline,
     KandinskyInpaintPipeline,
 )
@@ -109,7 +110,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         torch_dtype=torch.float16,
         cache_dir=SD_MODEL_CACHE,
     )
-    kandinsky_t2i = DiffusionPipeline.from_pretrained(
+    kandinsky_t2i = KandinskyPipeline.from_pretrained(
         KANDINSKY_MODEL_ID,
         torch_dtype=torch.float16,
         cache_dir=SD_MODEL_CACHE,
