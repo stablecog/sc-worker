@@ -66,6 +66,7 @@ def generate(
         prompt,
         guidance_scale=4,
         num_inference_steps=5,
+        generator=torch.Generator(device=DEVICE).manual_seed(seed),
     )
 
     if init_image_url is not None and mask_image_url is not None:
