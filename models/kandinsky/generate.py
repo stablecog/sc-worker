@@ -1,5 +1,6 @@
 import os
 import time
+from models.constants import DEVICE
 from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
 from shared.helpers import (
     download_and_fit_image,
@@ -31,8 +32,12 @@ def generate(
 ):
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
-    torch.manual_seed(seed)
     print(f"Using seed: {seed}")
+    generator_prior = [torch.Generator(device=DEVICE).manual_seed(seed)]
+    generator = [
+        torch.Generator(device=DEVICE).manual_seed(seed)
+        for i in range(seed, seed + num_outputs)
+    ]
 
     if prompt_prefix is not None:
         prompt = f"{prompt_prefix} {prompt}"
@@ -49,6 +54,7 @@ def generate(
         "guidance_scale": guidance_scale,
         "width": width,
         "height": height,
+        "generator": generator,
     }
 
     output_images = None
@@ -63,7 +69,11 @@ def generate(
         pipe_main = pipe["text2img"]
 
     prior_output = pipe_prior(
-        prompt, negative_prompt, guidance_scale=4.0, num_inference_steps=5
+        prompt,
+        negative_prompt,
+        guidance_scale=4,
+        num_inference_steps=5,
+        generator=generator_prior,
     )
 
     args = {
@@ -103,9 +113,9 @@ def generate(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
         )
         output_images = pipe_main(
-            **args,
             image=init_image,
             strength=prompt_strength,
+            **args,
         ).images
     else:
         output_images = pipe_main(

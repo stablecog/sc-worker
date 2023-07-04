@@ -28,6 +28,10 @@ def generate(
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
     print(f"Using seed: {seed}")
+    generator = [
+        torch.Generator(device="cuda").manual_seed(seed)
+        for i in range(seed, seed + num_outputs)
+    ]
 
     if prompt_prefix is not None:
         prompt = f"{prompt_prefix} {prompt}"
@@ -91,7 +95,6 @@ def generate(
         extra_kwargs["width"] = width
         extra_kwargs["height"] = height
 
-    generator = torch.Generator(DEVICE).manual_seed(seed)
     output = pipe_selected(
         prompt=prompt if prompt is not None else None,
         negative_prompt=negative_prompt if negative_prompt is not None else None,
