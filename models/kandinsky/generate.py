@@ -33,7 +33,6 @@ def generate(
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
     print(f"Using seed: {seed}")
-    generator_prior = [torch.Generator(device=DEVICE).manual_seed(seed)]
     generator = [
         torch.Generator(device=DEVICE).manual_seed(seed)
         for i in range(seed, seed + num_outputs)
@@ -75,7 +74,7 @@ def generate(
         negative_prompt,
         guidance_scale=4,
         num_inference_steps=5,
-        generator=generator_prior,
+        generator=generator,
     )
 
     args = {
