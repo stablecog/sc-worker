@@ -95,11 +95,10 @@ def generate(
         extra_kwargs["height"] = height
 
     output = pipe_selected(
-        prompt=[prompt] * num_outputs if prompt is not None else None,
-        negative_prompt=[negative_prompt] * num_outputs
-        if negative_prompt is not None
-        else None,
+        prompt=prompt,
+        negative_prompt=negative_prompt if negative_prompt is not None else None,
         guidance_scale=guidance_scale,
+        num_images_per_prompt=4,
         generator=generator,
         num_inference_steps=num_inference_steps,
         **extra_kwargs,
