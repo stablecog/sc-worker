@@ -46,8 +46,8 @@ def generate(
             negative_prompt = negative_prompt_prefix
         else:
             negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
-    if negative_prompt is None:
-        negative_prompt = ""
+    if negative_prompt == "":
+        negative_prompt = None
 
     extra_kwargs = {}
 
@@ -63,10 +63,10 @@ def generate(
         pipe_main = pipe["text2img"]
 
     prior_output = pipe_prior(
-        [prompt] * num_outputs,
+        prompt=[prompt] * num_outputs,
+        negative_prompt=[negative_prompt] * num_outputs,
         guidance_scale=4,
         num_inference_steps=5,
-        generator=generator,
     )
 
     if init_image_url is not None and mask_image_url is not None:
