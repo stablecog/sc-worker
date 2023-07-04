@@ -70,7 +70,6 @@ def generate(
 
     prior_output = pipe_prior(
         prompt,
-        negative_prompt,
         guidance_scale=4,
         num_inference_steps=5,
         generator=generator_prior,
