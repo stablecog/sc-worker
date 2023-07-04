@@ -43,12 +43,12 @@ def generate(
         else:
             negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
     args = {
+        "prompt": prompt,
         "num_inference_steps": num_inference_steps,
         "num_images_per_prompt": num_outputs,
         "guidance_scale": guidance_scale,
         "width": width,
         "height": height,
-        "negative_prompt": negative_prompt,
     }
 
     output_images = None
