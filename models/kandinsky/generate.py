@@ -101,9 +101,8 @@ def generate(
         )
 
     output_images = pipe_main(
-        prompt=prompt,
+        prompt=[prompt] * 4,
         num_inference_steps=num_inference_steps,
-        num_images_per_prompt=num_outputs,
         guidance_scale=guidance_scale,
         width=width,
         height=height,
