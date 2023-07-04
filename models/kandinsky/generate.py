@@ -69,11 +69,6 @@ def generate(
         num_inference_steps=5,
     )
 
-    args = {
-        **args,
-        **prior_output,
-    }
-
     if init_image_url is not None and mask_image_url is not None:
         start = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
@@ -112,6 +107,7 @@ def generate(
         guidance_scale=guidance_scale,
         width=width,
         height=height,
+        **prior_output,
         **extra_kwargs,
     ).images
 
