@@ -48,15 +48,8 @@ def generate(
             negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
     if negative_prompt is None:
         negative_prompt = ""
-    args = {
-        "prompt": prompt,
-        "num_inference_steps": num_inference_steps,
-        "num_images_per_prompt": num_outputs,
-        "guidance_scale": guidance_scale,
-        "width": width,
-        "height": height,
-        "generator": generator,
-    }
+
+    extra_kwargs = {}
 
     output_images = None
 
@@ -74,7 +67,6 @@ def generate(
         negative_prompt,
         guidance_scale=4,
         num_inference_steps=5,
-        generator=generator,
     )
 
     args = {
@@ -100,28 +92,29 @@ def generate(
         print(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
         )
-        output_images = pipe_main(
-            image=init_image,
-            mask_image=mask_image,
-            strength=prompt_strength,
-            **args,
-        ).images
+        extra_kwargs["mask_image"] = mask_image
+        extra_kwargs["strength"] = prompt_strength
+        extra_kwargs["image"] = init_image
     elif init_image_url is not None:
         start_i = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
+        extra_kwargs["image"] = init_image
+        extra_kwargs["strength"] = prompt_strength
         end_i = time.time()
         print(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
         )
-        output_images = pipe_main(
-            image=init_image,
-            strength=prompt_strength,
-            **args,
-        ).images
-    else:
-        output_images = pipe_main(
-            **args,
-        ).images
+
+    output_images = pipe_main(
+        prompt=prompt,
+        num_inference_steps=num_inference_steps,
+        num_images_per_prompt=num_outputs,
+        guidance_scale=guidance_scale,
+        width=width,
+        height=height,
+        **extra_kwargs,
+    ).images
+
     output_images_nsfw_results = []
     with autocast():
         for image in output_images:
