@@ -64,6 +64,7 @@ def generate(
 
     prior_output = pipe_prior(
         [prompt] * num_outputs,
+        [negative_prompt] * num_outputs,
         guidance_scale=4,
         num_inference_steps=5,
         generator=generator,
