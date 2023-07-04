@@ -53,6 +53,7 @@ def generate(
 
     output_images = None
 
+    pipe_prior = pipe["prior"]
     if init_image_url is not None and mask_image_url is not None:
         pipe = pipe["inpaint"]
     elif init_image_url is not None:
@@ -60,7 +61,7 @@ def generate(
     else:
         pipe = pipe["text2img"]
 
-    prior_output = pipe["prior"](
+    prior_output = pipe_prior(
         prompt, negative_prompt, guidance_scale=4.0, num_inference_steps=5
     )
 
