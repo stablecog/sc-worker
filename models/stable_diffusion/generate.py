@@ -96,10 +96,9 @@ def generate(
 
     output = pipe_selected(
         prompt=prompt,
-        negative_prompt=negative_prompt if negative_prompt is not None else None,
+        negative_prompt=negative_prompt,
         guidance_scale=guidance_scale,
-        num_images_per_prompt=4,
-        generator=generator,
+        num_images_per_prompt=num_outputs,
         num_inference_steps=num_inference_steps,
         **extra_kwargs,
     )
