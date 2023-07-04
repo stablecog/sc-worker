@@ -27,10 +27,7 @@ def generate(
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
     print(f"Using seed: {seed}")
-    generator = [
-        torch.Generator(device="cuda").manual_seed(seed + i)
-        for i in range(seed, seed + num_outputs)
-    ]
+    generator = torch.Generator(device="cuda").manual_seed(seed)
 
     if prompt_prefix is not None:
         prompt = f"{prompt_prefix} {prompt}"
@@ -98,7 +95,7 @@ def generate(
         prompt=prompt,
         negative_prompt=negative_prompt,
         guidance_scale=guidance_scale,
-        num_images_per_prompt=num_outputs,
+        generator=generator,
         num_inference_steps=num_inference_steps,
         **extra_kwargs,
     )
