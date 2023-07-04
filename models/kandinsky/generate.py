@@ -106,6 +106,7 @@ def generate(
         guidance_scale=guidance_scale,
         width=width,
         height=height,
+        generator=generator,
         **prior_output,
         **extra_kwargs,
     ).images
