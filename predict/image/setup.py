@@ -115,8 +115,8 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         torch_dtype=torch.float16,
         cache_dir=SD_MODEL_CACHE,
     )
-    kandinsky_i2i = KandinskyImg2ImgPipeline.from_pretrained(**kandinsky_t2i.components)
-    kandinsky_inp = KandinskyInpaintPipeline.from_pretrained(**kandinsky_t2i.components)
+    kandinsky_i2i = KandinskyImg2ImgPipeline(**kandinsky_t2i.components)
+    kandinsky_inp = KandinskyInpaintPipeline(**kandinsky_t2i.components)
 
     kandinsky = {
         "text2img": kandinsky_t2i.to(DEVICE),
