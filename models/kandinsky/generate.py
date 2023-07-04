@@ -71,8 +71,8 @@ def generate(
         pipe_main = pipe["text2img"]
 
     prior_output = pipe_prior(
-        prompt=prompt,
-        negative_prompt=negative_prompt,
+        prompt,
+        negative_prompt,
         guidance_scale=4,
         num_inference_steps=5,
         generator=generator_prior,
