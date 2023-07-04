@@ -191,7 +191,7 @@ def predict(
         else:
             generator_pipe = models_pack.sd_pipes[input.model]
 
-        if input.skip_safety_checker:
+        if input.skip_safety_checker and hasattr(generator_pipe, "safety_checker"):
             saved_safety_checker = generator_pipe.safety_checker
             generator_pipe.safety_checker = None
 
@@ -335,7 +335,11 @@ def predict(
     )
     process_end = time.time()
 
-    if saved_safety_checker is not None and generator_pipe is not None:
+    if (
+        saved_safety_checker is not None
+        and generator_pipe is not None
+        and hasattr(generator_pipe, "safety_checker")
+    ):
         generator_pipe.safety_checker = saved_safety_checker
 
     print(f"✅ Process completed in: {round((process_end - process_start) * 1000)} ms ✅")

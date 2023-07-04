@@ -2,13 +2,11 @@ import os
 import time
 from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
 from shared.helpers import (
-    create_scaled_mask,
     download_and_fit_image,
     download_and_fit_image_mask,
 )
 import torch
 from torch.cuda.amp import autocast
-import numpy as np
 
 
 def generate(
