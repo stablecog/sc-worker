@@ -1,4 +1,4 @@
-git+https://github.com/huggingface/diffusers.git@sd_xl
+diffusers==0.18.1
 transformers==4.30.2
 safetensors==0.3.1
 ftfy==6.1.1
