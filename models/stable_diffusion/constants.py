@@ -84,7 +84,7 @@ SD_MODELS_ALL = {
         "variant": "fp16",
     },
     "SDXL_REFINER": {
-        "id": "proximasanfinetuning/stabilityai/stable-diffusion-xl-refiner-0.9",
+        "id": "stabilityai/stable-diffusion-xl-refiner-0.9",
         "torch_dtype": torch.float16,
         "variant": "fp16",
     },
