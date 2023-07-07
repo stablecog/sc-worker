@@ -78,6 +78,16 @@ SD_MODELS_ALL = {
         "id": "proximasanfinetuning/luna-diffusion",
         "torch_dtype": torch.float16,
     },
+    "SDXL": {
+        "id": "stabilityai/stable-diffusion-xl-base-0.9",
+        "torch_dtype": torch.float16,
+        "variant": "fp16",
+    },
+    "SDXL_REFINER": {
+        "id": "proximasanfinetuning/stabilityai/stable-diffusion-xl-refiner-0.9",
+        "torch_dtype": torch.float16,
+        "variant": "fp16",
+    },
 }
 
 SD_MODEL_FOR_SAFETY_CHECKER = "Stable Diffusion v1.5"

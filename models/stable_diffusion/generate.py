@@ -23,6 +23,7 @@ def generate(
     seed,
     model,
     pipe,
+    pipe_refiner=None,
 ):
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
@@ -88,8 +89,11 @@ def generate(
         extra_kwargs["strength"] = prompt_strength
     else:
         pipe_selected = pipe.text2img
-        extra_kwargs["width"] = width
-        extra_kwargs["height"] = height
+        if pipe_refiner is not None:
+            extra_kwargs["output_type"] = "latents"
+        else:
+            extra_kwargs["width"] = width
+            extra_kwargs["height"] = height
 
     output = pipe_selected(
         prompt=prompt,
@@ -112,6 +116,17 @@ def generate(
                 output_images.append(output.images[i])
     else:
         output_images = output.images
+
+    if pipe_refiner is not None:
+        output_images = pipe_refiner(
+            prompt=prompt,
+            negative_prompt=negative_prompt,
+            guidance_scale=guidance_scale,
+            generator=generator,
+            num_images_per_prompt=num_outputs,
+            num_inference_steps=num_inference_steps,
+            image=output_images,
+        )
 
     if nsfw_count > 0:
         print(f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs.")

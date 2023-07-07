@@ -70,12 +70,22 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
 
     for key in SD_MODELS:
         print(f"⏳ Loading SD model: {key}")
-        pipe = DiffusionPipeline.from_pretrained(
-            SD_MODELS[key]["id"],
-            custom_pipeline="stable_diffusion_mega",
-            torch_dtype=SD_MODELS[key]["torch_dtype"],
-            cache_dir=SD_MODEL_CACHE,
-        )
+
+        if key == "SDXL" or key == "SDXL_REFINER":
+            pipe = DiffusionPipeline.from_pretrained(
+                SD_MODELS[key]["id"],
+                torch_dtype=SD_MODELS[key]["torch_dtype"],
+                cache_dir=SD_MODEL_CACHE,
+                variant=SD_MODELS[key]["variant"],
+            )
+        else:
+            pipe = DiffusionPipeline.from_pretrained(
+                SD_MODELS[key]["id"],
+                custom_pipeline="stable_diffusion_mega",
+                torch_dtype=SD_MODELS[key]["torch_dtype"],
+                cache_dir=SD_MODEL_CACHE,
+            )
+
         pipe = pipe.to(DEVICE)
         sd_pipes[key] = pipe
         print(f"✅ Loaded SD model: {key}")
