@@ -34,6 +34,8 @@ SD_ENV_KEY_TO_KEY = {
     "WD": "Waifu Diffusion",
     "22D": "22h Diffusion",
     "LD": "Luna Diffusion",
+    "SX": "SDXL",
+    "SXR": "SDXL_REFINER",
 }
 SD_MODEL_CACHE = "diffusers-cache"
 SD_MODELS_ALL = {
