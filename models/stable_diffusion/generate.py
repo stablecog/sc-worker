@@ -88,12 +88,14 @@ def generate(
         extra_kwargs["image"] = init_image
         extra_kwargs["strength"] = prompt_strength
     else:
-        pipe_selected = pipe.text2img
-        if pipe_refiner is not None:
-            extra_kwargs["output_type"] = "latents"
+        if model == "SDXL":
+            pipe_selected = pipe
         else:
-            extra_kwargs["width"] = width
-            extra_kwargs["height"] = height
+            pipe_selected = pipe.img2img
+        extra_kwargs["width"] = width
+        extra_kwargs["height"] = height
+        if pipe_refiner is not None:
+            extra_kwargs["output_type"] = "latent"
 
     output = pipe_selected(
         prompt=prompt,
@@ -108,7 +110,10 @@ def generate(
     output_images = []
     nsfw_count = 0
 
-    if output.nsfw_content_detected is not None:
+    if (
+        hasattr(output, "nsfw_content_detected")
+        and output.nsfw_content_detected is not None
+    ):
         for i, nsfw_flag in enumerate(output.nsfw_content_detected):
             if nsfw_flag:
                 nsfw_count += 1
@@ -126,7 +131,7 @@ def generate(
             num_images_per_prompt=num_outputs,
             num_inference_steps=num_inference_steps,
             image=output_images,
-        )
+        ).images
 
     if nsfw_count > 0:
         print(f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs.")

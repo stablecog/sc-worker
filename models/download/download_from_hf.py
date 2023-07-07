@@ -1,5 +1,9 @@
 from models.stable_diffusion.constants import SD_MODELS_ALL, SD_MODELS, SD_MODEL_CACHE
-from diffusers import StableDiffusionPipeline
+from diffusers import (
+    StableDiffusionPipeline,
+    StableDiffusionXLPipeline,
+    StableDiffusionXLImg2ImgPipeline,
+)
 import concurrent.futures
 import os
 from models.swinir.constants import MODEL_DIR_SWINIR, MODEL_NAME_SWINIR
@@ -19,12 +23,29 @@ def download_models_from_hf(downloadAll=True):
 def download_sd_model_from_hf(key):
     model_id = SD_MODELS_ALL[key]["id"]
     print(f"⏳ Downloading model: {model_id}")
-    pipe = StableDiffusionPipeline.from_pretrained(
-        model_id,
-        custom_pipeline="stable_diffusion_mega",
-        torch_dtype=SD_MODELS_ALL[key]["torch_dtype"],
-        cache_dir=SD_MODEL_CACHE,
-    )
+    if key == "SDXL":
+        pipe = StableDiffusionXLPipeline.from_pretrained(
+            SD_MODELS[key]["id"],
+            torch_dtype=SD_MODELS[key]["torch_dtype"],
+            cache_dir=SD_MODEL_CACHE,
+            variant=SD_MODELS[key]["variant"],
+            use_safetensors=True,
+        )
+    elif key == "SDXL_REFINER":
+        pipe = StableDiffusionXLImg2ImgPipeline.from_pretrained(
+            SD_MODELS[key]["id"],
+            torch_dtype=SD_MODELS[key]["torch_dtype"],
+            cache_dir=SD_MODEL_CACHE,
+            variant=SD_MODELS[key]["variant"],
+            use_safetensors=True,
+        )
+    else:
+        pipe = StableDiffusionPipeline.from_pretrained(
+            model_id,
+            custom_pipeline="stable_diffusion_mega",
+            torch_dtype=SD_MODELS_ALL[key]["torch_dtype"],
+            cache_dir=SD_MODEL_CACHE,
+        )
     print(f"✅ Downloaded model: {key}")
     return {"key": key}
 

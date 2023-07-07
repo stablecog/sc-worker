@@ -15,6 +15,8 @@ from models.nllb.constants import TRANSLATOR_COG_URL
 from models.swinir.upscale import upscale
 
 from typing import List
+
+from shared.constants import SHOULD_LOAD_KANDINSKY
 from .classes import PredictOutput, PredictResult
 from .constants import SIZE_LIST
 from .setup import ModelsPack
@@ -115,7 +117,10 @@ class PredictInput(BaseModel):
 
     @validator("model")
     def validate_model(cls, v):
-        rest = [KANDINSKY_MODEL_NAME]
+        if SHOULD_LOAD_KANDINSKY:
+            rest = [KANDINSKY_MODEL_NAME]
+        else:
+            rest = []
         choices = SD_MODEL_CHOICES + rest
         return return_value_if_in_list(v, choices)
 

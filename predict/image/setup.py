@@ -3,7 +3,7 @@ from typing import Any
 from lingua import LanguageDetectorBuilder
 from boto3_type_annotations.s3 import ServiceResource
 from models.nllb.constants import TRANSLATOR_CACHE
-from shared.constants import WORKER_VERSION
+from shared.constants import SHOULD_LOAD_KANDINSKY, WORKER_VERSION
 from models.stable_diffusion.constants import (
     SD_MODEL_FOR_SAFETY_CHECKER,
     SD_MODELS,
@@ -25,6 +25,8 @@ from functools import partial
 from models.stable_diffusion.filter import forward_inspect
 from diffusers import (
     DiffusionPipeline,
+    StableDiffusionXLPipeline,
+    StableDiffusionXLImg2ImgPipeline,
 )
 
 
@@ -69,10 +71,19 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     safety_checker = None
 
     for key in SD_MODELS:
+        print(SD_MODELS)
         print(f"⏳ Loading SD model: {key}")
 
-        if key == "SDXL" or key == "SDXL_REFINER":
-            pipe = DiffusionPipeline.from_pretrained(
+        if key == "SDXL":
+            pipe = StableDiffusionXLPipeline.from_pretrained(
+                SD_MODELS[key]["id"],
+                torch_dtype=SD_MODELS[key]["torch_dtype"],
+                cache_dir=SD_MODEL_CACHE,
+                variant=SD_MODELS[key]["variant"],
+                use_safetensors=True,
+            )
+        elif key == "SDXL_REFINER":
+            pipe = StableDiffusionXLImg2ImgPipeline.from_pretrained(
                 SD_MODELS[key]["id"],
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
                 cache_dir=SD_MODEL_CACHE,
@@ -109,22 +120,25 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     print("✅ Loaded safety checker")
 
     # Kandinsky
-    print("⏳ Loading Kandinsky")
-    kandinsky = {
-        "text2img": get_kandinsky2(
-            "cuda",
-            task_type="text2img",
-            model_version="2.1",
-            use_flash_attention=True,
-        ),
-        "inpaint": get_kandinsky2(
-            "cuda",
-            task_type="inpainting",
-            model_version="2.1",
-            use_flash_attention=True,
-        ),
-    }
-    print("✅ Loaded Kandinsky")
+    if SHOULD_LOAD_KANDINSKY == "1":
+        print("⏳ Loading Kandinsky")
+        kandinsky = {
+            "text2img": get_kandinsky2(
+                "cuda",
+                task_type="text2img",
+                model_version="2.1",
+                use_flash_attention=True,
+            ),
+            "inpaint": get_kandinsky2(
+                "cuda",
+                task_type="inpainting",
+                model_version="2.1",
+                use_flash_attention=True,
+            ),
+        }
+        print("✅ Loaded Kandinsky")
+    else:
+        kandinsky = None
 
     # For upscaler
     upscaler_args = get_args_swinir()
