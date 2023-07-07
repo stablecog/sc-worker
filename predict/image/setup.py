@@ -77,6 +77,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
                 cache_dir=SD_MODEL_CACHE,
                 variant=SD_MODELS[key]["variant"],
+                use_safetensors=True,
             )
         else:
             pipe = DiffusionPipeline.from_pretrained(
