@@ -48,7 +48,7 @@ def download_sd_model_from_hf(key):
             torch_dtype=SD_MODELS_ALL[key]["torch_dtype"],
             cache_dir=SD_MODEL_CACHE,
         )
-    print(f"✅ Downloaded model: {key} | Took {round(time.time() - s, 1)} seconds")
+    print(f"✅ Downloaded model: {key} | Duration: {round(time.time() - s, 1)} seconds")
     return {"key": key}
 
 

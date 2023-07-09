@@ -100,7 +100,9 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
 
         pipe = pipe.to(DEVICE)
         sd_pipes[key] = pipe
-        print(f"✅ Loaded SD model: {key} | Took {round(time.time() - s, 1)} seconds")
+        print(
+            f"✅ Loaded SD model: {key} | Duration: {round(time.time() - s, 1)} seconds"
+        )
 
     # Safety checker
     print("⏳ Loading safety checker")
