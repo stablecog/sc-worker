@@ -8,6 +8,7 @@ import concurrent.futures
 import os
 from models.swinir.constants import MODEL_DIR_SWINIR, MODEL_NAME_SWINIR
 from huggingface_hub import _login
+import time
 
 
 def download_models_from_hf(downloadAll=True):
@@ -22,6 +23,7 @@ def download_models_from_hf(downloadAll=True):
 
 def download_sd_model_from_hf(key):
     model_id = SD_MODELS_ALL[key]["id"]
+    s = time.time()
     print(f"⏳ Downloading model: {model_id}")
     if key == "SDXL":
         pipe = StableDiffusionXLPipeline.from_pretrained(
@@ -46,7 +48,7 @@ def download_sd_model_from_hf(key):
             torch_dtype=SD_MODELS_ALL[key]["torch_dtype"],
             cache_dir=SD_MODEL_CACHE,
         )
-    print(f"✅ Downloaded model: {key}")
+    print(f"✅ Downloaded model: {key} | Took {round(time.time() - s, 1)} seconds")
     return {"key": key}
 
 

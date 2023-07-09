@@ -71,7 +71,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     safety_checker = None
 
     for key in SD_MODELS:
-        print(SD_MODELS)
+        s = time.time()
         print(f"⏳ Loading SD model: {key}")
 
         if key == "SDXL":
@@ -100,7 +100,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
 
         pipe = pipe.to(DEVICE)
         sd_pipes[key] = pipe
-        print(f"✅ Loaded SD model: {key}")
+        print(f"✅ Loaded SD model: {key} | Took {round(time.time() - s, 1)} seconds")
 
     # Safety checker
     print("⏳ Loading safety checker")
