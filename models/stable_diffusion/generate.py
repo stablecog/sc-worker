@@ -56,7 +56,6 @@ def generate(
     print(f"-- Negative Prompt: {negative_prompt} --")
 
     extra_kwargs = {}
-    pipe.scheduler = get_scheduler(scheduler, pipe.scheduler.config)
     pipe_selected = None
 
     if init_image_url is not None:
@@ -102,6 +101,7 @@ def generate(
         if pipe_refiner is not None:
             extra_kwargs["output_type"] = "latent"
 
+    pipe.selected = get_scheduler(scheduler, pipe.scheduler.config)
     output = pipe_selected(
         prompt=prompt,
         negative_prompt=negative_prompt,
