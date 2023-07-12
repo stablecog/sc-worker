@@ -25,12 +25,13 @@ def setup() -> ModelsPack:
 
     denoiser_model = pretrained.dns64().cuda()
 
+    pack = ModelsPack(
+        denoiser_model=denoiser_model,
+    )
+
     end = time.time()
     print("//////////////////////////////////////////////////////////////////")
     print(f"✅ Predict setup is done in: {round(end - start)} sec.")
     print("//////////////////////////////////////////////////////////////////")
 
-    pack = ModelsPack(
-        denoiser_model=denoiser_model,
-    )
     return pack

@@ -91,7 +91,7 @@ def generate(
         if model == "SDXL":
             pipe_selected = pipe
         else:
-            pipe_selected = pipe.img2img
+            pipe_selected = pipe.text2img
         extra_kwargs["width"] = width
         extra_kwargs["height"] = height
         if pipe_refiner is not None:
