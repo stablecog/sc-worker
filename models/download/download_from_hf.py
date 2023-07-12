@@ -44,7 +44,6 @@ def download_sd_model_from_hf(key):
     else:
         pipe = StableDiffusionPipeline.from_pretrained(
             model_id,
-            custom_pipeline="stable_diffusion_mega",
             torch_dtype=SD_MODELS_ALL[key]["torch_dtype"],
             cache_dir=SD_MODEL_CACHE,
         )
