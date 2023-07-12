@@ -24,16 +24,32 @@ from kandinsky2 import get_kandinsky2
 from functools import partial
 from models.stable_diffusion.filter import forward_inspect
 from diffusers import (
-    DiffusionPipeline,
     StableDiffusionXLPipeline,
     StableDiffusionXLImg2ImgPipeline,
+    StableDiffusionPipeline,
+    StableDiffusionImg2ImgPipeline,
+    StableDiffusionInpaintPipeline,
 )
+
+
+class SDPipe:
+    def __init__(
+        self,
+        text2img: StableDiffusionPipeline,
+        img2img: StableDiffusionImg2ImgPipeline,
+        inpaint: StableDiffusionInpaintPipeline,
+    ):
+        self.text2img = text2img
+        self.img2img = img2img
+        self.inpaint = inpaint
 
 
 class ModelsPack:
     def __init__(
         self,
-        sd_pipes: dict[str, DiffusionPipeline],
+        sd_pipes: dict[
+            str, SDPipe | StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline
+        ],
         upscaler: Any,
         translator: Any,
         open_clip: Any,
@@ -65,7 +81,8 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
 
     sd_pipes: dict[
         str,
-        DiffusionPipeline,
+        SDPipe | StableDiffusionXLPipeline,
+        StableDiffusionXLImg2ImgPipeline,
     ] = {}
 
     safety_checker = None
@@ -82,6 +99,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
                 variant=SD_MODELS[key]["variant"],
                 use_safetensors=True,
             )
+            pipe = pipe.to(DEVICE)
         elif key == "SDXL_REFINER":
             pipe = StableDiffusionXLImg2ImgPipeline.from_pretrained(
                 SD_MODELS[key]["id"],
@@ -90,15 +108,24 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
                 variant=SD_MODELS[key]["variant"],
                 use_safetensors=True,
             )
+            pipe = pipe.to(DEVICE)
         else:
-            pipe = DiffusionPipeline.from_pretrained(
+            text2img = StableDiffusionPipeline.from_pretrained(
                 SD_MODELS[key]["id"],
-                custom_pipeline="stable_diffusion_mega",
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
                 cache_dir=SD_MODEL_CACHE,
             )
+            if (
+                hasattr(SD_MODELS[key], "enable_model_cpu_offload")
+                and SD_MODELS[key]["enable_model_cpu_offload"] == True
+            ):
+                text2img.enable_model_cpu_offload()
+            else:
+                text2img = text2img.to(DEVICE)
+            img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
+            inpaint = StableDiffusionInpaintPipeline(**text2img.components)
+            pipe = SDPipe(text2img, img2img, inpaint)
 
-        pipe = pipe.to(DEVICE)
         sd_pipes[key] = pipe
         print(
             f"✅ Loaded SD model: {key} | Duration: {round(time.time() - s, 1)} seconds"

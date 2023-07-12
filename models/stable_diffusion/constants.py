@@ -53,16 +53,19 @@ SD_MODELS_ALL = {
         "id": "nitrosocke/redshift-diffusion",
         "prompt_prefix": "redshift style",
         "torch_dtype": torch.float16,
+        "enable_model_cpu_offload": True,
     },
     "Arcane Diffusion": {
         "id": "nitrosocke/Arcane-Diffusion",
         "prompt_prefix": "arcane style",
         "torch_dtype": torch.float16,
+        "enable_model_cpu_offload": True,
     },
     "Ghibli Diffusion": {
         "id": "nitrosocke/Ghibli-Diffusion",
         "prompt_prefix": "ghibli style",
         "torch_dtype": torch.float16,
+        "enable_model_cpu_offload": True,
     },
     "Waifu Diffusion": {
         "id": "hakurei/waifu-diffusion",
@@ -75,6 +78,7 @@ SD_MODELS_ALL = {
         "id": "22h/vintedois-diffusion-v0-1",
         "prompt_prefix": "estilovintedois",
         "torch_dtype": torch.float16,
+        "enable_model_cpu_offload": True,
     },
     "Luna Diffusion": {
         "id": "proximasanfinetuning/luna-diffusion",
