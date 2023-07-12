@@ -58,23 +58,9 @@ def generate(
     extra_kwargs = {}
     pipe.scheduler = get_scheduler(scheduler, pipe.scheduler.config)
     pipe_selected = None
+
     if init_image_url is not None:
-        if mask_image_url is not None:
-            pipe_selected = pipe.inpaint
-            start_i = time.time()
-            extra_kwargs["mask_image"] = download_and_fit_image(
-                url=mask_image_url,
-                width=width,
-                height=height,
-            )
-            end_i = time.time()
-            print(
-                f"-- Downloaded and cropped mask image in: {round((end_i - start_i) * 1000)} ms"
-            )
-        else:
-            pipe_selected = pipe.img2img
-            extra_kwargs["width"] = width
-            extra_kwargs["height"] = height
+        # The process is: img2img or inpainting
         start_i = time.time()
         init_image = download_and_fit_image(
             url=init_image_url,
@@ -87,7 +73,27 @@ def generate(
         )
         extra_kwargs["image"] = init_image
         extra_kwargs["strength"] = prompt_strength
+
+        if mask_image_url is not None:
+            # The process is: inpainting
+            pipe_selected = pipe.inpaint
+            start_i = time.time()
+            extra_kwargs["mask_image"] = download_and_fit_image(
+                url=mask_image_url,
+                width=width,
+                height=height,
+            )
+            end_i = time.time()
+            print(
+                f"-- Downloaded and cropped mask image in: {round((end_i - start_i) * 1000)} ms"
+            )
+        else:
+            # The process is: img2img
+            pipe_selected = pipe.img2img
+            extra_kwargs["width"] = width
+            extra_kwargs["height"] = height
     else:
+        # The process is: text2img
         if model == "SDXL":
             pipe_selected = pipe
         else:
