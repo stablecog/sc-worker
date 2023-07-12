@@ -62,17 +62,16 @@ def generate(
     if init_image_url is not None:
         # The process is: img2img or inpainting
         start_i = time.time()
-        init_image = download_and_fit_image(
+        extra_kwargs["image"] = download_and_fit_image(
             url=init_image_url,
             width=width,
             height=height,
         )
+        extra_kwargs["strength"] = prompt_strength
         end_i = time.time()
         print(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
         )
-        extra_kwargs["image"] = init_image
-        extra_kwargs["strength"] = prompt_strength
 
         if mask_image_url is not None:
             # The process is: inpainting
