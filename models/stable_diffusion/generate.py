@@ -101,7 +101,7 @@ def generate(
         if pipe_refiner is not None:
             extra_kwargs["output_type"] = "latent"
 
-    pipe_selected.selected = get_scheduler(scheduler, pipe.scheduler.config)
+    pipe_selected.scheduler = get_scheduler(scheduler, pipe.scheduler.config)
     output = pipe_selected(
         prompt=prompt,
         negative_prompt=negative_prompt,
