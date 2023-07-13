@@ -9,7 +9,7 @@ from models.stable_diffusion.constants import (
     SD_MODELS,
     SD_MODEL_CACHE,
 )
-from diffusers import DiffusionPipeline, StableDiffusionPipeline
+from diffusers import StableDiffusionPipeline
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
 from models.download.download_from_bucket import download_all_models_from_bucket
