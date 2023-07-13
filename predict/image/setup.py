@@ -2,8 +2,17 @@ from typing import Any
 
 from lingua import LanguageDetectorBuilder
 from boto3_type_annotations.s3 import ServiceResource
+from models.kandinsky.constants import (
+    KANDINSKY_2_2_DECODER_MODEL_ID,
+    KANDINSKY_2_2_PRIOR_MODEL_ID,
+)
 from models.nllb.constants import TRANSLATOR_CACHE
-from shared.constants import SHOULD_LOAD_KANDINSKY, WORKER_VERSION
+from shared.constants import (
+    SHOULD_LOAD_KANDINSKY_2_1,
+    SHOULD_LOAD_KANDINSKY_2_2,
+    SHOULD_LOAD_KANDINSKY_SAFETY_CHECKER,
+    WORKER_VERSION,
+)
 from models.stable_diffusion.constants import (
     SD_MODEL_FOR_SAFETY_CHECKER,
     SD_MODELS,
@@ -16,7 +25,13 @@ from models.download.download_from_bucket import download_all_models_from_bucket
 from models.download.download_from_hf import download_models_from_hf
 import time
 from models.constants import DEVICE
-from transformers import AutoProcessor, AutoTokenizer, AutoModel
+from transformers import (
+    AutoProcessor,
+    AutoTokenizer,
+    AutoModel,
+    CLIPVisionModelWithProjection,
+)
+from diffusers.models import UNet2DConditionModel
 from models.open_clip.constants import OPEN_CLIP_MODEL_ID
 import os
 from huggingface_hub import _login
@@ -29,7 +44,10 @@ from diffusers import (
     StableDiffusionPipeline,
     StableDiffusionImg2ImgPipeline,
     StableDiffusionInpaintPipeline,
+    KandinskyV22PriorPipeline,
+    KandinskyV22Pipeline,
 )
+import torch
 
 
 class SDPipe:
@@ -58,6 +76,20 @@ class KandinskyPipe:
         self.inpaint = inpaint
 
 
+class KandinskyPipe_2_2:
+    def __init__(
+        self,
+        prior: Any,
+        decoder: Any,
+        unet: Any,
+        image_encoder: Any,
+    ):
+        self.prior = prior
+        self.decoder = decoder
+        self.unet = unet
+        self.image_encoder = image_encoder
+
+
 class ModelsPack:
     def __init__(
         self,
@@ -68,6 +100,7 @@ class ModelsPack:
         translator: Any,
         open_clip: Any,
         kandinsky: KandinskyPipe,
+        kandinsky_2_2: KandinskyPipe_2_2,
         safety_checker: Any,
     ):
         self.sd_pipes = sd_pipes
@@ -75,6 +108,7 @@ class ModelsPack:
         self.translator = translator
         self.open_clip = open_clip
         self.kandinsky = kandinsky
+        self.kandinsky_2_2 = kandinsky_2_2
         self.safety_checker = safety_checker
 
 
@@ -98,8 +132,6 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         SDPipe | StableDiffusionXLPipeline,
         StableDiffusionXLImg2ImgPipeline,
     ] = {}
-
-    safety_checker = None
 
     for key in SD_MODELS:
         s = time.time()
@@ -156,26 +188,30 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             f"✅ Loaded SD model: {key} | Duration: {round(time.time() - s, 1)} seconds"
         )
 
-    # Safety checker
-    print("⏳ Loading safety checker")
-    safety_pipe = StableDiffusionPipeline.from_pretrained(
-        SD_MODELS[SD_MODEL_FOR_SAFETY_CHECKER]["id"],
-        torch_dtype=SD_MODELS[key]["torch_dtype"],
-        cache_dir=SD_MODEL_CACHE,
-    )
-    safety_pipe = safety_pipe.to(DEVICE)
-    safety_pipe.safety_checker.forward = partial(
-        forward_inspect, self=safety_pipe.safety_checker
-    )
-    safety_checker = {
-        "checker": safety_pipe.safety_checker,
-        "feature_extractor": safety_pipe.feature_extractor,
-    }
-    print("✅ Loaded safety checker")
+    # Safety checker for Kandinsky
+    safety_checker = None
+    if SHOULD_LOAD_KANDINSKY_SAFETY_CHECKER == "1":
+        print("⏳ Loading safety checker")
+        safety_pipe = StableDiffusionPipeline.from_pretrained(
+            SD_MODELS[SD_MODEL_FOR_SAFETY_CHECKER]["id"],
+            torch_dtype=SD_MODELS[key]["torch_dtype"],
+            cache_dir=SD_MODEL_CACHE,
+        )
+        safety_pipe = safety_pipe.to(DEVICE)
+        safety_pipe.safety_checker.forward = partial(
+            forward_inspect, self=safety_pipe.safety_checker
+        )
+        safety_checker = {
+            "checker": safety_pipe.safety_checker,
+            "feature_extractor": safety_pipe.feature_extractor,
+        }
+        print("✅ Loaded safety checker")
 
-    # Kandinsky
-    if SHOULD_LOAD_KANDINSKY == "1":
-        print("⏳ Loading Kandinsky")
+    # Kandinsky 2.1
+    kandinsky = None
+    if SHOULD_LOAD_KANDINSKY_2_1 == "1":
+        s = time.time()
+        print("⏳ Loading Kandinsky 2.1")
         text2img = get_kandinsky2(
             "cuda",
             task_type="text2img",
@@ -193,9 +229,44 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             img2img=text2img,
             inpaint=inpaint,
         )
-        print("✅ Loaded Kandinsky")
-    else:
-        kandinsky = None
+        print(f"✅ Loaded Kandinsky 2.1 | Duration: {round(time.time() - s, 1)} seconds")
+
+    # Kandinsky 2.2
+    kandinsky_2_2 = None
+    if SHOULD_LOAD_KANDINSKY_2_2 == "1":
+        s = time.time()
+        print("⏳ Loading Kandinsky 2.2")
+        image_encoder = (
+            CLIPVisionModelWithProjection.from_pretrained(
+                KANDINSKY_2_2_PRIOR_MODEL_ID, subfolder="image_encoder"
+            )
+            .half()
+            .to(DEVICE)
+        )
+        unet = (
+            UNet2DConditionModel.from_pretrained(
+                KANDINSKY_2_2_DECODER_MODEL_ID, subfolder="unet"
+            )
+            .half()
+            .to(DEVICE)
+        )
+        prior = KandinskyV22PriorPipeline.from_pretrained(
+            KANDINSKY_2_2_PRIOR_MODEL_ID,
+            image_encoder=image_encoder,
+            torch_dtype=torch.float16,
+        ).to(DEVICE)
+        decoder = KandinskyV22Pipeline.from_pretrained(
+            KANDINSKY_2_2_DECODER_MODEL_ID,
+            unet=unet,
+            torch_dtype=torch.float16,
+        ).to(DEVICE)
+        kandinsky_2_2 = KandinskyPipe_2_2(
+            prior=prior,
+            decoder=decoder,
+            unet=unet,
+            image_encoder=image_encoder,
+        )
+        print(f"✅ Loaded Kandinsky 2.2 | Duration: {round(time.time() - s, 1)} seconds")
 
     # For upscaler
     upscaler_args = get_args_swinir()
@@ -248,5 +319,6 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         translator=translator,
         open_clip=open_clip,
         kandinsky=kandinsky,
+        kandinsky_2_2=kandinsky_2_2,
         safety_checker=safety_checker,
     )

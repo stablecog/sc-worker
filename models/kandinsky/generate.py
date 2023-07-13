@@ -1,13 +1,15 @@
 import os
 import time
 from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
-from predict.image.setup import KandinskyPipe
+from predict.image.setup import KandinskyPipe, KandinskyPipe_2_2
 from shared.helpers import (
     download_and_fit_image,
     download_and_fit_image_mask,
 )
 import torch
 from torch.cuda.amp import autocast
+
+PRIOR_STEPS = 25
 
 
 def generate(
@@ -106,6 +108,101 @@ def generate(
             prompt,
             **args,
         )
+    output_images_nsfw_results = []
+    with autocast():
+        for image in output_images:
+            has_nsfw_concepts = False
+            result = None
+            if safety_checker is not None:
+                safety_checker_input = safety_checker["feature_extractor"](
+                    images=image, return_tensors="pt"
+                ).to("cuda")
+                result, has_nsfw_concepts = safety_checker["checker"].forward(
+                    clip_input=safety_checker_input.pixel_values, images=image
+                )
+            res = {
+                "result": result,
+                "has_nsfw_concepts": has_nsfw_concepts,
+            }
+            output_images_nsfw_results.append(res)
+
+    nsfw_count = 0
+    filtered_output_images = []
+
+    for i, res in enumerate(output_images_nsfw_results):
+        if res["has_nsfw_concepts"]:
+            nsfw_count += 1
+        else:
+            filtered_output_images.append(output_images[i])
+
+    return filtered_output_images, nsfw_count
+
+
+def generate_2_2(
+    prompt,
+    negative_prompt,
+    prompt_prefix,
+    negative_prompt_prefix,
+    width,
+    height,
+    num_outputs,
+    num_inference_steps,
+    guidance_scale,
+    init_image_url,
+    mask_image_url,
+    prompt_strength,
+    scheduler,
+    seed,
+    model,
+    pipe: KandinskyPipe_2_2,
+    safety_checker,
+):
+    if seed is None:
+        seed = int.from_bytes(os.urandom(2), "big")
+    torch.manual_seed(seed)
+    print(f"Using seed: {seed}")
+
+    if prompt_prefix is not None:
+        prompt = f"{prompt_prefix} {prompt}"
+
+    if negative_prompt_prefix is not None:
+        if negative_prompt is None or negative_prompt == "":
+            negative_prompt = negative_prompt_prefix
+        else:
+            negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
+
+    args = {
+        "num_steps": num_inference_steps,
+        "batch_size": num_outputs,
+        "guidance_scale": guidance_scale,
+        "width": width,
+        "height": height,
+        "sampler": KANDIKSKY_SCHEDULERS[scheduler],
+        "prior_cf_scale": 4,
+        "prior_steps": "25",
+        "negative_prompt": negative_prompt,
+    }
+
+    output_images = None
+
+    img_emb = pipe.prior(
+        prompt=prompt,
+        num_inference_steps=PRIOR_STEPS,
+        num_images_per_prompt=num_outputs,
+    )
+    neg_emb = pipe.prior(
+        prompt=negative_prompt,
+        num_inference_steps=PRIOR_STEPS,
+        num_images_per_prompt=num_outputs,
+    )
+    output_images = pipe.decoder(
+        image_embeds=img_emb.image_embeds,
+        negative_image_embeds=neg_emb.negative_image_embeds,
+        num_inference_steps=num_inference_steps,
+        width=width,
+        height=height,
+    ).images
+
     output_images_nsfw_results = []
     with autocast():
         for image in output_images:

@@ -1,7 +1,12 @@
 import time
 
-from models.kandinsky.constants import KANDINSKY_MODEL_NAME, KANDINSKY_SCHEDULER_CHOICES
+from models.kandinsky.constants import (
+    KANDINSKY_MODEL_NAME,
+    KANDINKSY_2_2_MODEL_NAME,
+    KANDINSKY_SCHEDULER_CHOICES,
+)
 from models.kandinsky.generate import generate as generate_with_kandinsky
+from models.kandinsky.generate import generate_2_2 as generate_with_kandinsky_2_2
 from models.stable_diffusion.constants import (
     SD_MODEL_CHOICES,
     SD_MODEL_DEFAULT_KEY,
@@ -16,7 +21,7 @@ from models.swinir.upscale import upscale
 
 from typing import List
 
-from shared.constants import SHOULD_LOAD_KANDINSKY
+from shared.constants import SHOULD_LOAD_KANDINSKY_2_1, SHOULD_LOAD_KANDINSKY_2_2
 from .classes import PredictOutput, PredictResult
 from .constants import SIZE_LIST
 from .setup import ModelsPack
@@ -117,10 +122,11 @@ class PredictInput(BaseModel):
 
     @validator("model")
     def validate_model(cls, v):
-        if SHOULD_LOAD_KANDINSKY:
-            rest = [KANDINSKY_MODEL_NAME]
-        else:
-            rest = []
+        rest = []
+        if SHOULD_LOAD_KANDINSKY_2_1:
+            rest += [KANDINSKY_MODEL_NAME]
+        if SHOULD_LOAD_KANDINSKY_2_2:
+            rest += [KANDINKSY_2_2_MODEL_NAME]
         choices = SD_MODEL_CHOICES + rest
         return return_value_if_in_list(v, choices)
 
@@ -193,6 +199,8 @@ def predict(
         generator_pipe = None
         if input.model == KANDINSKY_MODEL_NAME:
             generator_pipe = models_pack.kandinsky
+        elif input.model == KANDINKSY_2_2_MODEL_NAME:
+            generator_pipe = models_pack.kandinsky_2_2
         else:
             generator_pipe = models_pack.sd_pipes[input.model]
 
@@ -259,9 +267,16 @@ def predict(
         if input.model == KANDINSKY_MODEL_NAME:
             generate_output_images, generate_nsfw_count = generate_with_kandinsky(
                 **args,
-                safety_checker=models_pack.safety_checker
-                if not input.skip_safety_checker
-                else None,
+                safety_checker=None
+                if input.skip_safety_checker
+                else models_pack.safety_checker,
+            )
+        elif input.model == KANDINKSY_2_2_MODEL_NAME:
+            generate_output_images, generate_nsfw_count = generate_with_kandinsky_2_2(
+                **args,
+                safety_checker=None
+                if input.skip_safety_checker
+                else models_pack.safety_checker,
             )
         else:
             generate_output_images, generate_nsfw_count = generate_with_sd(**args)
