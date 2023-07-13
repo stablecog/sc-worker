@@ -33,9 +33,8 @@ def download_sd_model_from_hf(key):
             variant=SD_MODELS[key]["variant"],
             use_safetensors=True,
         )
-    elif key == "SDXL_REFINER":
-        pipe = StableDiffusionXLImg2ImgPipeline.from_pretrained(
-            SD_MODELS[key]["id"],
+        pipe_refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
+            SD_MODELS[key]["refiner_id"],
             torch_dtype=SD_MODELS[key]["torch_dtype"],
             cache_dir=SD_MODEL_CACHE,
             variant=SD_MODELS[key]["variant"],

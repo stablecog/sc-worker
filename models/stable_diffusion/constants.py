@@ -35,7 +35,6 @@ SD_ENV_KEY_TO_KEY = {
     "22D": "22h Diffusion",
     "LD": "Luna Diffusion",
     "SX": "SDXL",
-    "SXR": "SDXL_REFINER",
 }
 SD_MODEL_CACHE = "diffusers-cache"
 SD_MODELS_ALL = {
@@ -88,11 +87,7 @@ SD_MODELS_ALL = {
         "id": "stabilityai/stable-diffusion-xl-base-0.9",
         "torch_dtype": torch.float16,
         "variant": "fp16",
-    },
-    "SDXL_REFINER": {
-        "id": "stabilityai/stable-diffusion-xl-refiner-0.9",
-        "torch_dtype": torch.float16,
-        "variant": "fp16",
+        "refiner_id": "stabilityai/stable-diffusion-xl-refiner-0.9",
     },
 }
 

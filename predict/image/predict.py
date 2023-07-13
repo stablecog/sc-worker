@@ -191,12 +191,8 @@ def predict(
         )
 
         generator_pipe = None
-        generator_pipe_refiner = None
         if input.model == KANDINSKY_MODEL_NAME:
             generator_pipe = models_pack.kandinsky
-        elif input.model == "SDXL" or input.model == "SDXL_REFINER":
-            generator_pipe = models_pack.sd_pipes["SDXL"]
-            generator_pipe_refiner = models_pack.sd_pipes["SDXL_REFINER"]
         else:
             generator_pipe = models_pack.sd_pipes[input.model]
 
@@ -259,8 +255,6 @@ def predict(
             "model": input.model,
             "pipe": generator_pipe,
         }
-        if generator_pipe_refiner is not None:
-            args["pipe_refiner"] = generator_pipe_refiner
 
         if input.model == KANDINSKY_MODEL_NAME:
             generate_output_images, generate_nsfw_count = generate_with_kandinsky(

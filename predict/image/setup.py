@@ -9,7 +9,7 @@ from models.stable_diffusion.constants import (
     SD_MODELS,
     SD_MODEL_CACHE,
 )
-from diffusers import DiffusionPipeline, StableDiffusionPipeline
+from diffusers import StableDiffusionPipeline
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
 from models.download.download_from_bucket import download_all_models_from_bucket
@@ -35,9 +35,23 @@ from diffusers import (
 class SDPipe:
     def __init__(
         self,
-        text2img: StableDiffusionPipeline,
-        img2img: StableDiffusionImg2ImgPipeline,
-        inpaint: StableDiffusionInpaintPipeline,
+        text2img: StableDiffusionPipeline | StableDiffusionXLPipeline,
+        img2img: StableDiffusionImg2ImgPipeline | StableDiffusionImg2ImgPipeline,
+        inpaint: StableDiffusionInpaintPipeline | None,
+        refiner: StableDiffusionXLImg2ImgPipeline | None,
+    ):
+        self.text2img = text2img
+        self.img2img = img2img
+        self.inpaint = inpaint
+        self.refiner = refiner
+
+
+class KandinskyPipe:
+    def __init__(
+        self,
+        text2img: Any,
+        img2img: Any,
+        inpaint: Any,
     ):
         self.text2img = text2img
         self.img2img = img2img
@@ -53,7 +67,7 @@ class ModelsPack:
         upscaler: Any,
         translator: Any,
         open_clip: Any,
-        kandinsky: Any,
+        kandinsky: KandinskyPipe,
         safety_checker: Any,
     ):
         self.sd_pipes = sd_pipes
@@ -92,23 +106,29 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         print(f"⏳ Loading SD model: {key}")
 
         if key == "SDXL":
-            pipe = StableDiffusionXLPipeline.from_pretrained(
+            text2img = StableDiffusionXLPipeline.from_pretrained(
                 SD_MODELS[key]["id"],
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
                 cache_dir=SD_MODEL_CACHE,
                 variant=SD_MODELS[key]["variant"],
                 use_safetensors=True,
             )
-            pipe = pipe.to(DEVICE)
-        elif key == "SDXL_REFINER":
-            pipe = StableDiffusionXLImg2ImgPipeline.from_pretrained(
-                SD_MODELS[key]["id"],
+            refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
+                SD_MODELS[key]["refiner_id"],
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
                 cache_dir=SD_MODEL_CACHE,
                 variant=SD_MODELS[key]["variant"],
                 use_safetensors=True,
             )
-            pipe = pipe.to(DEVICE)
+            text2img = text2img.to(DEVICE)
+            refiner = refiner.to(DEVICE)
+            img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
+            pipe = SDPipe(
+                text2img=text2img,
+                img2img=img2img,
+                inpaint=None,
+                refiner=refiner,
+            )
         else:
             text2img = StableDiffusionPipeline.from_pretrained(
                 SD_MODELS[key]["id"],
@@ -124,7 +144,12 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
                 text2img = text2img.to(DEVICE)
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
             inpaint = StableDiffusionInpaintPipeline(**text2img.components)
-            pipe = SDPipe(text2img, img2img, inpaint)
+            pipe = SDPipe(
+                text2img=text2img,
+                img2img=img2img,
+                inpaint=inpaint,
+                refiner=None,
+            )
 
         sd_pipes[key] = pipe
         print(
@@ -151,20 +176,23 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     # Kandinsky
     if SHOULD_LOAD_KANDINSKY == "1":
         print("⏳ Loading Kandinsky")
-        kandinsky = {
-            "text2img": get_kandinsky2(
-                "cuda",
-                task_type="text2img",
-                model_version="2.1",
-                use_flash_attention=True,
-            ),
-            "inpaint": get_kandinsky2(
-                "cuda",
-                task_type="inpainting",
-                model_version="2.1",
-                use_flash_attention=True,
-            ),
-        }
+        text2img = get_kandinsky2(
+            "cuda",
+            task_type="text2img",
+            model_version="2.1",
+            use_flash_attention=True,
+        )
+        inpaint = get_kandinsky2(
+            "cuda",
+            task_type="inpainting",
+            model_version="2.1",
+            use_flash_attention=True,
+        )
+        kandinsky = KandinskyPipe(
+            text2img=text2img,
+            img2img=text2img,
+            inpaint=inpaint,
+        )
         print("✅ Loaded Kandinsky")
     else:
         kandinsky = None

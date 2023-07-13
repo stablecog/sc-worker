@@ -1,6 +1,7 @@
 import os
 import time
 from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
+from predict.image.setup import KandinskyPipe
 from shared.helpers import (
     download_and_fit_image,
     download_and_fit_image_mask,
@@ -25,7 +26,7 @@ def generate(
     scheduler,
     seed,
     model,
-    pipe,
+    pipe: KandinskyPipe,
     safety_checker,
 ):
     if seed is None:
@@ -56,10 +57,11 @@ def generate(
 
     output_images = None
 
+    pipe_selected = None
     if mask_image_url is not None:
-        pipe = pipe["inpaint"]
+        pipe_selected = pipe.inpaint
     else:
-        pipe = pipe["text2img"]
+        pipe_selected = pipe.text2img
 
     if init_image_url is not None and mask_image_url is not None:
         start = time.time()
@@ -79,7 +81,7 @@ def generate(
         print(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
         )
-        output_images = pipe.generate_inpainting(
+        output_images = pipe_selected.generate_inpainting(
             prompt,
             pil_img=init_image,
             img_mask=mask_image,
@@ -94,13 +96,13 @@ def generate(
         )
         images_and_texts = [prompt, init_image]
         weights = [prompt_strength, 1 - prompt_strength]
-        output_images = pipe.mix_images(
+        output_images = pipe_selected.mix_images(
             images_and_texts,
             weights,
             **args,
         )
     else:
-        output_images = pipe.generate_text2img(
+        output_images = pipe_selected.generate_text2img(
             prompt,
             **args,
         )

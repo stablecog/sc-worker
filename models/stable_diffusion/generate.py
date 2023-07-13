@@ -23,7 +23,6 @@ def generate(
     seed,
     model,
     pipe,
-    pipe_refiner=None,
 ):
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
@@ -72,7 +71,7 @@ def generate(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
         )
 
-        if mask_image_url is not None:
+        if mask_image_url is not None and pipe.inpaint is not None:
             # The process is: inpainting
             pipe_selected = pipe.inpaint
             start_i = time.time()
@@ -90,13 +89,10 @@ def generate(
             pipe_selected = pipe.img2img
     else:
         # The process is: text2img
-        if model == "SDXL":
-            pipe_selected = pipe
-        else:
-            pipe_selected = pipe.text2img
+        pipe_selected = pipe.text2img
         extra_kwargs["width"] = width
         extra_kwargs["height"] = height
-        if pipe_refiner is not None:
+        if pipe.refiner is not None:
             extra_kwargs["output_type"] = "latent"
 
     pipe_selected.scheduler = get_scheduler(scheduler, pipe_selected.scheduler.config)
@@ -125,8 +121,8 @@ def generate(
     else:
         output_images = output.images
 
-    if pipe_refiner is not None:
-        output_images = pipe_refiner(
+    if pipe.refiner is not None:
+        output_images = pipe.refiner(
             prompt=prompt,
             negative_prompt=negative_prompt,
             guidance_scale=guidance_scale,
