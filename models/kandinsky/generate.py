@@ -186,28 +186,54 @@ def generate_2_2(
 
     pipe.decoder.scheduler = get_scheduler(scheduler, pipe.decoder.scheduler.config)
 
-    img_emb = pipe.prior(
-        prompt=prompt,
-        num_inference_steps=PRIOR_STEPS,
-        guidance_scale=PRIOR_GUIDANCE_SCALE,
-        num_images_per_prompt=num_outputs,
-        generator=generator,
-    )
-    neg_emb = pipe.prior(
-        prompt=negative_prompt,
-        num_inference_steps=PRIOR_STEPS,
-        guidance_scale=PRIOR_GUIDANCE_SCALE,
-        num_images_per_prompt=num_outputs,
-        generator=generator,
-    )
+    extra_args = {}
+    if init_image_url is not None:
+        start = time.time()
+        init_image = download_and_fit_image(init_image_url, width, height)
+        end = time.time()
+        print(
+            f"-- Downloaded and cropped init image in: {round((end - start) * 1000)} ms"
+        )
+        start = time.time()
+        images_and_texts = [prompt, init_image]
+        weights = [prompt_strength, 1 - prompt_strength]
+        prior_out = pipe.prior.interpolate(
+            images_and_texts,
+            weights,
+            generator=generator,
+            negative_prompt=negative_prompt,
+            num_inference_steps=PRIOR_STEPS,
+            guidance_scale=PRIOR_GUIDANCE_SCALE,
+            num_images_per_prompt=num_outputs,
+        )
+        extra_args = {**extra_args, **prior_out}
+    else:
+        img_emb = pipe.prior(
+            prompt=prompt,
+            num_inference_steps=PRIOR_STEPS,
+            guidance_scale=PRIOR_GUIDANCE_SCALE,
+            num_images_per_prompt=num_outputs,
+            generator=generator,
+        )
+        neg_emb = pipe.prior(
+            prompt=negative_prompt,
+            num_inference_steps=PRIOR_STEPS,
+            guidance_scale=PRIOR_GUIDANCE_SCALE,
+            num_images_per_prompt=num_outputs,
+            generator=generator,
+        )
+        extra_args = {
+            **extra_args,
+            "image_embeds": img_emb.image_embeds,
+            "negative_image_embeds": neg_emb.image_embeds,
+        }
     output_images = pipe.decoder(
-        image_embeds=img_emb.image_embeds,
-        negative_image_embeds=neg_emb.image_embeds,
         num_inference_steps=num_inference_steps,
         guidance_scale=guidance_scale,
         width=width,
         height=height,
         generator=generator,
+        **extra_args,
     ).images
 
     output_images = crop_images(image_array=output_images, width=width, height=height)

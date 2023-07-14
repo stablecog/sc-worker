@@ -262,6 +262,7 @@ def predict(
             "seed": input.seed,
             "model": input.model,
             "pipe": generator_pipe,
+            "skip_safety_checker": input.skip_safety_checker,
         }
 
         if input.model == KANDINSKY_MODEL_NAME:

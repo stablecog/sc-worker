@@ -11,6 +11,7 @@ from shared.constants import (
     SHOULD_LOAD_KANDINSKY_2_1,
     SHOULD_LOAD_KANDINSKY_2_2,
     SHOULD_LOAD_KANDINSKY_SAFETY_CHECKER,
+    SKIP_SAFETY_CHECKER,
     WORKER_VERSION,
 )
 from models.stable_diffusion.constants import (
@@ -81,13 +82,9 @@ class KandinskyPipe_2_2:
         self,
         prior: KandinskyV22PriorPipeline,
         decoder: KandinskyV22Pipeline,
-        unet: Any,
-        image_encoder: Any,
     ):
         self.prior = prior
         self.decoder = decoder
-        self.unet = unet
-        self.image_encoder = image_encoder
 
 
 class ModelsPack:
@@ -162,10 +159,14 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
                 refiner=refiner,
             )
         else:
+            extra_args = {}
+            if SKIP_SAFETY_CHECKER == "1":
+                extra_args["safety_checker"] = None
             text2img = StableDiffusionPipeline.from_pretrained(
                 SD_MODELS[key]["id"],
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
                 cache_dir=SD_MODEL_CACHE,
+                **extra_args,
             )
             if (
                 hasattr(SD_MODELS[key], "enable_model_cpu_offload")
@@ -254,23 +255,26 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             .half()
             .to(DEVICE)
         )
+        extra_args = {}
+        if SKIP_SAFETY_CHECKER == "1":
+            extra_args["safety_checker"] = None
         prior = KandinskyV22PriorPipeline.from_pretrained(
             KANDINSKY_2_2_PRIOR_MODEL_ID,
             image_encoder=image_encoder,
             torch_dtype=torch.float16,
             cache_dir=SD_MODEL_CACHE,
+            **extra_args,
         ).to(DEVICE)
         decoder = KandinskyV22Pipeline.from_pretrained(
             KANDINSKY_2_2_DECODER_MODEL_ID,
             unet=unet,
             torch_dtype=torch.float16,
             cache_dir=SD_MODEL_CACHE,
+            **extra_args,
         ).to(DEVICE)
         kandinsky_2_2 = KandinskyPipe_2_2(
             prior=prior,
             decoder=decoder,
-            unet=unet,
-            image_encoder=image_encoder,
         )
         print(f"✅ Loaded Kandinsky 2.2 | Duration: {round(time.time() - s, 1)} seconds")
 
