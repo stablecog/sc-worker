@@ -4,6 +4,7 @@ from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
 from models.stable_diffusion.helpers import get_scheduler
 from predict.image.setup import KandinskyPipe, KandinskyPipe_2_2
 from shared.helpers import (
+    crop_images,
     download_and_fit_image,
     download_and_fit_image_mask,
 )
@@ -140,6 +141,9 @@ def generate(
     return filtered_output_images, nsfw_count
 
 
+kandinsky_2_2_negative_prompt_fallback = "lowres, error, worst quality, low quality, jpeg artifacts, bad anatomy, bad proportions, username, watermark, signature"
+
+
 def generate_2_2(
     prompt,
     negative_prompt,
@@ -173,6 +177,11 @@ def generate_2_2(
         else:
             negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
 
+    if negative_prompt is None or negative_prompt == "":
+        negative_prompt = kandinsky_2_2_negative_prompt_fallback
+
+    print(f"Negative prompt for Kandinsky 2.2: {negative_prompt}")
+
     output_images = None
 
     pipe.decoder.scheduler = get_scheduler(scheduler, pipe.decoder.scheduler.config)
@@ -200,6 +209,8 @@ def generate_2_2(
         height=height,
         generator=generator,
     ).images
+
+    output_images = crop_images(image_array=output_images, width=width, height=height)
 
     output_images_nsfw_results = []
     with autocast():

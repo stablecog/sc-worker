@@ -240,13 +240,16 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             CLIPVisionModelWithProjection.from_pretrained(
                 KANDINSKY_2_2_PRIOR_MODEL_ID,
                 subfolder="image_encoder",
+                cache_dir=SD_MODEL_CACHE,
             )
             .half()
             .to(DEVICE)
         )
         unet = (
             UNet2DConditionModel.from_pretrained(
-                KANDINSKY_2_2_DECODER_MODEL_ID, subfolder="unet"
+                KANDINSKY_2_2_DECODER_MODEL_ID,
+                subfolder="unet",
+                cache_dir=SD_MODEL_CACHE,
             )
             .half()
             .to(DEVICE)
@@ -255,11 +258,13 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             KANDINSKY_2_2_PRIOR_MODEL_ID,
             image_encoder=image_encoder,
             torch_dtype=torch.float16,
+            cache_dir=SD_MODEL_CACHE,
         ).to(DEVICE)
         decoder = KandinskyV22Pipeline.from_pretrained(
             KANDINSKY_2_2_DECODER_MODEL_ID,
             unet=unet,
             torch_dtype=torch.float16,
+            cache_dir=SD_MODEL_CACHE,
         ).to(DEVICE)
         kandinsky_2_2 = KandinskyPipe_2_2(
             prior=prior,

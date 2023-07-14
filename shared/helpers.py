@@ -246,3 +246,20 @@ def do_normalize_audio_loudness(audio_arr, sample_rate, target_lufs=-16):
     e = time.time()
     print(f"🔊 Normalized audio loudness in: {round((e - s) * 1000)} ms 🔊")
     return normalized_audio_arr
+
+
+def crop_images(image_array, width, height):
+    cropped_images = []
+    for image in image_array:
+        old_width, old_height = image.size
+        if old_width < width or old_height < height:
+            cropped_images.append(image)
+        else:
+            left = (old_width - width) / 2
+            top = (old_height - height) / 2
+            right = (old_width + width) / 2
+            bottom = (old_height + height) / 2
+
+            cropped_image = image.crop((left, top, right, bottom))
+            cropped_images.append(cropped_image)
+    return cropped_images
