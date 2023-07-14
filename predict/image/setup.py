@@ -79,8 +79,8 @@ class KandinskyPipe:
 class KandinskyPipe_2_2:
     def __init__(
         self,
-        prior: Any,
-        decoder: Any,
+        prior: KandinskyV22PriorPipeline,
+        decoder: KandinskyV22Pipeline,
         unet: Any,
         image_encoder: Any,
     ):
@@ -238,7 +238,8 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         print("⏳ Loading Kandinsky 2.2")
         image_encoder = (
             CLIPVisionModelWithProjection.from_pretrained(
-                KANDINSKY_2_2_PRIOR_MODEL_ID, subfolder="image_encoder"
+                KANDINSKY_2_2_PRIOR_MODEL_ID,
+                subfolder="image_encoder",
             )
             .half()
             .to(DEVICE)

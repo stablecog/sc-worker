@@ -1,6 +1,7 @@
 import os
 import time
 from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
+from models.stable_diffusion.helpers import get_scheduler
 from predict.image.setup import KandinskyPipe, KandinskyPipe_2_2
 from shared.helpers import (
     download_and_fit_image,
@@ -10,6 +11,7 @@ import torch
 from torch.cuda.amp import autocast
 
 PRIOR_STEPS = 25
+PRIOR_GUIDANCE_SCALE = 4.0
 
 
 def generate(
@@ -159,7 +161,7 @@ def generate_2_2(
 ):
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
-    torch.manual_seed(seed)
+    generator = torch.Generator(device="cuda").manual_seed(seed)
     print(f"Using seed: {seed}")
 
     if prompt_prefix is not None:
@@ -171,36 +173,32 @@ def generate_2_2(
         else:
             negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
 
-    args = {
-        "num_steps": num_inference_steps,
-        "batch_size": num_outputs,
-        "guidance_scale": guidance_scale,
-        "width": width,
-        "height": height,
-        "sampler": KANDIKSKY_SCHEDULERS[scheduler],
-        "prior_cf_scale": 4,
-        "prior_steps": "25",
-        "negative_prompt": negative_prompt,
-    }
-
     output_images = None
+
+    pipe.decoder.scheduler = get_scheduler(scheduler, pipe.decoder.scheduler.config)
 
     img_emb = pipe.prior(
         prompt=prompt,
         num_inference_steps=PRIOR_STEPS,
+        guidance_scale=PRIOR_GUIDANCE_SCALE,
         num_images_per_prompt=num_outputs,
+        generator=generator,
     )
     neg_emb = pipe.prior(
         prompt=negative_prompt,
         num_inference_steps=PRIOR_STEPS,
+        guidance_scale=PRIOR_GUIDANCE_SCALE,
         num_images_per_prompt=num_outputs,
+        generator=generator,
     )
     output_images = pipe.decoder(
         image_embeds=img_emb.image_embeds,
-        negative_image_embeds=neg_emb.negative_image_embeds,
+        negative_image_embeds=neg_emb.image_embeds,
         num_inference_steps=num_inference_steps,
+        guidance_scale=guidance_scale,
         width=width,
         height=height,
+        generator=generator,
     ).images
 
     output_images_nsfw_results = []

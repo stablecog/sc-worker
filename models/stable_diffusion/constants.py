@@ -10,6 +10,8 @@ from diffusers import (
     DPMSolverSinglestepScheduler,
     DPMSolverMultistepScheduler,
     DEISMultistepScheduler,
+    UniPCMultistepScheduler,
+    DDPMScheduler,
 )
 from dotenv import load_dotenv
 
@@ -122,6 +124,8 @@ SD_SCHEDULERS = {
     "DPM++_2M": {"from_config": DPMSolverMultistepScheduler.from_config},
     "DPM++_2S": {"from_config": DPMSolverSinglestepScheduler.from_config},
     "DEIS": {"from_config": DEISMultistepScheduler.from_config},
+    "UNI_PC": {"from_config": UniPCMultistepScheduler.from_config},
+    "DDPM": {"from_config": DDPMScheduler.from_config},
 }
 
 SD_SCHEDULER_CHOICES = [*SD_SCHEDULERS.keys()]
