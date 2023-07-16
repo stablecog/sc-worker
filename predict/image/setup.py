@@ -5,9 +5,6 @@ from boto3_type_annotations.s3 import ServiceResource
 from models.kandinsky.constants import (
     KANDINSKY_2_2_DECODER_MODEL_ID,
     KANDINSKY_2_2_PRIOR_MODEL_ID,
-    KANDINSKY_INPAINT_MODEL_ID,
-    KANDINSKY_MODEL_ID,
-    KANDINSKY_PRIOR_MODEL_ID,
 )
 from models.nllb.constants import TRANSLATOR_CACHE
 from shared.constants import (
@@ -50,10 +47,6 @@ from diffusers import (
     StableDiffusionInpaintPipeline,
     KandinskyV22PriorPipeline,
     KandinskyV22Pipeline,
-    KandinskyPriorPipeline,
-    KandinskyPipeline,
-    KandinskyImg2ImgPipeline,
-    KandinskyInpaintPipeline,
 )
 import torch
 
@@ -75,12 +68,10 @@ class SDPipe:
 class KandinskyPipe:
     def __init__(
         self,
-        prior: KandinskyPriorPipeline,
-        text2img: KandinskyPipeline,
-        img2img: KandinskyImg2ImgPipeline,
-        inpaint: KandinskyInpaintPipeline,
+        text2img: Any,
+        img2img: Any,
+        inpaint: Any,
     ):
-        self.prior = prior
         self.text2img = text2img
         self.img2img = img2img
         self.inpaint = inpaint
@@ -181,7 +172,6 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
                 hasattr(SD_MODELS[key], "enable_model_cpu_offload")
                 and SD_MODELS[key]["enable_model_cpu_offload"] == True
             ):
-                print(f"Enabling CPU offload for: {key}")
                 text2img.enable_model_cpu_offload()
             else:
                 text2img = text2img.to(DEVICE)
@@ -223,27 +213,19 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     if SHOULD_LOAD_KANDINSKY_2_1 == "1":
         s = time.time()
         print("⏳ Loading Kandinsky 2.1")
-        prior = KandinskyPriorPipeline.from_pretrained(
-            KANDINSKY_PRIOR_MODEL_ID,
-            torch_dtype=torch.float16,
-            cache_dir=SD_MODEL_CACHE,
+        text2img = get_kandinsky2(
+            "cuda",
+            task_type="text2img",
+            model_version="2.1",
+            use_flash_attention=True,
         )
-        prior = prior.to(DEVICE)
-        text2img = KandinskyPipeline.from_pretrained(
-            KANDINSKY_MODEL_ID,
-            torch_dtype=torch.float16,
-            cache_dir=SD_MODEL_CACHE,
+        inpaint = get_kandinsky2(
+            "cuda",
+            task_type="inpainting",
+            model_version="2.1",
+            use_flash_attention=True,
         )
-        text2img = text2img.to(DEVICE)
-        img2img = KandinskyImg2ImgPipeline(**text2img.components)
-        inpaint = KandinskyInpaintPipeline.from_pretrained(
-            KANDINSKY_INPAINT_MODEL_ID,
-            torch_dtype=torch.float16,
-            cache_dir=SD_MODEL_CACHE,
-        )
-        inpaint = inpaint.to(DEVICE)
         kandinsky = KandinskyPipe(
-            prior=prior,
             text2img=text2img,
             img2img=text2img,
             inpaint=inpaint,
