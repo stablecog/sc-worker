@@ -44,6 +44,7 @@ SD_MODELS_ALL = {
         "id": "runwayml/stable-diffusion-v1-5",
         "torch_dtype": torch.float16,
         "branch": "fp16",
+        "enable_model_cpu_offload": True,
     },
     "Openjourney": {
         "id": "prompthero/openjourney",

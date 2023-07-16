@@ -39,6 +39,9 @@ def generate(
     torch.manual_seed(seed)
     print(f"Using seed: {seed}")
 
+    if negative_prompt is None:
+        negative_prompt = ""
+
     if prompt_prefix is not None:
         prompt = f"{prompt_prefix} {prompt}"
 
@@ -47,26 +50,8 @@ def generate(
             negative_prompt = negative_prompt_prefix
         else:
             negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
-    args = {
-        "num_steps": num_inference_steps,
-        "batch_size": num_outputs,
-        "guidance_scale": guidance_scale,
-        "h": height,
-        "w": width,
-        "sampler": KANDIKSKY_SCHEDULERS[scheduler],
-        "prior_cf_scale": 4,
-        "prior_steps": "5",
-        "negative_prior_prompt": negative_prompt,
-        "negative_decoder_prompt": "",
-    }
 
     output_images = None
-
-    pipe_selected = None
-    if mask_image_url is not None:
-        pipe_selected = pipe.inpaint
-    else:
-        pipe_selected = pipe.text2img
 
     if init_image_url is not None and mask_image_url is not None:
         start = time.time()
@@ -86,12 +71,21 @@ def generate(
         print(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
         )
-        output_images = pipe_selected.generate_inpainting(
+        prior_out = pipe.prior(
             prompt,
-            pil_img=init_image,
-            img_mask=mask_image,
-            **args,
+            negative_prompt,
+            guidance_scale=PRIOR_GUIDANCE_SCALE,
+            num_inference_steps=PRIOR_STEPS,
         )
+        output_images = pipe.inpaint(
+            prompt=prompt,
+            image=init_image,
+            mask_image=mask_image,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            width=width,
+            height=height,
+        ).images
     elif init_image_url is not None:
         start_i = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
@@ -101,16 +95,42 @@ def generate(
         )
         images_and_texts = [prompt, init_image]
         weights = [prompt_strength, 1 - prompt_strength]
-        output_images = pipe_selected.mix_images(
+        prior_out = pipe.prior.interpolate(
             images_and_texts,
             weights,
-            **args,
+            negative_prior_prompt=negative_prompt,
         )
+        output_images = pipe.text2img(
+            prompt=prompt,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            width=width,
+            height=height,
+            **prior_out,
+        ).images
     else:
-        output_images = pipe_selected.generate_text2img(
-            prompt,
-            **args,
+        pipe.prior.scheduler = get_scheduler(
+            scheduler,
+            pipe.prior.scheduler.config,
         )
+        pipe.text2img.scheduler = get_scheduler(
+            scheduler, pipe.text2img.scheduler.config
+        )
+        prior_out = pipe.prior(
+            prompt,
+            negative_prompt,
+            guidance_scale=PRIOR_GUIDANCE_SCALE,
+            num_inference_steps=PRIOR_STEPS,
+        )
+        output_images = pipe.text2img(
+            prompt=prompt,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            width=width,
+            height=height,
+            **prior_out,
+        ).images
+
     output_images_nsfw_results = []
     with autocast():
         for image in output_images:
