@@ -76,15 +76,19 @@ def generate(
             negative_prompt,
             guidance_scale=PRIOR_GUIDANCE_SCALE,
             num_inference_steps=PRIOR_STEPS,
+            num_images_per_prompt=num_outputs,
+        )
+        pipe.inpaint.scheduler = get_scheduler(
+            scheduler, pipe.text2img.scheduler.config
         )
         output_images = pipe.inpaint(
             prompt=prompt,
             image=init_image,
             mask_image=mask_image,
-            num_inference_steps=num_inference_steps,
-            guidance_scale=guidance_scale,
             width=width,
             height=height,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
         ).images
     elif init_image_url is not None:
         start_i = time.time()
@@ -99,6 +103,12 @@ def generate(
             images_and_texts,
             weights,
             negative_prior_prompt=negative_prompt,
+            num_images_per_prompt=num_outputs,
+            guidance_scale=PRIOR_GUIDANCE_SCALE,
+            num_inference_steps=PRIOR_STEPS,
+        )
+        pipe.text2img.scheduler = get_scheduler(
+            scheduler, pipe.text2img.scheduler.config
         )
         output_images = pipe.text2img(
             prompt=prompt,
@@ -109,14 +119,15 @@ def generate(
             **prior_out,
         ).images
     else:
-        pipe.text2img.scheduler = get_scheduler(
-            scheduler, pipe.text2img.scheduler.config
-        )
         prior_out = pipe.prior(
             prompt,
             negative_prompt,
             guidance_scale=PRIOR_GUIDANCE_SCALE,
             num_inference_steps=PRIOR_STEPS,
+            num_images_per_prompt=num_outputs,
+        )
+        pipe.text2img.scheduler = get_scheduler(
+            scheduler, pipe.text2img.scheduler.config
         )
         output_images = pipe.text2img(
             prompt=prompt,
