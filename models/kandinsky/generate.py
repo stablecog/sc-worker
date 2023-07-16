@@ -109,10 +109,6 @@ def generate(
             **prior_out,
         ).images
     else:
-        pipe.prior.scheduler = get_scheduler(
-            scheduler,
-            pipe.prior.scheduler.config,
-        )
         pipe.text2img.scheduler = get_scheduler(
             scheduler, pipe.text2img.scheduler.config
         )
