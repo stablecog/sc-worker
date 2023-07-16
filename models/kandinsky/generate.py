@@ -123,7 +123,7 @@ def generate(
             prompt,
             negative_prompt,
             guidance_scale=PRIOR_GUIDANCE_SCALE,
-            num_inference_steps=PRIOR_STEPS,
+            num_inference_steps=5,
         )
         pipe.text2img.scheduler = get_scheduler(
             scheduler, pipe.text2img.scheduler.config
