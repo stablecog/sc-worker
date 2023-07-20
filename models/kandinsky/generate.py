@@ -184,10 +184,8 @@ def generate_2_2(
 
     output_images = None
 
-    pipe.decoder.scheduler = get_scheduler(scheduler, pipe.decoder.scheduler.config)
-
-    extra_args = {}
     if init_image_url is not None and mask_image_url is not None:
+        pipe.inpaint.scheduler = get_scheduler(scheduler, pipe.inpaint.scheduler.config)
         start = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
         end = time.time()
@@ -219,14 +217,21 @@ def generate_2_2(
             num_images_per_prompt=num_outputs,
             generator=generator,
         )
-        pipe.inpaint(
+        output_images = pipe.inpaint(
             image=init_image,
             mask_image=mask_image,
-            height=768,
-            width=768,
             num_inference_steps=num_inference_steps,
-        )
+            guidance_scale=guidance_scale,
+            width=width,
+            height=height,
+            image_embeds=img_emb.image_embeds,
+            negative_image_embeds=neg_emb.image_embeds,
+            generator=generator,
+        ).images
     elif init_image_url is not None:
+        pipe.text2img.scheduler = get_scheduler(
+            scheduler, pipe.text2img.scheduler.config
+        )
         start = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
         end = time.time()
@@ -239,14 +244,24 @@ def generate_2_2(
         prior_out = pipe.prior.interpolate(
             images_and_texts,
             weights,
-            generator=generator,
             negative_prompt=negative_prompt,
             num_inference_steps=PRIOR_STEPS,
             guidance_scale=PRIOR_GUIDANCE_SCALE,
             num_images_per_prompt=num_outputs,
+            generator=generator,
         )
-        extra_args = {**extra_args, **prior_out}
+        output_images = pipe.text2img(
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            width=width,
+            height=height,
+            generator=generator,
+            **prior_out,
+        ).images
     else:
+        pipe.text2img.scheduler = get_scheduler(
+            scheduler, pipe.text2img.scheduler.config
+        )
         img_emb = pipe.prior(
             prompt=prompt,
             num_inference_steps=PRIOR_STEPS,
@@ -261,19 +276,15 @@ def generate_2_2(
             num_images_per_prompt=num_outputs,
             generator=generator,
         )
-        extra_args = {
-            **extra_args,
-            "image_embeds": img_emb.image_embeds,
-            "negative_image_embeds": neg_emb.image_embeds,
-        }
-    output_images = pipe.decoder(
-        num_inference_steps=num_inference_steps,
-        guidance_scale=guidance_scale,
-        width=width,
-        height=height,
-        generator=generator,
-        **extra_args,
-    ).images
+        output_images = pipe.text2img(
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            width=width,
+            height=height,
+            generator=generator,
+            image_embeds=img_emb.image_embeds,
+            negative_image_embeds=neg_emb.image_embeds,
+        ).images
 
     output_images = crop_images(image_array=output_images, width=width, height=height)
 

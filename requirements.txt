@@ -1,4 +1,4 @@
-git+https://github.com/ai-forever/diffusers.git
+diffusers==0.18.2
 transformers==4.30.2
 safetensors==0.3.1
 ftfy==6.1.1

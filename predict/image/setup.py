@@ -3,6 +3,7 @@ from typing import Any
 from lingua import LanguageDetectorBuilder
 from boto3_type_annotations.s3 import ServiceResource
 from models.kandinsky.constants import (
+    KANDINSKY_2_2_DECODER_INPAINT_MODEL_ID,
     KANDINSKY_2_2_DECODER_MODEL_ID,
     KANDINSKY_2_2_PRIOR_MODEL_ID,
 )
@@ -47,6 +48,8 @@ from diffusers import (
     StableDiffusionInpaintPipeline,
     KandinskyV22PriorPipeline,
     KandinskyV22Pipeline,
+    KandinskyV22Img2ImgPipeline,
+    KandinskyV22InpaintPipeline,
 )
 import torch
 
@@ -81,10 +84,14 @@ class KandinskyPipe_2_2:
     def __init__(
         self,
         prior: KandinskyV22PriorPipeline,
-        decoder: KandinskyV22Pipeline,
+        text2img: KandinskyV22Pipeline,
+        img2img: KandinskyV22Img2ImgPipeline,
+        inpaint: KandinskyV22InpaintPipeline,
     ):
         self.prior = prior
-        self.decoder = decoder
+        self.text2img = text2img
+        self.img2img = img2img
+        self.inpaint = inpaint
 
 
 class ModelsPack:
@@ -237,44 +244,27 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     if SHOULD_LOAD_KANDINSKY_2_2 == "1":
         s = time.time()
         print("⏳ Loading Kandinsky 2.2")
-        image_encoder = (
-            CLIPVisionModelWithProjection.from_pretrained(
-                KANDINSKY_2_2_PRIOR_MODEL_ID,
-                subfolder="image_encoder",
-                cache_dir=SD_MODEL_CACHE,
-            )
-            .half()
-            .to(DEVICE)
-        )
-        unet = (
-            UNet2DConditionModel.from_pretrained(
-                KANDINSKY_2_2_DECODER_MODEL_ID,
-                subfolder="unet",
-                cache_dir=SD_MODEL_CACHE,
-            )
-            .half()
-            .to(DEVICE)
-        )
-        extra_args = {}
-        if SKIP_SAFETY_CHECKER == "1":
-            extra_args["safety_checker"] = None
         prior = KandinskyV22PriorPipeline.from_pretrained(
             KANDINSKY_2_2_PRIOR_MODEL_ID,
-            image_encoder=image_encoder,
             torch_dtype=torch.float16,
             cache_dir=SD_MODEL_CACHE,
-            **extra_args,
         ).to(DEVICE)
-        decoder = KandinskyV22Pipeline.from_pretrained(
+        text2img = KandinskyV22Pipeline.from_pretrained(
             KANDINSKY_2_2_DECODER_MODEL_ID,
-            unet=unet,
             torch_dtype=torch.float16,
             cache_dir=SD_MODEL_CACHE,
-            **extra_args,
+        ).to(DEVICE)
+        img2img = KandinskyV22Pipeline(**text2img.components)
+        inpaint = KandinskyV22InpaintPipeline.from_pretrained(
+            KANDINSKY_2_2_DECODER_INPAINT_MODEL_ID,
+            torch_dtype=torch.float16,
+            cache_dir=SD_MODEL_CACHE,
         ).to(DEVICE)
         kandinsky_2_2 = KandinskyPipe_2_2(
             prior=prior,
-            decoder=decoder,
+            text2img=text2img,
+            img2img=img2img,
+            inpaint=inpaint,
         )
         print(f"✅ Loaded Kandinsky 2.2 | Duration: {round(time.time() - s, 1)} seconds")
 
