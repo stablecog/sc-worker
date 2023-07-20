@@ -187,7 +187,46 @@ def generate_2_2(
     pipe.decoder.scheduler = get_scheduler(scheduler, pipe.decoder.scheduler.config)
 
     extra_args = {}
-    if init_image_url is not None:
+    if init_image_url is not None and mask_image_url is not None:
+        start = time.time()
+        init_image = download_and_fit_image(init_image_url, width, height)
+        end = time.time()
+        print(
+            f"-- Downloaded and cropped init image in: {round((end - start) * 1000)} ms"
+        )
+        start = time.time()
+        mask_image = download_and_fit_image_mask(
+            url=mask_image_url,
+            width=width,
+            height=height,
+            inverted=True,
+        )
+        end = time.time()
+        print(
+            f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
+        )
+        img_emb = pipe.prior(
+            prompt=prompt,
+            num_inference_steps=PRIOR_STEPS,
+            guidance_scale=PRIOR_GUIDANCE_SCALE,
+            num_images_per_prompt=num_outputs,
+            generator=generator,
+        )
+        neg_emb = pipe.prior(
+            prompt=negative_prompt,
+            num_inference_steps=PRIOR_STEPS,
+            guidance_scale=PRIOR_GUIDANCE_SCALE,
+            num_images_per_prompt=num_outputs,
+            generator=generator,
+        )
+        pipe.inpaint(
+            image=init_image,
+            mask_image=mask_image,
+            height=768,
+            width=768,
+            num_inference_steps=num_inference_steps,
+        )
+    elif init_image_url is not None:
         start = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
         end = time.time()
