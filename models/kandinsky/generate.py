@@ -7,6 +7,8 @@ from shared.helpers import (
     crop_images,
     download_and_fit_image,
     download_and_fit_image_mask,
+    pad_image_mask_nd,
+    pad_image_pil,
 )
 import torch
 from torch.cuda.amp import autocast
@@ -188,6 +190,7 @@ def generate_2_2(
         pipe.inpaint.scheduler = get_scheduler(scheduler, pipe.inpaint.scheduler.config)
         start = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
+        init_image = pad_image_pil(init_image, 64)
         end = time.time()
         print(
             f"-- Downloaded and cropped init image in: {round((end - start) * 1000)} ms"
@@ -199,6 +202,7 @@ def generate_2_2(
             height=height,
             inverted=True,
         )
+        mask_image = pad_image_mask_nd(mask_image, 64, 0)
         end = time.time()
         print(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
