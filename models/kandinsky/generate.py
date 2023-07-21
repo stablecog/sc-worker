@@ -203,29 +203,22 @@ def generate_2_2(
         print(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
         )
-        img_emb = pipe.prior(
-            prompt=prompt,
+        img_emb, zero_emb = pipe.prior(
+            prompt="",
             num_inference_steps=PRIOR_STEPS,
             guidance_scale=PRIOR_GUIDANCE_SCALE,
             num_images_per_prompt=num_outputs,
             generator=generator,
-        )
-        neg_emb = pipe.prior(
-            prompt=negative_prompt,
-            num_inference_steps=PRIOR_STEPS,
-            guidance_scale=PRIOR_GUIDANCE_SCALE,
-            num_images_per_prompt=num_outputs,
-            generator=generator,
-        )
+        ).to_tuple()
         output_images = pipe.inpaint(
             image=init_image,
             mask_image=mask_image,
+            image_embeds=img_emb,
+            negative_image_embeds=zero_emb,
             num_inference_steps=num_inference_steps,
             guidance_scale=guidance_scale,
             width=width,
             height=height,
-            image_embeds=img_emb.image_embeds,
-            negative_image_embeds=neg_emb.image_embeds,
             generator=generator,
         ).images
     elif init_image_url is not None:
