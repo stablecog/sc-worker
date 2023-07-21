@@ -218,13 +218,12 @@ def generate_2_2(
             generator=generator,
         )
         output_images = pipe.inpaint(
-            image=init_image,
-            mask_image=mask_image,
+            image=[init_image] * num_outputs,
+            mask_image=[mask_image] * num_outputs,
             image_embeds=img_emb.image_embeds,
             negative_image_embeds=neg_emb.image_embeds,
             width=width,
             height=height,
-            num_images_per_prompt=num_outputs,
             num_inference_steps=num_inference_steps,
             guidance_scale=guidance_scale,
             generator=generator,
