@@ -252,12 +252,12 @@ def generate_2_2(
             generator=generator,
         )
         output_images = pipe.text2img(
+            **prior_out,
             width=width,
             height=height,
             generator=generator,
             num_inference_steps=num_inference_steps,
             guidance_scale=guidance_scale,
-            **prior_out,
         ).images
     else:
         pipe.text2img.scheduler = get_scheduler(
