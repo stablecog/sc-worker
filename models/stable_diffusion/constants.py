@@ -96,6 +96,7 @@ SD_MODELS_ALL = {
     "Waifu Diffusion XL": {
         "id": "hakurei/waifu-diffusion-xl",
         "torch_dtype": torch.float16,
+        "variant": "fp16",
         "refiner_id": "stabilityai/stable-diffusion-xl-base-0.9",
     },
 }
