@@ -27,6 +27,14 @@ def clean_prefix_or_suffix_space(text: str):
     return text
 
 
+""" "Waifu Diffusion XL": {
+        "id": "hakurei/waifu-diffusion-xl",
+        "torch_dtype": torch.float16,
+        "variant": "main",
+        "refiner_id": "stabilityai/stable-diffusion-xl-base-0.9",
+}, """
+
+
 SD_ENV_KEY_TO_KEY = {
     "SD": "Stable Diffusion v1.5",
     "OJ": "Openjourney",
@@ -92,12 +100,6 @@ SD_MODELS_ALL = {
         "torch_dtype": torch.float16,
         "variant": "fp16",
         "refiner_id": "stabilityai/stable-diffusion-xl-refiner-0.9",
-    },
-    "Waifu Diffusion XL": {
-        "id": "hakurei/waifu-diffusion-xl",
-        "torch_dtype": torch.float16,
-        "variant": "main",
-        "refiner_id": "stabilityai/stable-diffusion-xl-base-0.9",
     },
 }
 
