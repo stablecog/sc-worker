@@ -51,7 +51,7 @@ class PredictInput(BaseModel):
         description="Mask image url to be used with img2img.",
         default=None,
     )
-    prompt_strength: float | None = Field(
+    prompt_strength: float = Field(
         description="The strength of the prompt when using img2img, between 0-1. When 1, it'll essentially ignore the image.",
         ge=0,
         le=1,
