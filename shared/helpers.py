@@ -248,6 +248,75 @@ def do_normalize_audio_loudness(audio_arr, sample_rate, target_lufs=-16):
     return normalized_audio_arr
 
 
+def pad_image_mask_nd(
+    img: np.ndarray, multiple: int, pad_value: int = 255
+) -> np.ndarray:
+    # Calculate the number of rows and columns to be padded
+    pad_rows = (multiple - img.shape[0] % multiple) % multiple
+    pad_cols = (multiple - img.shape[1] % multiple) % multiple
+
+    # Pad the image
+    # 'constant_values=pad_value' pads with the given value
+    padded_img = np.pad(
+        img,
+        ((pad_rows // 2, (pad_rows + 1) // 2), (pad_cols // 2, (pad_cols + 1) // 2)),
+        mode="constant",
+        constant_values=pad_value,
+    )
+
+    return padded_img
+
+
+def pad_image_nd(img: np.ndarray, multiple: int, pad_value: int = 255) -> np.ndarray:
+    # Calculate the number of rows and columns to be padded
+    pad_rows = (multiple - img.shape[0] % multiple) % multiple
+    pad_cols = (multiple - img.shape[1] % multiple) % multiple
+
+    # Pad the image
+    # 'constant_values=255' pads with white for an 8-bit image
+    padded_img = np.pad(
+        img,
+        (
+            (pad_rows // 2, (pad_rows + 1) // 2),
+            (pad_cols // 2, (pad_cols + 1) // 2),
+            (0, 0),
+        ),
+        mode="constant",
+        constant_values=pad_value,
+    )
+
+    return padded_img
+
+
+def pad_image_pil(img: Image.Image, multiple: int, pad_value: int = 255) -> Image.Image:
+    # Calculate the number of rows and columns to be padded
+    width, height = img.size
+    pad_width = (multiple - width % multiple) % multiple
+    pad_height = (multiple - height % multiple) % multiple
+
+    # Pad the image
+    # 'fill=255' pads with white for an 8-bit image
+    padded_img = ImageOps.expand(
+        img,
+        (pad_width // 2, pad_height // 2, (pad_width + 1) // 2, (pad_height + 1) // 2),
+        fill=pad_value,
+    )
+
+    return padded_img
+
+
+def pad_dim(width: int, height: int, multiple: int):
+    # Calculate the number of rows and columns to be padded
+    pad_width = (multiple - width % multiple) % multiple
+    pad_height = (multiple - height % multiple) % multiple
+
+    # Add the padding to the original dimensions
+    new_width = width + pad_width
+    new_height = height + pad_height
+
+    return new_width, new_height
+
+
 def crop_images(image_array, width, height):
     cropped_images = []
     for image in image_array:
