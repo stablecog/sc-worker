@@ -141,7 +141,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         s = time.time()
         print(f"⏳ Loading SD model: {key}")
 
-        if key == "SDXL":
+        if key == "SDXL" or key == "Waifu Diffusion XL":
             text2img = StableDiffusionXLPipeline.from_pretrained(
                 SD_MODELS[key]["id"],
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
