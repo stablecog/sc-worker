@@ -51,11 +51,11 @@ class PredictInput(BaseModel):
         description="Mask image url to be used with img2img.",
         default=None,
     )
-    prompt_strength: float = Field(
+    prompt_strength: float | None = Field(
         description="The strength of the prompt when using img2img, between 0-1. When 1, it'll essentially ignore the image.",
         ge=0,
         le=1,
-        default=0.6,
+        default=None,
     )
     num_inference_steps: int = Field(
         description="Number of denoising steps", ge=1, le=500, default=30
