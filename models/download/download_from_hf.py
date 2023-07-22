@@ -25,7 +25,7 @@ def download_sd_model_from_hf(key):
     model_id = SD_MODELS_ALL[key]["id"]
     s = time.time()
     print(f"⏳ Downloading model: {model_id}")
-    if key == "SDXL":
+    if key == "SDXL" or key == "Waifu Diffusion XL":
         pipe = StableDiffusionXLPipeline.from_pretrained(
             SD_MODELS[key]["id"],
             torch_dtype=SD_MODELS[key]["torch_dtype"],

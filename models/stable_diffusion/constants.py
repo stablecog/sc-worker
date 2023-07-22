@@ -37,6 +37,7 @@ SD_ENV_KEY_TO_KEY = {
     "22D": "22h Diffusion",
     "LD": "Luna Diffusion",
     "SX": "SDXL",
+    "WDX": "Waifu Diffusion XL",
 }
 SD_MODEL_CACHE = "diffusers-cache"
 SD_MODELS_ALL = {
@@ -91,6 +92,11 @@ SD_MODELS_ALL = {
         "torch_dtype": torch.float16,
         "variant": "fp16",
         "refiner_id": "stabilityai/stable-diffusion-xl-refiner-0.9",
+    },
+    "Waifu Diffusion XL": {
+        "id": "hakurei/waifu-diffusion-xl",
+        "torch_dtype": torch.float16,
+        "refiner_id": "stabilityai/stable-diffusion-xl-base-0.9",
     },
 }
 
