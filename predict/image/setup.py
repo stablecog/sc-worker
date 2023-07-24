@@ -177,6 +177,8 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             )
             print("----------------------------")
             print(SD_MODELS[key])
+            print(hasattr(SD_MODELS[key], "enable_model_cpu_offload"))
+            print(SD_MODELS[key]["enable_model_cpu_offload"])
             if (
                 hasattr(SD_MODELS[key], "enable_model_cpu_offload")
                 and SD_MODELS[key]["enable_model_cpu_offload"] == True
