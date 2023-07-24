@@ -175,12 +175,15 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
                 cache_dir=SD_MODEL_CACHE,
                 **extra_args,
             )
+            print("----------------------------")
+            print(SD_MODELS[key])
+            print("----------------------------")
             if (
                 hasattr(SD_MODELS[key], "enable_model_cpu_offload")
                 and SD_MODELS[key]["enable_model_cpu_offload"] == True
             ):
                 text2img.enable_model_cpu_offload()
-                print(f"📦 Enabling CPU offload for SD model: {key}")
+                print(f"📦 Enabled CPU offload for SD model: {key}")
             else:
                 text2img = text2img.to(DEVICE)
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
