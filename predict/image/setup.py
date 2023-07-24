@@ -175,7 +175,9 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
                 cache_dir=SD_MODEL_CACHE,
                 **extra_args,
             )
-            print("---------------------------------------")
+            print(
+                "-----------------------------------------------------------------------"
+            )
             if (
                 "enable_model_cpu_offload" in SD_MODELS[key]
                 and SD_MODELS[key]["enable_model_cpu_offload"] == True
@@ -185,7 +187,9 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             else:
                 text2img = text2img.to(DEVICE)
                 print(f"🚀 No CPU offload for SD model: {key}")
-            print("---------------------------------------")
+            print(
+                "-----------------------------------------------------------------------"
+            )
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
             inpaint = StableDiffusionInpaintPipeline(**text2img.components)
             pipe = SDPipe(
