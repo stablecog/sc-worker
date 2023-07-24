@@ -34,6 +34,13 @@ def clean_prefix_or_suffix_space(text: str):
         "refiner_id": "stabilityai/stable-diffusion-xl-base-0.9",
 }, """
 
+""" "SDXL": {
+        "id": "stabilityai/stable-diffusion-xl-base-0.9",
+        "torch_dtype": torch.float16,
+        "variant": "fp16",
+        "refiner_id": "stabilityai/stable-diffusion-xl-refiner-0.9",
+    }, """
+
 
 SD_ENV_KEY_TO_KEY = {
     "SD": "Stable Diffusion v1.5",
@@ -94,12 +101,6 @@ SD_MODELS_ALL = {
     "Luna Diffusion": {
         "id": "proximasanfinetuning/luna-diffusion",
         "torch_dtype": torch.float16,
-    },
-    "SDXL": {
-        "id": "stabilityai/stable-diffusion-xl-base-0.9",
-        "torch_dtype": torch.float16,
-        "variant": "fp16",
-        "refiner_id": "stabilityai/stable-diffusion-xl-refiner-0.9",
     },
 }
 
