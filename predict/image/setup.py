@@ -180,6 +180,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
                 and SD_MODELS[key]["enable_model_cpu_offload"] == True
             ):
                 text2img.enable_model_cpu_offload()
+                print(f"📦 Enabling CPU offload SD model: {key}")
             else:
                 text2img = text2img.to(DEVICE)
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
