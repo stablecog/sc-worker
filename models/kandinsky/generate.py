@@ -203,7 +203,6 @@ def generate_2_2(
             inverted=True,
         )
         mask_image = pad_image_mask_nd(mask_image, 64, 0)
-        print(init_image.size, mask_image.shape)
         end = time.time()
         print(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
@@ -227,8 +226,8 @@ def generate_2_2(
             mask_image=[mask_image] * num_outputs,
             image_embeds=img_emb.image_embeds,
             negative_image_embeds=neg_emb.image_embeds,
-            width=width,
-            height=height,
+            width=init_image.width,
+            height=init_image.height,
             num_inference_steps=num_inference_steps,
             guidance_scale=guidance_scale,
             generator=generator,
