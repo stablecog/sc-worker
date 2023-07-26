@@ -1,7 +1,7 @@
 import os
 import time
 from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
-from models.stable_diffusion.helpers import get_scheduler
+from .helpers import get_scheduler
 from predict.image.setup import KandinskyPipe, KandinskyPipe_2_2
 from shared.helpers import (
     crop_images,
@@ -187,7 +187,7 @@ def generate_2_2(
     output_images = None
 
     if init_image_url is not None and mask_image_url is not None:
-        pipe.inpaint.scheduler = get_scheduler(scheduler, pipe.inpaint.scheduler.config)
+        pipe.inpaint.scheduler = get_scheduler(scheduler, pipe.inpaint)
         start = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
         init_image = pad_image_pil(init_image, 64)
@@ -233,9 +233,7 @@ def generate_2_2(
             generator=generator,
         ).images
     elif init_image_url is not None:
-        pipe.text2img.scheduler = get_scheduler(
-            scheduler, pipe.text2img.scheduler.config
-        )
+        pipe.text2img.scheduler = get_scheduler(scheduler, pipe.text2img)
         start = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
         end = time.time()
@@ -263,9 +261,7 @@ def generate_2_2(
             guidance_scale=guidance_scale,
         ).images
     else:
-        pipe.text2img.scheduler = get_scheduler(
-            scheduler, pipe.text2img.scheduler.config
-        )
+        pipe.text2img.scheduler = get_scheduler(scheduler, pipe.text2img)
         img_emb = pipe.prior(
             prompt=prompt,
             num_inference_steps=PRIOR_STEPS,
