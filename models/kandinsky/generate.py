@@ -203,6 +203,7 @@ def generate_2_2(
             inverted=True,
         )
         mask_image = pad_image_mask_nd(mask_image, 64, 0)
+        print(init_image.size, mask_image.shape)
         end = time.time()
         print(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
