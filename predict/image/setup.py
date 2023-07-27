@@ -8,6 +8,7 @@ from models.kandinsky.constants import (
     KANDINSKY_2_2_PRIOR_MODEL_ID,
 )
 from models.nllb.constants import TRANSLATOR_CACHE
+from models.stable_diffusion.classes import StableDiffusionXLWatermarker
 from shared.constants import (
     SHOULD_LOAD_KANDINSKY_2_1,
     SHOULD_LOAD_KANDINSKY_2_2,
@@ -164,6 +165,8 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
                 use_safetensors=True,
                 vae=vae,
             )
+            text2img.watermark = StableDiffusionXLWatermarker()
+            refiner.watermark = StableDiffusionXLWatermarker()
             text2img = text2img.to(DEVICE)
             refiner = refiner.to(DEVICE)
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
