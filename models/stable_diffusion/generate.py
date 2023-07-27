@@ -1,5 +1,7 @@
 import os
 import torch
+
+from models.constants import DEVICE
 from .helpers import get_scheduler
 from .constants import SD_MODELS
 import time
@@ -95,6 +97,13 @@ def generate(
         if pipe.refiner is not None:
             extra_kwargs["output_type"] = "latent"
 
+    if SD_MODELS[model]["keep_in_cpu_when_idle"]:
+        s = time.time()
+        pipe_selected.torch_dtype = torch.float16
+        pipe_selected = pipe_selected.to(DEVICE)
+        e = time.time()
+        print(f"🚀 Moved {model} to GPU in: {round((e - s) * 1000)} ms")
+
     pipe_selected.scheduler = get_scheduler(scheduler, pipe_selected.scheduler.config)
     output = pipe_selected(
         prompt=prompt,
@@ -134,5 +143,12 @@ def generate(
 
     if nsfw_count > 0:
         print(f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs.")
+
+    if SD_MODELS[model]["keep_in_cpu_when_idle"]:
+        s = time.time()
+        pipe_selected.torch_dtype = torch.float32
+        pipe_selected = pipe_selected.to("cpu")
+        e = time.time()
+        print(f"🐢 Moved {model} to CPU in: {round((e - s) * 1000)} ms")
 
     return output_images, nsfw_count

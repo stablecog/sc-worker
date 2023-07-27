@@ -49,6 +49,7 @@ from diffusers import (
     KandinskyV22Img2ImgPipeline,
     KandinskyV22InpaintPipeline,
 )
+from diffusers.models import AutoencoderKL
 import torch
 
 
@@ -140,12 +141,18 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         print(f"⏳ Loading SD model: {key}")
 
         if key == "SDXL" or key == "Waifu Diffusion XL":
+            vae = AutoencoderKL.from_pretrained(
+                "stabilityai/sdxl-vae",
+                torch_dtype=torch.float16,
+                cache_dir=SD_MODEL_CACHE,
+            )
             text2img = StableDiffusionXLPipeline.from_pretrained(
                 SD_MODELS[key]["id"],
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
                 cache_dir=SD_MODEL_CACHE,
                 variant=SD_MODELS[key]["variant"],
                 use_safetensors=True,
+                vae=vae,
             )
             refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
                 SD_MODELS[key]["refiner_id"],
@@ -153,6 +160,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
                 cache_dir=SD_MODEL_CACHE,
                 variant=SD_MODELS[key]["variant"],
                 use_safetensors=True,
+                vae=vae,
             )
             text2img = text2img.to(DEVICE)
             refiner = refiner.to(DEVICE)
@@ -176,15 +184,11 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             print(
                 "-----------------------------------------------------------------------"
             )
-            if (
-                "enable_model_cpu_offload" in SD_MODELS[key]
-                and SD_MODELS[key]["enable_model_cpu_offload"] == True
-            ):
-                text2img.enable_model_cpu_offload()
-                print(f"📦 Enabled CPU offload for SD model: {key}")
+            if "keep_in_cpu_when_idle" in SD_MODELS[key]:
+                print(f"🐌 Keep in CPU when idle for SD model: {key}")
             else:
                 text2img = text2img.to(DEVICE)
-                print(f"🚀 No CPU offload for SD model: {key}")
+                print(f"🚀 Keep in GPU for SD model: {key}")
             print(
                 "-----------------------------------------------------------------------"
             )
