@@ -52,6 +52,8 @@ from diffusers import (
 from diffusers.models import AutoencoderKL
 import torch
 
+from shared.helpers import print_tuple
+
 
 class SDPipe:
     def __init__(
@@ -181,17 +183,12 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
                 cache_dir=SD_MODEL_CACHE,
                 **extra_args,
             )
-            print(
-                "-----------------------------------------------------------------------"
-            )
             if "keep_in_cpu_when_idle" in SD_MODELS[key]:
-                print(f"🐌 Keep in CPU when idle for SD model: {key}")
+                text2img = text2img.to("cpu", silence_dtype_warnings=True)
+                print_tuple("🐌 Keep in CPU when idle", key)
             else:
                 text2img = text2img.to(DEVICE)
-                print(f"🚀 Keep in GPU for SD model: {key}")
-            print(
-                "-----------------------------------------------------------------------"
-            )
+                print_tuple("🚀 Keep in GPU", key)
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
             inpaint = StableDiffusionInpaintPipeline(**text2img.components)
             pipe = SDPipe(

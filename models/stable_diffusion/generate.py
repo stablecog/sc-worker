@@ -5,7 +5,7 @@ from models.constants import DEVICE
 from .helpers import get_scheduler
 from .constants import SD_MODELS
 import time
-from shared.helpers import download_and_fit_image
+from shared.helpers import download_and_fit_image, print_tuple
 
 
 def generate(
@@ -99,10 +99,9 @@ def generate(
 
     if SD_MODELS[model]["keep_in_cpu_when_idle"]:
         s = time.time()
-        pipe_selected.torch_dtype = torch.float16
         pipe_selected = pipe_selected.to(DEVICE)
         e = time.time()
-        print(f"🚀 Moved {model} to GPU in: {round((e - s) * 1000)} ms")
+        print_tuple(f"🚀 Moved {model} to GPU", f"{round((e - s) * 1000)} ms")
 
     pipe_selected.scheduler = get_scheduler(scheduler, pipe_selected.scheduler.config)
     output = pipe_selected(
@@ -147,8 +146,9 @@ def generate(
     if SD_MODELS[model]["keep_in_cpu_when_idle"]:
         s = time.time()
         pipe_selected.torch_dtype = torch.float32
-        pipe_selected = pipe_selected.to("cpu")
+        pipe_selected = pipe_selected.to("cpu", silence_dtype_warnings=True)
+        torch.cuda.empty_cache()  # Free up GPU memory
         e = time.time()
-        print(f"🐢 Moved {model} to CPU in: {round((e - s) * 1000)} ms")
+        print_tuple(f"🐢 Moved {model} to CPU", f"{round((e - s) * 1000)} ms")
 
     return output_images, nsfw_count

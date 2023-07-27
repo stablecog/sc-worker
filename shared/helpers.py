@@ -22,6 +22,7 @@ from io import BytesIO
 
 
 from predict.voiceover.classes import RemoveSilenceParams
+from tabulate import tabulate
 
 
 def clean_folder(folder):
@@ -332,3 +333,7 @@ def crop_images(image_array, width, height):
             cropped_image = image.crop((left, top, right, bottom))
             cropped_images.append(cropped_image)
     return cropped_images
+
+
+def print_tuple(a, b):
+    print(tabulate([[a, b]], tablefmt="simple_grid"))
