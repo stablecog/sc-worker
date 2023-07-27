@@ -145,7 +145,6 @@ def generate(
 
     if "keep_in_cpu_when_idle" in SD_MODELS[model]:
         s = time.time()
-        pipe_selected.torch_dtype = torch.float32
         pipe_selected = pipe_selected.to("cpu", silence_dtype_warnings=True)
         torch.cuda.empty_cache()  # Free up GPU memory
         e = time.time()
