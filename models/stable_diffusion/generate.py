@@ -97,7 +97,7 @@ def generate(
         if pipe.refiner is not None:
             extra_kwargs["output_type"] = "latent"
 
-    if SD_MODELS[model]["keep_in_cpu_when_idle"]:
+    if "keep_in_cpu_when_idle" in SD_MODELS[model]:
         s = time.time()
         pipe_selected.torch_dtype = torch.float16
         pipe_selected = pipe_selected.to(DEVICE)
@@ -144,7 +144,7 @@ def generate(
     if nsfw_count > 0:
         print(f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs.")
 
-    if SD_MODELS[model]["keep_in_cpu_when_idle"]:
+    if "keep_in_cpu_when_idle" in SD_MODELS[model]:
         s = time.time()
         pipe_selected.torch_dtype = torch.float32
         pipe_selected = pipe_selected.to("cpu")
