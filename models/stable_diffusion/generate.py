@@ -114,6 +114,12 @@ def generate(
         **extra_kwargs,
     )
 
+    if "keep_in_cpu_when_idle" in SD_MODELS[model]:
+        s = time.time()
+        pipe_selected = pipe_selected.to("cpu", silence_dtype_warnings=True)
+        e = time.time()
+        print_tuple(f"🐢 Moved {model} to CPU", f"{round((e - s) * 1000)} ms")
+
     output_images = []
     nsfw_count = 0
 
@@ -142,12 +148,5 @@ def generate(
 
     if nsfw_count > 0:
         print(f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs.")
-
-    if "keep_in_cpu_when_idle" in SD_MODELS[model]:
-        s = time.time()
-        pipe_selected = pipe_selected.to("cpu", silence_dtype_warnings=True)
-        torch.cuda.empty_cache()  # Free up GPU memory
-        e = time.time()
-        print_tuple(f"🐢 Moved {model} to CPU", f"{round((e - s) * 1000)} ms")
 
     return output_images, nsfw_count

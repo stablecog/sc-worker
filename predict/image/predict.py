@@ -30,8 +30,9 @@ from models.open_clip.main import (
     open_clip_get_embeds_of_texts,
 )
 from pydantic import BaseModel, Field, validator
-from shared.helpers import return_value_if_in_list, wrap_text
+from shared.helpers import print_tuple, return_value_if_in_list, wrap_text
 from tabulate import tabulate
+import torch
 
 
 class PredictInput(BaseModel):
@@ -176,6 +177,11 @@ def predict(
     open_clip_embeds_of_images = None
     open_clip_embed_of_prompt = None
     saved_safety_checker = None
+
+    s = time.time()
+    torch.cuda.empty_cache()  # Free up GPU memory
+    e = time.time()
+    print_tuple(f"CUDA empty cache", f"{round((e - s) * 1000)} ms")
 
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
         t_prompt = input.prompt
