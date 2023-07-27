@@ -82,7 +82,6 @@ def generate(
             url=mask_image_url,
             width=width,
             height=height,
-            inverted=True,
         )
         end = time.time()
         print(
@@ -200,7 +199,6 @@ def generate_2_2(
             url=mask_image_url,
             width=width,
             height=height,
-            inverted=True,
         )
         mask_image = pad_image_mask_nd(mask_image, 64, 0)
         end = time.time()

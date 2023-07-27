@@ -34,13 +34,12 @@ def clean_prefix_or_suffix_space(text: str):
         "refiner_id": "stabilityai/stable-diffusion-xl-base-0.9",
 }, """
 
-""" "SDXL": {
-        "id": "stabilityai/stable-diffusion-xl-base-0.9",
-        "torch_dtype": torch.float16,
-        "variant": "fp16",
-        "refiner_id": "stabilityai/stable-diffusion-xl-refiner-0.9",
-    }, """
-
+""" "Ghibli Diffusion": {
+    "id": "nitrosocke/Ghibli-Diffusion",
+    "prompt_prefix": "ghibli style",
+    "torch_dtype": torch.float16,
+    "enable_model_cpu_offload": True,
+}, """
 
 SD_ENV_KEY_TO_KEY = {
     "SD": "Stable Diffusion v1.5",
@@ -66,6 +65,7 @@ SD_MODELS_ALL = {
         "id": "prompthero/openjourney",
         "prompt_prefix": "mdjrny-v4 style",
         "torch_dtype": torch.float16,
+        "enable_model_cpu_offload": True,
     },
     "Redshift Diffusion": {
         "id": "nitrosocke/redshift-diffusion",
@@ -79,18 +79,13 @@ SD_MODELS_ALL = {
         "torch_dtype": torch.float16,
         "enable_model_cpu_offload": True,
     },
-    "Ghibli Diffusion": {
-        "id": "nitrosocke/Ghibli-Diffusion",
-        "prompt_prefix": "ghibli style",
-        "torch_dtype": torch.float16,
-        "enable_model_cpu_offload": True,
-    },
     "Waifu Diffusion": {
         "id": "hakurei/waifu-diffusion",
         "prompt_prefix": "masterpiece, best quality, high quality",
         "negative_prompt_prefix": "worst quality, low quality, deleted, nsfw, blurry",
         "torch_dtype": torch.float16,
         "branch": "fp16",
+        "enable_model_cpu_offload": True,
     },
     "22h Diffusion": {
         "id": "22h/vintedois-diffusion-v0-1",
@@ -101,6 +96,12 @@ SD_MODELS_ALL = {
     "Luna Diffusion": {
         "id": "proximasanfinetuning/luna-diffusion",
         "torch_dtype": torch.float16,
+    },
+    "SDXL": {
+        "id": "stabilityai/stable-diffusion-xl-base-1.0",
+        "torch_dtype": torch.float16,
+        "variant": "fp16",
+        "refiner_id": "stabilityai/stable-diffusion-xl-refiner-1.0",
     },
 }
 

@@ -31,9 +31,7 @@ from transformers import (
     AutoProcessor,
     AutoTokenizer,
     AutoModel,
-    CLIPVisionModelWithProjection,
 )
-from diffusers.models import UNet2DConditionModel
 from models.open_clip.constants import OPEN_CLIP_MODEL_ID
 import os
 from huggingface_hub import _login
