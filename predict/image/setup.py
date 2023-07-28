@@ -42,6 +42,7 @@ from models.stable_diffusion.filter import forward_inspect
 from diffusers import (
     StableDiffusionXLPipeline,
     StableDiffusionXLImg2ImgPipeline,
+    StableDiffusionXLInpaintPipeline,
     StableDiffusionPipeline,
     StableDiffusionImg2ImgPipeline,
     StableDiffusionInpaintPipeline,
@@ -63,11 +64,13 @@ class SDPipe:
         img2img: StableDiffusionImg2ImgPipeline | StableDiffusionImg2ImgPipeline,
         inpaint: StableDiffusionInpaintPipeline | None,
         refiner: StableDiffusionXLImg2ImgPipeline | None,
+        refiner_inpaint: StableDiffusionXLInpaintPipeline | None,
     ):
         self.text2img = text2img
         self.img2img = img2img
         self.inpaint = inpaint
         self.refiner = refiner
+        self.refiner_inpaint = refiner_inpaint
 
 
 class KandinskyPipe:
@@ -156,7 +159,15 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
                 variant=SD_MODELS[key]["variant"],
                 use_safetensors=True,
                 vae=vae,
+                add_watermarker=False,
             )
+            if "default_lora" in SD_MODELS[key]:
+                lora = SD_MODELS[key]["default_lora"]
+                text2img.load_lora_weights(
+                    SD_MODELS[key]["id"],
+                    weight_name=lora,
+                )
+                print(f"✅ Loaded LoRA weights: {lora}")
             refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
                 SD_MODELS[key]["refiner_id"],
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
@@ -164,17 +175,29 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
                 variant=SD_MODELS[key]["variant"],
                 use_safetensors=True,
                 vae=vae,
+                add_watermarker=False,
             )
-            text2img.watermark = StableDiffusionXLWatermarker()
-            refiner.watermark = StableDiffusionXLWatermarker()
+            refiner_inpaint = StableDiffusionXLInpaintPipeline.from_pretrained(
+                SD_MODELS[key]["refiner_id"],
+                text_encoder_2=text2img.text_encoder_2,
+                torch_dtype=SD_MODELS[key]["torch_dtype"],
+                cache_dir=SD_MODEL_CACHE,
+                variant=SD_MODELS[key]["variant"],
+                use_safetensors=True,
+                vae=text2img.vae,
+                add_watermarker=False,
+            )
             text2img = text2img.to(DEVICE)
             refiner = refiner.to(DEVICE)
+            refiner_inpaint = refiner_inpaint.to(DEVICE)
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
+            inpaint = StableDiffusionXLInpaintPipeline(**text2img.components)
             pipe = SDPipe(
                 text2img=text2img,
                 img2img=img2img,
-                inpaint=None,
+                inpaint=inpaint,
                 refiner=refiner,
+                refiner_inpaint=refiner_inpaint,
             )
         else:
             extra_args = {}
@@ -199,6 +222,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
                 img2img=img2img,
                 inpaint=inpaint,
                 refiner=None,
+                refiner_inpaint=None,
             )
 
         sd_pipes[key] = pipe

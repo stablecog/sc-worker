@@ -5,7 +5,10 @@ from models.constants import DEVICE
 from .helpers import get_scheduler
 from .constants import SD_MODELS
 import time
-from shared.helpers import download_and_fit_image, print_tuple
+from shared.helpers import (
+    download_and_fit_image,
+    print_tuple,
+)
 
 
 def generate(
@@ -59,6 +62,8 @@ def generate(
     extra_kwargs = {}
     pipe_selected = None
 
+    if pipe.refiner is not None:
+        extra_kwargs["output_type"] = "latent"
     if init_image_url is not None:
         # The process is: img2img or inpainting
         start_i = time.time()
@@ -94,8 +99,6 @@ def generate(
         pipe_selected = pipe.text2img
         extra_kwargs["width"] = width
         extra_kwargs["height"] = height
-        if pipe.refiner is not None:
-            extra_kwargs["output_type"] = "latent"
 
     if "keep_in_cpu_when_idle" in SD_MODELS[model]:
         s = time.time()
@@ -136,15 +139,19 @@ def generate(
         output_images = output.images
 
     if pipe.refiner is not None:
-        output_images = pipe.refiner(
-            prompt=prompt,
-            negative_prompt=negative_prompt,
-            guidance_scale=guidance_scale,
-            generator=generator,
-            num_images_per_prompt=num_outputs,
-            num_inference_steps=num_inference_steps,
-            image=output_images,
-        ).images
+        args = {
+            "prompt": prompt,
+            "negative_prompt": negative_prompt,
+            "guidance_scale": guidance_scale,
+            "generator": generator,
+            "num_images_per_prompt": num_outputs,
+            "num_inference_steps": num_inference_steps,
+            "image": output_images,
+        }
+        if mask_image_url is not None:
+            output_images = pipe.refiner_inpaint(**args).images
+        else:
+            output_images = pipe.refiner(**args).images
 
     if nsfw_count > 0:
         print(f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs.")

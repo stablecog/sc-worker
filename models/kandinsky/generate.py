@@ -82,6 +82,7 @@ def generate(
             url=mask_image_url,
             width=width,
             height=height,
+            inverted=True,
         )
         end = time.time()
         print(
