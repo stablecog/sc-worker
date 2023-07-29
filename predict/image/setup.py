@@ -8,7 +8,6 @@ from models.kandinsky.constants import (
     KANDINSKY_2_2_PRIOR_MODEL_ID,
 )
 from models.nllb.constants import TRANSLATOR_CACHE
-from models.stable_diffusion.classes import StableDiffusionXLWatermarker
 from shared.constants import (
     SHOULD_LOAD_KANDINSKY_2_1,
     SHOULD_LOAD_KANDINSKY_2_2,
@@ -259,12 +258,14 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
             task_type="text2img",
             model_version="2.1",
             use_flash_attention=True,
+            cache_dir="/app/data/kandinsky2",
         )
         inpaint = get_kandinsky2(
             "cuda",
             task_type="inpainting",
             model_version="2.1",
             use_flash_attention=True,
+            cache_dir="/app/data/kandinsky2",
         )
         kandinsky = KandinskyPipe(
             text2img=text2img,

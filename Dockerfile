@@ -1,5 +1,6 @@
 FROM stablecog/cuda-torch:11.8.0-2.0.1-cudnn8-devel-ubuntu22.04
 
+RUN mkdir -p /app/data
 WORKDIR /app
 
 ADD . .
