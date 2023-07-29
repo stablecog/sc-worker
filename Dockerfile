@@ -1,5 +1,7 @@
 FROM stablecog/cuda-torch:11.8.0-2.0.1-cudnn8-devel-ubuntu22.04
 
+WORKDIR /app
+
 ADD . .
 RUN apt-get update && apt-get -y install git
 RUN apt-get install -y ffmpeg
