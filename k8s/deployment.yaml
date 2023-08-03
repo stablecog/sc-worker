@@ -46,12 +46,13 @@ spec:
               port: 13339
             initialDelaySeconds: 300
             periodSeconds: 10
-          livenessProbe:
+            failureThreshold: 60
+          startupProbe:
             httpGet:
               path: /health
               port: 13339
-            initialDelaySeconds: 300
-            periodSeconds: 10
+            initialDelaySeconds: 10
+            periodSeconds: 5
           env:
             - name: S3_BUCKET_NAME_MODELS
               value: "smodels"
