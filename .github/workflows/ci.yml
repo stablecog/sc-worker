@@ -63,7 +63,7 @@ jobs:
       - name: Cleanup Docker Junk
         if: success()
         run: |
-          docker rmi $(docker images -q stablecog/*)
+          docker rmi $(docker images -q stablecog/sc-worker)
           docker system prune -f
 
   deploy_qa:
