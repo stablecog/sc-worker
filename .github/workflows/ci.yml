@@ -60,6 +60,12 @@ jobs:
           push: true
           tags: stablecog/sc-worker:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
 
+      - name: Cleanup Docker Junk
+        if: success()
+        run: |
+          docker rmi -f $(docker images -q stablecog/sc-worker) || true
+          docker system prune -f || true
+
   deploy_qa:
     name: Deploy Worker
     runs-on: self-hosted
