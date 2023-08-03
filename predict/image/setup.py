@@ -126,7 +126,6 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
 
     hf_token = os.environ.get("HUGGINGFACE_TOKEN", None)
     if hf_token is not None:
-        print(f"⏳ Logging in to HuggingFace")
         _login.login(token=hf_token)
         print(f"✅ Logged in to HuggingFace")
 
