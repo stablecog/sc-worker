@@ -75,7 +75,7 @@ def download_swinir_models():
         print("✅ SwinIR models already downloaded")
     else:
         os.system(
-            f"wget https://github.com/JingyunLiang/SwinIR/releases/download/v0.0/{MODEL_NAME_SWINIR} -P {MODEL_DIR_SWINIR}"
+            f"wget -q https://github.com/JingyunLiang/SwinIR/releases/download/v0.0/{MODEL_NAME_SWINIR} -P {MODEL_DIR_SWINIR}"
         )
         print("✅ Downloaded SwinIR models")
 
