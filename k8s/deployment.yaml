@@ -78,7 +78,7 @@ spec:
             - name: WORKER_TYPE
               value: "image"
             - name: HF_HUB_ENABLE_HF_TRANSFER
-              value: "False"
+              value: "True"
             - name: WORKER_NAME
               valueFrom:
                 fieldRef:
