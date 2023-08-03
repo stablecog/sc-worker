@@ -63,8 +63,8 @@ jobs:
       - name: Cleanup Docker Junk
         if: success()
         run: |
-          docker rmi $(docker images -q stablecog/sc-worker)
-          docker system prune -f
+          docker rmi -f $(docker images -q stablecog/sc-worker) || true
+          docker system prune -f || true
 
   deploy_qa:
     name: Deploy Worker
