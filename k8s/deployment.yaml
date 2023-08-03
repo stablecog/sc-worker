@@ -40,14 +40,14 @@ spec:
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 13339
-          readinessProbe:
+          startupProbe:
             httpGet:
               path: /health
               port: 13339
             initialDelaySeconds: 300
             periodSeconds: 10
             failureThreshold: 60
-          startupProbe:
+          livenessProbe:
             httpGet:
               path: /health
               port: 13339
