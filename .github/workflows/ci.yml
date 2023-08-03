@@ -2,8 +2,8 @@ name: Build and Publish Worker
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - 'release*'
 jobs:
   setup_env:
     name: ⚙️ Setup environment

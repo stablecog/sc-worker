@@ -20,11 +20,11 @@ runs:
       shell: bash
       run: |
         kustomize edit set image replaceme=${{ inputs.image }}
-        kustomize build . > ../ci-deployment.yaml
+        kustomize build . > ci-deployment.yaml
 
     - name: Deploy image to k8s cluster
       uses: bbedward/kubectl@master
       env:
         KUBE_CONFIG_DATA: ${{ inputs.kube_config }}
       with:
-        args: apply -f ./ci-deployment.yaml
+        args: apply -f ./k8s/ci-deployment.yaml
