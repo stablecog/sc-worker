@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: sc-clipapi-service
+  namespace: sc-worker
+spec:
+  selector:
+    app: sc-worker
+  type: ClusterIP
+  ports:
+    - port: 13339
+      targetPort: 13339

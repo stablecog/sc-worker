@@ -1,0 +1,30 @@
+name: Deploy to Kubernetes
+description: Deploy to Kubernetes
+inputs:
+  image:
+    description: Image to deploy
+    required: true
+  kube_config:
+    description: base64 encoded kube config
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: imranismail/setup-kustomize@v1
+      with:
+        kustomize-version: "3.5.4"
+
+    - name: Set image
+      if: ${{ inputs.env == 'prod' }}
+      working-directory: ./k8s
+      shell: bash
+      run: |
+        kustomize edit set image replaceme=${{ inputs.image }}
+        kustomize build . > ../ci-deployment.yaml
+
+    - name: Deploy image to k8s cluster
+      uses: bbedward/kubectl@master
+      env:
+        KUBE_CONFIG_DATA: ${{ inputs.kube_config }}
+      with:
+        args: apply -f ./k8s/ci-deployment.yaml

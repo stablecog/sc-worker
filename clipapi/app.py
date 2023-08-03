@@ -39,6 +39,11 @@ s3: ServiceResource = boto3.resource(
 bucket = s3.Bucket(S3_BUCKET_NAME_UPLOAD)
 
 
+@clipapi.route("/health", methods=["GET"])
+def health():
+    return "OK", 200
+
+
 @clipapi.route("/clip/embed", methods=["POST"])
 def clip_embed():
     s = time.time()
