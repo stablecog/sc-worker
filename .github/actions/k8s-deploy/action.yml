@@ -27,4 +27,4 @@ runs:
       env:
         KUBE_CONFIG_DATA: ${{ inputs.kube_config }}
       with:
-        args: apply -f ./k8s/ci-deployment.yaml
+        args: apply -f ./ci-deployment.yaml
