@@ -42,6 +42,9 @@ spec:
           resources:
             limits:
               nvidia.com/gpu: 1
+          volumeMounts:
+          - mountPath: "/app/data"
+            name: data-volume
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 13339
@@ -49,7 +52,7 @@ spec:
             httpGet:
               path: /health
               port: 13339
-            initialDelaySeconds: 420
+            initialDelaySeconds: 300
             periodSeconds: 10
             failureThreshold: 60
           livenessProbe:
@@ -118,4 +121,16 @@ spec:
                 secretKeyRef:
                   name: sc-worker
                   key: CLIPAPI_AUTH_TOKEN
-
+      volumes:
+        - name: data-volume
+          ephemeral:
+            volumeClaimTemplate:
+              metadata:
+                labels:
+                  type: data-volume
+              spec:
+                accessModes: [ "ReadWriteOnce" ]
+                storageClassName: managed-csi-premium
+                resources:
+                  requests:
+                    storage: 256Gi
