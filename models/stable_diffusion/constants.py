@@ -53,7 +53,7 @@ SD_ENV_KEY_TO_KEY = {
     "SX": "SDXL",
     "WDX": "Waifu Diffusion XL",
 }
-SD_MODEL_CACHE = "/app/data/diffusers-cache"
+SD_MODEL_CACHE = "diffusers-cache"
 SD_MODELS_ALL = {
     "Stable Diffusion v1.5": {
         "id": "runwayml/stable-diffusion-v1-5",

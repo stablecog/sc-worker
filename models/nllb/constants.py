@@ -5,7 +5,7 @@ import os
 load_dotenv()
 
 TRANSLATOR_MODEL_ID = "facebook/nllb-200-distilled-1.3B"
-TRANSLATOR_CACHE = "/app/data/translator-cache"
+TRANSLATOR_CACHE = "translator-cache"
 
 LANG_TO_FLORES = {
     "AFRIKAANS": "afr_Latn",
