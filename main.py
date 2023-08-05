@@ -56,42 +56,4 @@ if __name__ == "__main__":
     else:
         models_pack = image_setup(s3, S3_BUCKET_NAME_MODELS)
 
-    # Setup redis
-    redisConn = redis.BlockingConnectionPool.from_url(redisUrl)
-
-    # Create queue for thread communication
-    upload_queue: queue.Queue[Dict[str, Any]] = queue.Queue()
-
-    # Create redis worker thread
-    redis_worker_thread = Thread(
-        target=lambda: start_redis_queue_worker(
-            worker_type=WORKER_TYPE,
-            redis=redis.Redis(
-                connection_pool=redisConn, socket_keepalive=True, socket_timeout=1000
-            ),
-            input_queue=redisInputQueue,
-            s3_client=s3,
-            s3_bucket=S3_BUCKET_NAME_UPLOAD,
-            upload_queue=upload_queue,
-            models_pack=models_pack,
-        )
-    )
-
-    # Create upload thread
-    upload_thread = Thread(
-        target=lambda: start_upload_worker(
-            worker_type=WORKER_TYPE,
-            q=upload_queue,
-            s3=s3,
-            s3_bucket=S3_BUCKET_NAME_UPLOAD,
-        )
-    )
-
-    redis_worker_thread.start()
-    upload_thread.start()
-    if WORKER_TYPE == "image":
-        clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
-        clipapi_thread.start()
-        clipapi_thread.join()
-    redis_worker_thread.join()
-    upload_thread.join()
+    run_clipapi(models_pack=models_pack)
