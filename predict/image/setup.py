@@ -104,20 +104,10 @@ class ModelsPack:
         sd_pipes: dict[
             str, SDPipe | StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline
         ],
-        upscaler: Any,
-        translator: Any,
         open_clip: Any,
-        kandinsky: KandinskyPipe,
-        kandinsky_2_2: KandinskyPipe_2_2,
-        safety_checker: Any,
     ):
         self.sd_pipes = sd_pipes
-        self.upscaler = upscaler
-        self.translator = translator
         self.open_clip = open_clip
-        self.kandinsky = kandinsky
-        self.kandinsky_2_2 = kandinsky_2_2
-        self.safety_checker = safety_checker
 
 
 def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
