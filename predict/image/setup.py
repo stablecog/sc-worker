@@ -104,8 +104,10 @@ class ModelsPack:
         sd_pipes: dict[
             str, SDPipe | StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline
         ],
+        translator: Any,
         open_clip: Any,
     ):
+        self.translator = translator
         self.sd_pipes = sd_pipes
         self.open_clip = open_clip
 
@@ -124,6 +126,16 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         SDPipe | StableDiffusionXLPipeline,
         StableDiffusionXLImg2ImgPipeline,
     ] = {}
+
+    # For translator
+    translator = {
+        "detector": (
+            LanguageDetectorBuilder.from_all_languages()
+            .with_preloaded_language_models()
+            .build()
+        ),
+    }
+    print("✅ Loaded translator")
 
     # For OpenCLIP
     print("⏳ Loading OpenCLIP")
@@ -148,4 +160,5 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
     return ModelsPack(
         sd_pipes=sd_pipes,
         open_clip=open_clip,
+        translator=translator,
     )
