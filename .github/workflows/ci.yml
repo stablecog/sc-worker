@@ -85,7 +85,7 @@ jobs:
       - name: Scale a100surge Group
         uses: azure/CLI@v1
         with:
-          azcliversion: 2.30.0
+          azcliversion: 2.50.0
           inlineScript: |
             az extension add --name aks-preview
             az aks nodepool scale --resource-group k8s --cluster-name stablecog --name a100surge --node-count 2
@@ -100,7 +100,9 @@ jobs:
         if: always()
         uses: azure/CLI@v1
         with:
-          azcliversion: 2.30.0
+          azcliversion: 2.50.0
           inlineScript: |
             az extension add --name aks-preview
             az aks nodepool scale --resource-group k8s --cluster-name stablecog --name a100surge --node-count 0
+            az cache purge
+            az account clear
