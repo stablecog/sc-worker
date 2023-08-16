@@ -14,11 +14,11 @@ spec:
       maxSurge: 1
   selector:
     matchLabels:
-      app: sc-worker-surge
+      app: sc-worker
   template:
     metadata:
       labels:
-        app: sc-worker-surge
+        app: sc-worker
     spec:
       tolerations:
       - key: CriticalAddonsOnly
