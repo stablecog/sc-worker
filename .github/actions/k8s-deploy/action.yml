@@ -19,14 +19,14 @@ runs:
       shell: bash
       run: |
         kustomize edit set image replaceme=${{ inputs.image }}
-        kustomize build . > ci-deployment.yaml
+        kustomize build --load-restrictor LoadRestrictionsNone . > ci-deployment.yaml
 
     - name: Set image (Surge)
       working-directory: ./k8s/surge
       shell: bash
       run: |
         kustomize edit set image replaceme=${{ inputs.image }}
-        kustomize build . > ../ci-deployment-surge.yaml
+        kustomize build --load-restrictor LoadRestrictionsNone . > ../ci-deployment-surge.yaml
 
     - name: Deploy surge image to k8s cluster
       uses: bbedward/kubectl@master
