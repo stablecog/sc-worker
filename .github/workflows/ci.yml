@@ -83,12 +83,8 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Scale a100surge Group
-        uses: azure/CLI@v1
-        with:
-          azcliversion: 2.50.0
-          inlineScript: |
-            az extension add --name aks-preview
-            az aks nodepool scale --resource-group k8s --cluster-name stablecog --name a100surge --node-count 2
+        run: |
+          az aks nodepool scale --resource-group k8s --cluster-name stablecog --name a100surge --node-count 2
 
       - name: Deploy
         uses: ./.github/actions/k8s-deploy
@@ -98,11 +94,7 @@ jobs:
 
       - name: Scale down a100surge
         if: always()
-        uses: azure/CLI@v1
-        with:
-          azcliversion: 2.50.0
-          inlineScript: |
-            az extension add --name aks-preview
-            az aks nodepool scale --resource-group k8s --cluster-name stablecog --name a100surge --node-count 0
-            az cache purge
-            az account clear
+        run: |
+          az aks nodepool scale --resource-group k8s --cluster-name stablecog --name a100surge --node-count 0
+          az cache purge
+          az account clear
