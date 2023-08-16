@@ -19,8 +19,28 @@ runs:
       shell: bash
       run: |
         kustomize edit set image replaceme=${{ inputs.image }}
-        kustomize edit set replicas sc-worker=4
         kustomize build . > ci-deployment.yaml
+
+    - name: Set image (Surge)
+      working-directory: ./k8s/surge
+      shell: bash
+      run: |
+        kustomize edit set image replaceme=${{ inputs.image }}
+        kustomize build . > ../ci-deployment-surge.yaml
+
+    - name: Deploy surge image to k8s cluster
+      uses: bbedward/kubectl@master
+      env:
+        KUBE_CONFIG_DATA: ${{ inputs.kube_config }}
+      with:
+        args: apply -f ./k8s/ci-deployment-surge.yaml
+    
+    - name: Wait for deployment to be ready
+      uses: bbedward/kubectl@master
+      env:
+        KUBE_CONFIG_DATA: ${{ inputs.kube_config }}
+      with:
+        args: rollout status deployment/sc-worker-surge -n sc-worker
 
     - name: Deploy image to k8s cluster
       uses: bbedward/kubectl@master
@@ -36,16 +56,9 @@ runs:
       with:
         args: rollout status deployment/sc-worker -n sc-worker
 
-    - name: Scale down replicas
-      working-directory: ./k8s
-      shell: bash
-      run: |
-        kustomize edit set replicas sc-worker=2
-        kustomize build . > ci-deployment.yaml
-
-    - name: Redeploy with lower replica count
+    - name: Set surge replicas to 0
       uses: bbedward/kubectl@master
       env:
         KUBE_CONFIG_DATA: ${{ inputs.kube_config }}
       with:
-        args: apply -f ./k8s/ci-deployment.yaml
+        args: scale --replicas=0 deployment/sc-worker-surge -n sc-worker
