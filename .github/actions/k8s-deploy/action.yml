@@ -19,9 +19,31 @@ runs:
       shell: bash
       run: |
         kustomize edit set image replaceme=${{ inputs.image }}
+        kustomize edit set replicas sc-worker=4
         kustomize build . > ci-deployment.yaml
 
     - name: Deploy image to k8s cluster
+      uses: bbedward/kubectl@master
+      env:
+        KUBE_CONFIG_DATA: ${{ inputs.kube_config }}
+      with:
+        args: apply -f ./k8s/ci-deployment.yaml
+    
+    - name: Wait for deployment to be ready
+      uses: bbedward/kubectl@master
+      env:
+        KUBE_CONFIG_DATA: ${{ inputs.kube_config }}
+      with:
+        args: rollout status deployment/sc-worker -n sc-worker
+
+    - name: Scale down replicas
+      working-directory: ./k8s
+      shell: bash
+      run: |
+        kustomize edit set replicas sc-worker=2
+        kustomize build . > ci-deployment.yaml
+
+    - name: Redeploy with lower replica count
       uses: bbedward/kubectl@master
       env:
         KUBE_CONFIG_DATA: ${{ inputs.kube_config }}

@@ -66,7 +66,7 @@ jobs:
           docker rmi -f $(docker images -q stablecog/sc-worker) || true
           docker system prune -f || true
 
-  deploy_qa:
+  deploy:
     name: Deploy Worker
     runs-on: self-hosted
     needs:
@@ -77,8 +77,30 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Scale a100surge Group
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.30.0
+          inlineScript: |
+            az extension add --name aks-preview
+            az aks nodepool scale --resource-group k8s --cluster-name stablecog --name a100surge --node-count 2
+
       - name: Deploy
         uses: ./.github/actions/k8s-deploy
         with:
           image: stablecog/sc-worker:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
           kube_config: ${{ secrets.AKS_KUBE_CONFIG }}
+
+      - name: Scale down a100surge
+        if: always()
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.30.0
+          inlineScript: |
+            az extension add --name aks-preview
+            az aks nodepool scale --resource-group k8s --cluster-name stablecog --name a100surge --node-count 0
