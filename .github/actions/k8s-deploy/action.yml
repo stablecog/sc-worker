@@ -12,7 +12,7 @@ runs:
   steps:
     - uses: imranismail/setup-kustomize@v1
       with:
-        kustomize-version: "3.5.4"
+        kustomize-version: "5.0.0"
 
     - name: Set image
       working-directory: ./k8s
