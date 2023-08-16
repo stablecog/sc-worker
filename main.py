@@ -15,7 +15,6 @@ from predict.voiceover.setup import setup as voiceover_setup
 from rdqueue.worker import start_redis_queue_worker
 from upload.constants import (
     S3_ACCESS_KEY_ID,
-    S3_BUCKET_NAME_MODELS,
     S3_BUCKET_NAME_UPLOAD,
     S3_ENDPOINT_URL,
     S3_REGION,
@@ -54,7 +53,7 @@ if __name__ == "__main__":
     if WORKER_TYPE == "voiceover":
         models_pack = voiceover_setup()
     else:
-        models_pack = image_setup(s3, S3_BUCKET_NAME_MODELS)
+        models_pack = image_setup()
 
     # Setup redis
     redisConn = redis.BlockingConnectionPool.from_url(redisUrl)

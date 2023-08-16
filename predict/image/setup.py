@@ -120,7 +120,7 @@ class ModelsPack:
         self.safety_checker = safety_checker
 
 
-def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
+def setup() -> ModelsPack:
     start = time.time()
     print(f"⏳ Setup has started - Version: {WORKER_VERSION}")
 
@@ -129,10 +129,7 @@ def setup(s3: ServiceResource, bucket_name: str) -> ModelsPack:
         _login.login(token=hf_token)
         print(f"✅ Logged in to HuggingFace")
 
-    if os.environ.get("USE_HF", "0") == "1":
-        download_models_from_hf(downloadAll=False)
-    else:
-        download_all_models_from_bucket(s3, bucket_name)
+    download_models_from_hf(downloadAll=False)
 
     sd_pipes: dict[
         str,

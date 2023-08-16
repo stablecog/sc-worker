@@ -62,8 +62,6 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
           env:
-            - name: S3_BUCKET_NAME_MODELS
-              value: "smodels"
             - name: S3_BUCKET_NAME_UPLOAD
               value: "stablecog"
             - name: S3_ENDPOINT_URL
