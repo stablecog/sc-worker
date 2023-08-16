@@ -15,11 +15,6 @@ jobs:
       - name: Put commit msg in environment
         run: echo "COMMIT_MSG=${{ github.event.head_commit.message }}" >> $GITHUB_ENV
 
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
       - name: Escape commit message
         run: |
           echo "COMMIT_MSG=$(echo $COMMIT_MSG | tr -d \'\\\")" >> $GITHUB_ENV
