@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - 'release*'
+concurrency: 
+  group: workflow-${{ github.workflow }}
+  cancel-in-progress: true
 jobs:
   setup_env:
     name: ⚙️ Setup environment
