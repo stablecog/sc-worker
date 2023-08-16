@@ -74,8 +74,6 @@ spec:
           envFrom:
           - secretRef:
               name: sc-worker
-          - configMapRef:
-              name: sc-worker-cfg
           env:
             - name: WORKER_NAME
               valueFrom:
