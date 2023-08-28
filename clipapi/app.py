@@ -4,8 +4,6 @@ import traceback
 from flask import Flask, request, current_app, jsonify
 from waitress import serve
 
-from models.nllb.translate import translate_text_set_via_api
-from models.nllb.constants import TRANSLATOR_COG_URL
 from models.open_clip.main import (
     open_clip_get_embeds_of_texts,
     open_clip_get_embeds_of_images,
@@ -78,43 +76,21 @@ def clip_embed():
         if "image_id" in item:
             imageIdObjects.append({"item": item, "index": index})
 
-    for obj in textObjects:
-        item = obj["item"]
-        index = obj["index"]
-        input_text = item["text"]
-        id = item.get("id", None)
-        translated_text = input_text
-        if TRANSLATOR_COG_URL is not None:
-            try:
-                [translated_text, _] = translate_text_set_via_api(
-                    text_1=input_text,
-                    flores_1=None,
-                    text_2="",
-                    flores_2=None,
-                    translator_url=TRANSLATOR_COG_URL,
-                    detector=models_pack.translator["detector"],
-                    label="CLIP Query",
-                )
-            except Exception as e:
-                tb = traceback.format_exc()
-                print(f"Failed to translate input: {tb}\n")
-                return str(e), 500
-        try:
-            text_embed = open_clip_get_embeds_of_texts(
-                [translated_text],
-                models_pack.open_clip["model"],
-                models_pack.open_clip["tokenizer"],
-            )[0]
-            obj = {"input_text": input_text, "embedding": text_embed}
-            if translated_text != input_text:
-                obj["translated_text"] = translated_text
+    if len(textObjects) > 0:
+        texts = [obj["item"]["text"] for obj in textObjects]
+        text_embeds = open_clip_get_embeds_of_texts(
+            texts,
+            models_pack.open_clip["model"],
+            models_pack.open_clip["tokenizer"],
+        )
+        for i, embed in enumerate(text_embeds):
+            item = textObjects[i]["item"]
+            index = textObjects[i]["index"]
+            id = item.get("id", None)
+            obj = {"input_text": item["text"], "embedding": embed}
             if id is not None:
                 obj["id"] = id
             embeds[index] = obj
-        except Exception as e:
-            tb = traceback.format_exc()
-            print(f"Failed to get openCLIP embeds: {tb}\n")
-            return str(e), 500
 
     if len(imageObjects) > 0:
         image_urls = []
