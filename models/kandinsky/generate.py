@@ -143,7 +143,7 @@ def generate(
     return filtered_output_images, nsfw_count
 
 
-kandinsky_2_2_negative_prompt_fallback = "lowres, error, worst quality, low quality, jpeg artifacts, bad anatomy, bad proportions, username, watermark, signature"
+kandinsky_2_2_negative_prompt_fallback = "overexposed"
 
 
 def generate_2_2(
