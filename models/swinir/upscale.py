@@ -15,8 +15,6 @@ import time
 from PIL import Image
 from typing import Any
 import requests
-from urllib.parse import urlparse
-import os
 
 
 @torch.inference_mode()
@@ -31,7 +29,7 @@ def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image
 
     # check if image is a url and download it if sso
     if is_url(image):
-        _, _, extension = get_filename_and_extension(image)
+        extension = image.split(".")[-1]
         if extension is None:
             extension = "png"
         else:
@@ -146,12 +144,3 @@ def download_image(url: str, temp_file: Any) -> None:
     temp_file.write(response.content)
     end = time.time()
     print(f"-- Upscale - Download image in: {round((end - start) * 1000)} ms --")
-
-
-def get_filename_and_extension(url) -> tuple[str, str, str]:
-    parsed_url = urlparse(url)
-    path = parsed_url.path
-    filename = os.path.basename(path)
-    filename_without_extension, file_extension = os.path.splitext(filename)
-    file_extension = file_extension[1:]
-    return filename, filename_without_extension, file_extension
