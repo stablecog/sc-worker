@@ -36,7 +36,6 @@ def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image
             extension = "png"
         else:
             extension.lower()
-        print(extension)
         temp_dir = tempfile.mkdtemp()
         temp_file = tempfile.NamedTemporaryFile(
             suffix=f".{extension}", dir=temp_dir, delete=False
