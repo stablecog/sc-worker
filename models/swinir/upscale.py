@@ -154,4 +154,5 @@ def get_filename_and_extension(url) -> tuple[str, str, str]:
     path = parsed_url.path
     filename = os.path.basename(path)
     filename_without_extension, file_extension = os.path.splitext(filename)
+    file_extension = file_extension[1:]
     return filename, filename_without_extension, file_extension
