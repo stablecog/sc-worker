@@ -162,72 +162,53 @@ def define_model_swinir(args):
 def setup(args):
     # 001 classical image sr/ 002 lightweight image sr
     if args.task in ["classical_sr", "lightweight_sr"]:
-        save_dir = f"results/swinir_{args.task}_x{args.scale}"
-        folder = args.folder_gt
         border = args.scale
         window_size = 8
 
     # 003 real-world image sr
     elif args.task in ["real_sr"]:
-        save_dir = f"results/swinir_{args.task}_x{args.scale}"
-        if args.large_model:
-            save_dir += "_large"
-        folder = args.folder_lq
         border = 0
         window_size = 8
 
     # 004 grayscale image denoising/ 005 color image denoising
     elif args.task in ["gray_dn", "color_dn"]:
-        save_dir = f"results/swinir_{args.task}_noise{args.noise}"
-        folder = args.folder_gt
         border = 0
         window_size = 8
 
     # 006 JPEG compression artifact reduction
     elif args.task in ["jpeg_car", "color_jpeg_car"]:
-        save_dir = f"results/swinir_{args.task}_jpeg{args.jpeg}"
-        folder = args.folder_gt
         border = 0
         window_size = 7
 
-    return folder, save_dir, border, window_size
+    return border, window_size
 
 
-def get_image_pair(args, path):
-    (imgname, imgext) = os.path.splitext(os.path.basename(path))
+def get_image_pair(args, image):
+    img_gt = image.astype(np.float32) / 255.0
 
-    # 001 classical image sr/ 002 lightweight image sr (load lq-gt image pairs)
+    # 001 classical image sr/ 002 lightweight image sr (use the given image)
     if args.task in ["classical_sr", "lightweight_sr"]:
-        img_gt = cv2.imread(path, cv2.IMREAD_COLOR).astype(np.float32) / 255.0
-        img_lq = (
-            cv2.imread(
-                f"{args.folder_lq}/{imgname}x{args.scale}{imgext}", cv2.IMREAD_COLOR
-            ).astype(np.float32)
-            / 255.0
-        )
+        img_lq = img_gt
 
-    # 003 real-world image sr (load lq image only)
+    # 003 real-world image sr (use the given image)
     elif args.task in ["real_sr"]:
         img_gt = None
-        img_lq = cv2.imread(path, cv2.IMREAD_COLOR).astype(np.float32) / 255.0
+        img_lq = image.astype(np.float32) / 255.0
 
-    # 004 grayscale image denoising (load gt image and generate lq image on-the-fly)
+    # 004 grayscale image denoising (generate lq image on-the-fly)
     elif args.task in ["gray_dn"]:
-        img_gt = cv2.imread(path, cv2.IMREAD_GRAYSCALE).astype(np.float32) / 255.0
         np.random.seed(seed=0)
         img_lq = img_gt + np.random.normal(0, args.noise / 255.0, img_gt.shape)
         img_gt = np.expand_dims(img_gt, axis=2)
         img_lq = np.expand_dims(img_lq, axis=2)
 
-    # 005 color image denoising (load gt image and generate lq image on-the-fly)
+    # 005 color image denoising (generate lq image on-the-fly)
     elif args.task in ["color_dn"]:
-        img_gt = cv2.imread(path, cv2.IMREAD_COLOR).astype(np.float32) / 255.0
         np.random.seed(seed=0)
         img_lq = img_gt + np.random.normal(0, args.noise / 255.0, img_gt.shape)
 
-    # 006 grayscale JPEG compression artifact reduction (load gt image and generate lq image on-the-fly)
+    # 006 grayscale JPEG compression artifact reduction (generate lq image on-the-fly)
     elif args.task in ["jpeg_car"]:
-        img_gt = cv2.imread(path, cv2.IMREAD_UNCHANGED)
         if img_gt.ndim != 2:
             img_gt = util_calculate_psnr_ssim.bgr2ycbcr(img_gt, y_only=True)
         result, encimg = cv2.imencode(
@@ -237,9 +218,8 @@ def get_image_pair(args, path):
         img_gt = np.expand_dims(img_gt, axis=2).astype(np.float32) / 255.0
         img_lq = np.expand_dims(img_lq, axis=2).astype(np.float32) / 255.0
 
-    # 006 JPEG compression artifact reduction (load gt image and generate lq image on-the-fly)
+    # 006 JPEG compression artifact reduction (generate lq image on-the-fly)
     elif args.task in ["color_jpeg_car"]:
-        img_gt = cv2.imread(path)
         result, encimg = cv2.imencode(
             ".jpg", img_gt, [int(cv2.IMWRITE_JPEG_QUALITY), args.jpeg]
         )
@@ -247,7 +227,7 @@ def get_image_pair(args, path):
         img_gt = img_gt.astype(np.float32) / 255.0
         img_lq = img_lq.astype(np.float32) / 255.0
 
-    return imgname, img_lq, img_gt
+    return img_lq, img_gt
 
 
 def get_args_swinir():
