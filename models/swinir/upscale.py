@@ -108,4 +108,11 @@ def download_image(url: str) -> np.array:
         raise ValueError(f"Failed to download image from: {url}")
     end = time.time()
     print(f"-- Upscale - Download image in: {round((end - start) * 1000)} ms --")
-    return np.array(Image.open(BytesIO(response.content)))
+
+    # Convert the image from PIL format to numpy array
+    image_rgb = np.array(Image.open(BytesIO(response.content)))
+
+    # Convert from RGB to BGR for OpenCV compatibility
+    image_bgr = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
+
+    return image_bgr
