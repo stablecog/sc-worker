@@ -219,6 +219,7 @@ def predict(
             ["Width", input.width],
             ["Height", input.height],
             ["Steps", input.num_inference_steps],
+            ["Guidance Scale", input.guidance_scale],
             ["Outputs", input.num_outputs],
             ["Scheduler", input.scheduler],
             ["Seed", input.seed],
