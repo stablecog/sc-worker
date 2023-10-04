@@ -27,25 +27,9 @@ def clean_prefix_or_suffix_space(text: str):
     return text
 
 
-""" "Waifu Diffusion XL": {
-        "id": "hakurei/waifu-diffusion-xl",
-        "torch_dtype": torch.float16,
-        "variant": "main",
-        "refiner_id": "stabilityai/stable-diffusion-xl-base-0.9",
-}, """
-
-""" "Ghibli Diffusion": {
-    "id": "nitrosocke/Ghibli-Diffusion",
-    "prompt_prefix": "ghibli style",
-    "torch_dtype": torch.float16,
-    "enable_model_cpu_offload": True,
-}, """
-
 SD_ENV_KEY_TO_KEY = {
-    "SD": "Stable Diffusion v1.5",
     "OJ": "Openjourney",
     "RSD": "Redshift Diffusion",
-    "AD": "Arcane Diffusion",
     "GD": "Ghibli Diffusion",
     "WD": "Waifu Diffusion",
     "22D": "22h Diffusion",
@@ -55,12 +39,6 @@ SD_ENV_KEY_TO_KEY = {
 }
 SD_MODEL_CACHE = "/app/data/diffusers-cache"
 SD_MODELS_ALL = {
-    "Stable Diffusion v1.5": {
-        "id": "runwayml/stable-diffusion-v1-5",
-        "torch_dtype": torch.float16,
-        "branch": "fp16",
-        "keep_in_cpu_when_idle": True,
-    },
     "Openjourney": {
         "id": "prompthero/openjourney",
         "prompt_prefix": "mdjrny-v4 style",
@@ -70,12 +48,6 @@ SD_MODELS_ALL = {
     "Redshift Diffusion": {
         "id": "nitrosocke/redshift-diffusion",
         "prompt_prefix": "redshift style",
-        "torch_dtype": torch.float16,
-        "keep_in_cpu_when_idle": True,
-    },
-    "Arcane Diffusion": {
-        "id": "nitrosocke/Arcane-Diffusion",
-        "prompt_prefix": "arcane style",
         "torch_dtype": torch.float16,
         "keep_in_cpu_when_idle": True,
     },
@@ -105,9 +77,9 @@ SD_MODELS_ALL = {
     },
 }
 
-SD_MODEL_FOR_SAFETY_CHECKER = "Stable Diffusion v1.5"
+SD_MODEL_FOR_SAFETY_CHECKER = "Luna Diffusion"
 SD_MODELS = {}
-models_from_env = os.environ.get("MODELS", "Stable Diffusion v1.5")
+models_from_env = os.environ.get("MODELS", "Luna Diffusion")
 if models_from_env == "all":
     SD_MODELS = SD_MODELS_ALL
 else:
