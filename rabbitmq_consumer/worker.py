@@ -1,6 +1,7 @@
 import datetime
 import json
 import queue
+import hashlib
 import os
 import traceback
 from typing import Any, Dict, Iterable, Tuple, Callable
@@ -26,6 +27,25 @@ from shared.helpers import format_datetime
 from predict.image.setup import ModelsPack as ModelsPackForImage
 from predict.voiceover.setup import ModelsPack as ModelsPackForVoiceover
 from shared.webhook import post_webhook
+
+
+def generate_queue_name_from_capabilities(capabilities: list[str]) -> str:
+    """Generate a unique queue name based on the provided capabilities."""
+
+    # Sort capabilities for consistency
+    sorted_capabilities = sorted(capabilities)
+
+    # Create a string representation
+    capabilities_str = "_".join(sorted_capabilities)
+
+    # Generate SHA-1 hash
+    hash_object = hashlib.sha1(capabilities_str.encode())
+    hex_dig = hash_object.hexdigest()
+
+    # Prefix with "queue_" for clarity
+    queue_name = "queue_" + hex_dig
+
+    return queue_name
 
 
 def create_amqp_callback(
@@ -101,13 +121,14 @@ def start_amqp_queue_worker(
     exchange_name: str,
     upload_queue: queue.Queue[Dict[str, Any]],
     models_pack: ModelsPackForImage | ModelsPackForVoiceover,
-    shutdown_event: Event,
 ) -> None:
     logging.info(f"Starting rabbitmq queue worker\n")
 
     # Declare a queue with priority support
     result = channel.queue_declare(
-        queue="", durable=True, arguments={"x-max-priority": 10}
+        queue=generate_queue_name_from_capabilities(supported_models),
+        durable=True,
+        arguments={"x-max-priority": 10},
     )
     queue_name = result.method.queue
 
