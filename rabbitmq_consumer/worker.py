@@ -148,8 +148,11 @@ def start_amqp_queue_worker(
     try:
         channel.start_consuming()
     finally:
+        logging.info(f"Stopping rabbitmq queue channel")
         channel.close()
+        logging.info(f"Closing rabbitmq connection")
         channel.connection.close()
+        logging.info("rabbitmq worker terminated")
 
 
 def run_prediction_for_image(

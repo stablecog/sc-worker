@@ -81,3 +81,4 @@ def start_upload_worker(
             tb = traceback.format_exc()
             logging.error(f"Exception in upload process {tb}\n")
             logging.error(f"Message was: {uploadMsg}\n")
+    logging.info("Upload thread exiting")

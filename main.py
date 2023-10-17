@@ -88,9 +88,10 @@ if __name__ == "__main__":
 
     # Setup signal handler for exit
     def signal_handler(signum, frame):
-        print("Signal received, shutting down...")
-        shutdown_event.set()
-        channel.stop_consuming()
+        if not shutdown_event.is_set():
+            print("Signal received, shutting down...")
+            shutdown_event.set()
+            channel.stop_consuming()
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
