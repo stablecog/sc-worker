@@ -128,7 +128,10 @@ def start_amqp_queue_worker(
     result = channel.queue_declare(
         queue=generate_queue_name_from_capabilities(supported_models),
         durable=True,
-        arguments={"x-max-priority": 10},
+        arguments={
+            "x-max-priority": 10,
+            "x-message-ttl": 1800000,
+        },
     )
     queue_name = result.method.queue
 
