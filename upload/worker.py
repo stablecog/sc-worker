@@ -27,7 +27,7 @@ def start_upload_worker(
     while not shutdown_event.is_set():
         try:
             logging.info(f"-- Upload: Waiting for queue --\n")
-            uploadMsg: List[Dict[str, Any]] = q.get()
+            uploadMsg: List[Dict[str, Any]] = q.get(timeout=1)
             logging.info(f"-- Upload: Got from queue --\n")
             if "upload_output" in uploadMsg:
                 predict_result: PredictResultForImage | PredictResultForVoiceover = (
@@ -75,6 +75,8 @@ def start_upload_worker(
 
             logging.info(f"-- Upload: Publishing to WEBHOOK --\n")
             post_webhook(uploadMsg["webhook_url"], uploadMsg)
+        except queue.Empty:
+            continue
         except Exception as e:
             tb = traceback.format_exc()
             logging.error(f"Exception in upload process {tb}\n")
