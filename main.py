@@ -1,6 +1,7 @@
-from threading import Thread
+from threading import Thread, Event
 from typing import Any, Dict
 import os
+import signal
 import queue
 
 import redis
@@ -8,11 +9,12 @@ import boto3
 from boto3_type_annotations.s3 import ServiceResource
 from botocore.config import Config
 from dotenv import load_dotenv
+import pika
 import torch
 
 from predict.image.setup import setup as image_setup
 from predict.voiceover.setup import setup as voiceover_setup
-from rdqueue.worker import start_redis_queue_worker
+from rabbitmq_consumer.worker import start_amqp_queue_worker
 from upload.constants import (
     S3_ACCESS_KEY_ID,
     S3_BUCKET_NAME_UPLOAD,
@@ -22,6 +24,9 @@ from upload.constants import (
 )
 from upload.worker import start_upload_worker
 from clipapi.app import run_clipapi
+
+# Define an event to signal all threads to exit
+shutdown_event = Event()
 
 if __name__ == "__main__":
     if torch.cuda.is_available() is False:
@@ -35,6 +40,18 @@ if __name__ == "__main__":
     redisWorkerId = os.environ.get("WORKER_NAME", None)
     if redisWorkerId is None:
         raise ValueError("Missing WORKER_NAME environment variable.")
+
+    amqpUrl = os.environ.get("RABBITMQ_AMQP_URL", None)
+    if amqpUrl is None:
+        raise ValueError("Missing RABBITMQ_AMQP_URL environment variable.")
+    amqpExchangeName = os.environ.get("RABBITMQ_EXCHANGE_NAME", None)
+    if amqpExchangeName is None:
+        raise ValueError("Missing RABBITMQ_EXCHANGE_NAME environment variable.")
+    # Comma separated list of supported model UUIDs
+    workerCapabilitiesStr = os.environ.get("WORKER_SUPPORTED_MODELS", None)
+    if workerCapabilitiesStr is None:
+        raise ValueError("Missing WORKER_SUPPORTED_MODELS environment variable.")
+    workerCapabilities = workerCapabilitiesStr.split(",")
 
     # S3 client
     s3: ServiceResource = boto3.resource(
@@ -61,18 +78,33 @@ if __name__ == "__main__":
     # Create queue for thread communication
     upload_queue: queue.Queue[Dict[str, Any]] = queue.Queue()
 
-    # Create redis worker thread
-    redis_worker_thread = Thread(
-        target=lambda: start_redis_queue_worker(
+    # Create rabbitmq connection
+    # Parse the AMQP URL
+    params = pika.URLParameters(amqpUrl)
+
+    # Establish the connection using the parsed parameters
+    connection = pika.BlockingConnection(params)
+    channel = connection.channel()
+
+    # Setup signal handler for exit
+    def signal_handler(signum, frame):
+        print("Signal received, shutting down...")
+        shutdown_event.set()
+        channel.stop_consuming()
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
+    # Create rabbitmq worker thread
+    mq_worker_thread = Thread(
+        target=lambda: start_amqp_queue_worker(
             worker_type=WORKER_TYPE,
-            redis=redis.Redis(
-                connection_pool=redisConn, socket_keepalive=True, socket_timeout=1000
-            ),
-            input_queue=redisInputQueue,
-            s3_client=s3,
-            s3_bucket=S3_BUCKET_NAME_UPLOAD,
+            channel=channel,
+            supported_models=workerCapabilities,
+            exchange_name=amqpExchangeName,
             upload_queue=upload_queue,
             models_pack=models_pack,
+            shutdown_event=shutdown_event,
         )
     )
 
@@ -83,14 +115,21 @@ if __name__ == "__main__":
             q=upload_queue,
             s3=s3,
             s3_bucket=S3_BUCKET_NAME_UPLOAD,
+            shutdown_event=shutdown_event,
         )
     )
 
-    redis_worker_thread.start()
-    upload_thread.start()
-    if WORKER_TYPE == "image":
-        clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
-        clipapi_thread.start()
-        clipapi_thread.join()
-    redis_worker_thread.join()
-    upload_thread.join()
+    try:
+        mq_worker_thread.start()
+        upload_thread.start()
+        if WORKER_TYPE == "image":
+            clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
+            clipapi_thread.start()
+            clipapi_thread.join()
+        mq_worker_thread.join()
+        upload_thread.join()
+    except KeyboardInterrupt:
+        pass  # Handle Ctrl+C gracefully. The signal handler already sets the shutdown_event.
+    finally:
+        # Any other cleanup in the main thread you want to perform.
+        print("Main thread cleanup done!")

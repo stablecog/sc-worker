@@ -1,6 +1,8 @@
+import logging
 import traceback
 import queue
 
+from threading import Event
 from typing import List, Dict, Any
 
 from boto3_type_annotations.s3 import ServiceResource
@@ -18,21 +20,21 @@ def start_upload_worker(
     q: queue.Queue[Dict[str, Any]],
     s3: ServiceResource,
     s3_bucket: str,
+    shutdown_event: Event,
 ):
     """Starts a loop to read from the queue and upload files to S3, send responses to redis"""
-    print("Starting upload thread...\n")
-    # TODO - figure out how to exit this with SIGINT/SIGTERM
-    while True:
+    logging.info("Starting upload thread...\n")
+    while not shutdown_event.is_set():
         try:
-            print(f"-- Upload: Waiting for queue --\n")
+            logging.info(f"-- Upload: Waiting for queue --\n")
             uploadMsg: List[Dict[str, Any]] = q.get()
-            print(f"-- Upload: Got from queue --\n")
+            logging.info(f"-- Upload: Got from queue --\n")
             if "upload_output" in uploadMsg:
                 predict_result: PredictResultForImage | PredictResultForVoiceover = (
                     uploadMsg["upload_output"]
                 )
                 if len(predict_result.outputs) > 0:
-                    print(
+                    logging.info(
                         f"-- Upload: Uploading {len(predict_result.outputs)} files --\n"
                     )
                     try:
@@ -59,21 +61,21 @@ def start_upload_worker(
                             }
                     except Exception as e:
                         tb = traceback.format_exc()
-                        print(f"Error uploading files {tb}\n")
+                        logging.error(f"Error uploading files {tb}\n")
                         uploadMsg["status"] = Status.FAILED
                         uploadMsg["error"] = str(e)
-                    print(f"-- Upload: Finished uploading files --\n")
+                    logging.info(f"-- Upload: Finished uploading files --\n")
 
             if "upload_output" in uploadMsg:
-                print(f"-- Upload: Deleting upload_output from message --\n")
+                logging.info(f"-- Upload: Deleting upload_output from message --\n")
                 del uploadMsg["upload_output"]
             if "upload_prefix" in uploadMsg:
-                print(f"-- Upload: Deleting upload_prefix from message --\n")
+                logging.info(f"-- Upload: Deleting upload_prefix from message --\n")
                 del uploadMsg["upload_prefix"]
 
-            print(f"-- Upload: Publishing to WEBHOOK --\n")
+            logging.info(f"-- Upload: Publishing to WEBHOOK --\n")
             post_webhook(uploadMsg["webhook_url"], uploadMsg)
         except Exception as e:
             tb = traceback.format_exc()
-            print(f"Exception in upload process {tb}\n")
-            print(f"Message was: {uploadMsg}\n")
+            logging.error(f"Exception in upload process {tb}\n")
+            logging.error(f"Message was: {uploadMsg}\n")
