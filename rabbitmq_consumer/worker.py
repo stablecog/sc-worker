@@ -143,6 +143,7 @@ def start_amqp_queue_worker(
         queue_name, worker_type, upload_queue, models_pack
     )
 
+    channel.basic_qos(prefetch_count=1)
     channel.basic_consume(queue=queue_name, on_message_callback=msg_callback)
     try:
         channel.start_consuming()
