@@ -1,5 +1,6 @@
 from threading import Thread, Event
 from typing import Any, Dict
+import logging
 import os
 import signal
 import queue
@@ -24,6 +25,13 @@ from upload.constants import (
 )
 from upload.worker import start_upload_worker
 from clipapi.app import run_clipapi
+
+# Logging configuration
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] [%(levelname)s] [%(threadName)s] - %(message)s",
+    handlers=[logging.StreamHandler()],
+)
 
 # Define an event to signal all threads to exit
 shutdown_event = Event()
