@@ -134,7 +134,10 @@ def start_amqp_queue_worker(
     result = channel.queue_declare(
         queue=generate_queue_name_from_capabilities(supported_models),
         durable=True,
-        arguments={"x-max-priority": 10},
+        arguments={
+            "x-max-priority": 10,
+            "x-message-ttl": 1800000,
+        },
     )
     queue_name = result.method.queue
 
@@ -149,12 +152,19 @@ def start_amqp_queue_worker(
         queue_name, worker_type, upload_queue, models_pack
     )
 
+    channel.basic_qos(prefetch_count=1)
     channel.basic_consume(queue=queue_name, on_message_callback=msg_callback)
     try:
         channel.start_consuming()
     finally:
-        channel.close()
-        channel.connection.close()
+        try:
+            logging.info(f"Stopping rabbitmq queue channel")
+            channel.close()
+            logging.info(f"Closing rabbitmq connection")
+            channel.connection.close()
+            logging.info("rabbitmq worker terminated")
+        except:
+            pass
 
 
 def run_prediction_for_image(

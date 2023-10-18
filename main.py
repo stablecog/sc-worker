@@ -1,5 +1,6 @@
 from threading import Thread, Event
 from typing import Any, Dict
+import logging
 import os
 import signal
 import queue
@@ -24,6 +25,13 @@ from upload.constants import (
 )
 from upload.worker import start_upload_worker
 from clipapi.app import run_clipapi
+
+# Logging configuration
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] [%(levelname)s] [%(threadName)s] - %(message)s",
+    handlers=[logging.StreamHandler()],
+)
 
 # Define an event to signal all threads to exit
 shutdown_event = Event()
@@ -88,9 +96,12 @@ if __name__ == "__main__":
 
     # Setup signal handler for exit
     def signal_handler(signum, frame):
-        print("Signal received, shutting down...")
-        shutdown_event.set()
-        channel.stop_consuming()
+        if not shutdown_event.is_set():
+            print("Signal received, shutting down...")
+            shutdown_event.set()
+            channel.stop_consuming()
+            channel.close()
+            channel.connection.close()
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
