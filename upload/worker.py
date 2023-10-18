@@ -24,7 +24,7 @@ def start_upload_worker(
 ):
     """Starts a loop to read from the queue and upload files to S3, send responses to webhook"""
     logging.info("Starting upload thread...\n")
-    while True:
+    while not shutdown_event.is_set() or not q.empty():
         try:
             logging.info(f"-- Upload: Waiting for queue --\n")
             uploadMsg: List[Dict[str, Any]] = q.get(timeout=1)
@@ -76,8 +76,6 @@ def start_upload_worker(
             logging.info(f"-- Upload: Publishing to WEBHOOK --\n")
             post_webhook(uploadMsg["webhook_url"], uploadMsg)
         except queue.Empty:
-            if shutdown_event.is_set():
-                break
             continue
         except Exception as e:
             tb = traceback.format_exc()

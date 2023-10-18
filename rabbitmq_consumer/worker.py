@@ -9,6 +9,7 @@ from typing import Any, Dict, Iterable, Tuple, Callable
 from threading import Event
 import logging
 
+import redis
 from boto3_type_annotations.s3 import ServiceResource
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
@@ -54,19 +55,35 @@ def generate_queue_name_from_capabilities(
 
 callback_in_progress = False
 
+"""See if a message is being processed by another worker"""
+
+
+def should_process(redisConn: redis.Redis, message_id):
+    # Check and set the message_id in Redis atomically
+    result = redisConn.set(message_id, 1, nx=True, ex=300)
+    return bool(result)
+
 
 def create_amqp_callback(
     queue_name: str,
     worker_type: str,
     upload_queue: queue.Queue[Dict[str, Any]],
     models_pack: ModelsPackForImage | ModelsPackForVoiceover,
+    redisConn: redis.Redis,
 ):
+"""Create the amqp callback to handle rabbitmq messages"""
+
     def amqp_callback(
         channel: BlockingChannel,
         method: Basic.Deliver,
         properties: BasicProperties,
         body: bytes,
     ) -> None:
+        if not should_process(redisConn, properties.message_id):
+            logging.info(f"Message {properties.message_id} is already being processed")
+            channel.basic_ack(delivery_tag=method.delivery_tag)
+            return
+
         global callback_in_progress
         try:
             callback_in_progress = True
@@ -137,6 +154,7 @@ def start_amqp_queue_worker(
     upload_queue: queue.Queue[Dict[str, Any]],
     models_pack: ModelsPackForImage | ModelsPackForVoiceover,
     shutdown_event: Event,
+    redisConn: redis.Redis,
 ) -> None:
     logging.info(f"Starting rabbitmq queue worker\n")
 
@@ -159,7 +177,7 @@ def start_amqp_queue_worker(
 
     # Create callback
     msg_callback = create_amqp_callback(
-        queue_name, worker_type, upload_queue, models_pack
+        queue_name, worker_type, upload_queue, models_pack, redisConn
     )
 
     channel.basic_qos(prefetch_count=1)
