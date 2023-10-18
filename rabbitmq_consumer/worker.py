@@ -47,7 +47,7 @@ def generate_queue_name_from_capabilities(
     hex_dig = hash_object.hexdigest()
 
     # Prefix with "queue_" for clarity
-    queue_name = "q." + exchange_name + hex_dig
+    queue_name = "q." + exchange_name + "." + hex_dig
 
     return queue_name
 
