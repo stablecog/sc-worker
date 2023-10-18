@@ -5,7 +5,6 @@ import os
 import signal
 import queue
 
-import redis
 import boto3
 from boto3_type_annotations.s3 import ServiceResource
 from botocore.config import Config
@@ -43,12 +42,6 @@ if __name__ == "__main__":
 
     WORKER_TYPE = os.environ.get("WORKER_TYPE", "image")
 
-    redisUrl = os.environ.get("REDIS_URL")
-    redisInputQueue = os.environ.get("REDIS_INPUT_QUEUE")
-    redisWorkerId = os.environ.get("WORKER_NAME", None)
-    if redisWorkerId is None:
-        raise ValueError("Missing WORKER_NAME environment variable.")
-
     amqpUrl = os.environ.get("RABBITMQ_AMQP_URL", None)
     if amqpUrl is None:
         raise ValueError("Missing RABBITMQ_AMQP_URL environment variable.")
@@ -79,9 +72,6 @@ if __name__ == "__main__":
         models_pack = voiceover_setup()
     else:
         models_pack = image_setup()
-
-    # Setup redis
-    redisConn = redis.BlockingConnectionPool.from_url(redisUrl)
 
     # Create queue for thread communication
     upload_queue: queue.Queue[Dict[str, Any]] = queue.Queue()

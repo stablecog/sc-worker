@@ -22,7 +22,7 @@ def start_upload_worker(
     s3_bucket: str,
     shutdown_event: Event,
 ):
-    """Starts a loop to read from the queue and upload files to S3, send responses to redis"""
+    """Starts a loop to read from the queue and upload files to S3, send responses to webhook"""
     logging.info("Starting upload thread...\n")
     while True:
         try:
