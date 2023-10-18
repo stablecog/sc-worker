@@ -28,6 +28,7 @@ from shared.helpers import format_datetime
 from predict.image.setup import ModelsPack as ModelsPackForImage
 from predict.voiceover.setup import ModelsPack as ModelsPackForVoiceover
 from shared.webhook import post_webhook
+from tabulate import tabulate
 
 
 def generate_queue_name_from_capabilities(capabilities: list[str]) -> str:
@@ -71,7 +72,12 @@ def create_amqp_callback(
 
             webhook_url = message["webhook_url"]
 
-            logging.info(f"Received message {properties.message_id} on {queue_name}\n")
+            log_table = [
+                ["Queue Name", queue_name],
+                ["Message ID", properties.message_id],
+                ["Priority", properties.priority],
+            ]
+            logging.info("\n" + tabulate(log_table, tablefmt="double_grid"))
 
             if "webhook_events_filter" in message:
                 valid_events = {ev.value for ev in Event}
