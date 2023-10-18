@@ -14,7 +14,7 @@ from boto3_type_annotations.s3 import ServiceResource
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
 
-from rdqueue.events import Status, Event
+from rabbitmq_consumer.events import Status, Event
 from predict.image.predict import (
     PredictInput as PredictInputForImage,
     predict as predict_for_image,
@@ -55,10 +55,9 @@ def generate_queue_name_from_capabilities(
 
 callback_in_progress = False
 
-"""See if a message is being processed by another worker"""
-
 
 def should_process(redisConn: redis.Redis, message_id):
+    """See if a message is being processed by another worker"""
     # Check and set the message_id in Redis atomically
     result = redisConn.set(message_id, 1, nx=True, ex=300)
     return bool(result)
@@ -71,7 +70,7 @@ def create_amqp_callback(
     models_pack: ModelsPackForImage | ModelsPackForVoiceover,
     redisConn: redis.Redis,
 ):
-"""Create the amqp callback to handle rabbitmq messages"""
+    """Create the amqp callback to handle rabbitmq messages"""
 
     def amqp_callback(
         channel: BlockingChannel,

@@ -10,7 +10,7 @@ from boto3_type_annotations.s3 import ServiceResource
 
 from predict.image.predict import PredictResult as PredictResultForImage
 from predict.voiceover.predict import PredictResult as PredictResultForVoiceover
-from rdqueue.events import Status
+from rabbitmq_consumer.events import Status
 from shared.webhook import post_webhook
 from upload.upload import upload_files_for_image, upload_files_for_voiceover
 
