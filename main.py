@@ -112,7 +112,9 @@ if __name__ == "__main__":
             upload_queue=upload_queue,
             models_pack=models_pack,
             shutdown_event=shutdown_event,
-            redisConn=redisConn,
+            redisConn=redis.Redis(
+                connection_pool=redisConn, socket_keepalive=True, socket_timeout=1000
+            ),
         )
     )
 
