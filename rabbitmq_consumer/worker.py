@@ -79,10 +79,10 @@ def create_amqp_callback(
         properties: BasicProperties,
         body: bytes,
     ) -> None:
-        if not should_process(redisConn, properties.message_id):
-            logging.info(f"Message {properties.message_id} is already being processed")
-            channel.basic_ack(delivery_tag=method.delivery_tag)
-            return
+        # if not should_process(redisConn, properties.message_id):
+        #     logging.info(f"Message {properties.message_id} is already being processed")
+        #     channel.basic_ack(delivery_tag=method.delivery_tag)
+        #     return
 
         global callback_in_progress
         try:
