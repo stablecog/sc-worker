@@ -71,7 +71,7 @@ def create_amqp_callback(
     models_pack: ModelsPackForImage | ModelsPackForVoiceover,
     redisConn: redis.Redis,
 ):
-"""Create the amqp callback to handle rabbitmq messages"""
+    """Create the amqp callback to handle rabbitmq messages"""
 
     def amqp_callback(
         channel: BlockingChannel,
