@@ -31,7 +31,9 @@ from shared.webhook import post_webhook
 from tabulate import tabulate
 
 
-def generate_queue_name_from_capabilities(capabilities: list[str]) -> str:
+def generate_queue_name_from_capabilities(
+    exchange_name: str, capabilities: list[str]
+) -> str:
     """Generate a unique queue name based on the provided capabilities."""
 
     # Sort capabilities for consistency
@@ -45,7 +47,7 @@ def generate_queue_name_from_capabilities(capabilities: list[str]) -> str:
     hex_dig = hash_object.hexdigest()
 
     # Prefix with "queue_" for clarity
-    queue_name = "queue_" + hex_dig
+    queue_name = "q." + exchange_name + hex_dig
 
     return queue_name
 
@@ -140,7 +142,7 @@ def start_amqp_queue_worker(
 
     # Declare a queue with priority support
     result = channel.queue_declare(
-        queue=generate_queue_name_from_capabilities(supported_models),
+        queue=generate_queue_name_from_capabilities(exchange_name, supported_models),
         durable=True,
         arguments={
             "x-max-priority": 10,
