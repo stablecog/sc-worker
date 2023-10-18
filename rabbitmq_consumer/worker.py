@@ -9,7 +9,6 @@ from typing import Any, Dict, Iterable, Tuple, Callable
 from threading import Event
 import logging
 
-import redis
 from boto3_type_annotations.s3 import ServiceResource
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
@@ -56,12 +55,12 @@ def generate_queue_name_from_capabilities(
 callback_in_progress = False
 
 
-def should_process(redisConn: redis.Redis, message_id):
-    """See if a message is being processed by another worker"""
-    # Check and set the message_id in Redis atomically
-    result = redisConn.set(message_id, 1, nx=True, ex=300)
-    logging.info(f"Redis set result for message {message_id}: {result}")
-    return bool(result)
+# def should_process(redisConn: redis.Redis, message_id):
+#     """See if a message is being processed by another worker"""
+#     # Check and set the message_id in Redis atomically
+#     result = redisConn.set(message_id, 1, nx=True, ex=300)
+#     logging.info(f"Redis set result for message {message_id}: {result}")
+#     return bool(result)
 
 
 def create_amqp_callback(
@@ -69,7 +68,6 @@ def create_amqp_callback(
     worker_type: str,
     upload_queue: queue.Queue[Dict[str, Any]],
     models_pack: ModelsPackForImage | ModelsPackForVoiceover,
-    redisConn: redis.Redis,
 ):
     """Create the amqp callback to handle rabbitmq messages"""
 
@@ -149,35 +147,34 @@ def create_amqp_callback(
 def start_amqp_queue_worker(
     worker_type: str,
     channel: BlockingChannel,
-    supported_models: Iterable[str],
-    exchange_name: str,
+    queue_name: str,
     upload_queue: queue.Queue[Dict[str, Any]],
     models_pack: ModelsPackForImage | ModelsPackForVoiceover,
     shutdown_event: Event,
-    redisConn: redis.Redis,
 ) -> None:
-    logging.info(f"Starting rabbitmq queue worker\n")
+    logging.info(f"Listening for messages on {queue_name}\n")
 
+    # ! Removed things that may be useful later, when using routing keys per model
     # Declare a queue with priority support
-    result = channel.queue_declare(
-        queue=f"q.{exchange_name}",  # generate_queue_name_from_capabilities(exchange_name, supported_models),
-        durable=True,
-        arguments={
-            "x-max-priority": 10,
-            "x-message-ttl": 1800000,
-        },
-    )
-    queue_name = result.method.queue
+    # result = channel.queue_declare(
+    #     queue=generate_queue_name_from_capabilities(exchange_name, supported_models),
+    #     durable=True,
+    #     arguments={
+    #         "x-max-priority": 10,
+    #         "x-message-ttl": 1800000,
+    #     },
+    # )
+    # queue_name = result.method.queue
 
     # Bind the queue based on the worker's capabilities
-    for capability in supported_models:
-        channel.queue_bind(
-            exchange=exchange_name, queue=queue_name, routing_key=capability
-        )
+    # for capability in supported_models:
+    #     channel.queue_bind(
+    #         exchange=exchange_name, queue=queue_name, routing_key=capability
+    #     )
 
     # Create callback
     msg_callback = create_amqp_callback(
-        queue_name, worker_type, upload_queue, models_pack, redisConn
+        queue_name, worker_type, upload_queue, models_pack
     )
 
     channel.basic_qos(prefetch_count=1)

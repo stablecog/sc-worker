@@ -43,19 +43,12 @@ if __name__ == "__main__":
 
     WORKER_TYPE = os.environ.get("WORKER_TYPE", "image")
 
-    redisUrl = os.environ.get("REDIS_URL")
-
     amqpUrl = os.environ.get("RABBITMQ_AMQP_URL", None)
     if amqpUrl is None:
         raise ValueError("Missing RABBITMQ_AMQP_URL environment variable.")
-    amqpExchangeName = os.environ.get("RABBITMQ_EXCHANGE_NAME", None)
-    if amqpExchangeName is None:
-        raise ValueError("Missing RABBITMQ_EXCHANGE_NAME environment variable.")
-    # Comma separated list of supported model UUIDs
-    workerCapabilitiesStr = os.environ.get("WORKER_SUPPORTED_MODELS", None)
-    if workerCapabilitiesStr is None:
-        raise ValueError("Missing WORKER_SUPPORTED_MODELS environment variable.")
-    workerCapabilities = workerCapabilitiesStr.split(",")
+    amqpQueueName = os.environ.get("RABBITMQ_QUEUE_NAME", None)
+    if amqpQueueName is None:
+        raise ValueError("Missing RABBITMQ_QUEUE_NAME environment variable.")
 
     # S3 client
     s3: ServiceResource = boto3.resource(
@@ -75,9 +68,6 @@ if __name__ == "__main__":
         models_pack = voiceover_setup()
     else:
         models_pack = image_setup()
-
-    # Setup redis
-    redisConn = redis.BlockingConnectionPool.from_url(redisUrl)
 
     # Create queue for thread communication
     upload_queue: queue.Queue[Dict[str, Any]] = queue.Queue()
@@ -107,14 +97,10 @@ if __name__ == "__main__":
         target=lambda: start_amqp_queue_worker(
             worker_type=WORKER_TYPE,
             channel=channel,
-            supported_models=workerCapabilities,
-            exchange_name=amqpExchangeName,
+            queue_name=amqpQueueName,
             upload_queue=upload_queue,
             models_pack=models_pack,
             shutdown_event=shutdown_event,
-            redisConn=redis.Redis(
-                connection_pool=redisConn, socket_keepalive=True, socket_timeout=1000
-            ),
         )
     )
 
