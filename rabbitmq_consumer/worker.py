@@ -160,7 +160,7 @@ def start_amqp_queue_worker(
 
     # Declare a queue with priority support
     result = channel.queue_declare(
-        queue=generate_queue_name_from_capabilities(exchange_name, supported_models),
+        queue=f"q.{exchange_name}",  # generate_queue_name_from_capabilities(exchange_name, supported_models),
         durable=True,
         arguments={
             "x-max-priority": 10,
