@@ -60,6 +60,7 @@ def should_process(redisConn: redis.Redis, message_id):
     """See if a message is being processed by another worker"""
     # Check and set the message_id in Redis atomically
     result = redisConn.set(message_id, 1, nx=True, ex=300)
+    logging.info(f"Redis set result for message {message_id}: {result}")
     return bool(result)
 
 
