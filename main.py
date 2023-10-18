@@ -100,6 +100,8 @@ if __name__ == "__main__":
             print("Signal received, shutting down...")
             shutdown_event.set()
             channel.stop_consuming()
+            channel.close()
+            channel.connection.close()
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
