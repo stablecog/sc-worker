@@ -71,7 +71,7 @@ def create_amqp_callback(
                 ["Message ID", properties.message_id],
                 ["Priority", properties.priority],
             ]
-            tabulate(log_table, tablefmt="double_grid")
+            print(tabulate(log_table, tablefmt="double_grid"))
 
             if "webhook_events_filter" in message:
                 valid_events = {ev.value for ev in Event}
