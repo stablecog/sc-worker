@@ -3,6 +3,7 @@ import json
 import queue
 import hashlib
 import os
+import time
 import traceback
 from typing import Any, Dict, Iterable, Tuple, Callable
 from threading import Event
@@ -48,6 +49,9 @@ def generate_queue_name_from_capabilities(capabilities: list[str]) -> str:
     return queue_name
 
 
+callback_in_progress = False
+
+
 def create_amqp_callback(
     queue_name: str,
     worker_type: str,
@@ -60,7 +64,9 @@ def create_amqp_callback(
         properties: BasicProperties,
         body: bytes,
     ) -> None:
+        global callback_in_progress
         try:
+            callback_in_progress = True
             message = json.loads(body.decode("utf-8"))
 
             webhook_url = message["webhook_url"]
@@ -110,6 +116,7 @@ def create_amqp_callback(
             logging.error(f"Failed to handle message: {tb}\n")
         finally:
             channel.basic_ack(delivery_tag=method.delivery_tag)
+            callback_in_progress = False
 
     return amqp_callback
 
@@ -121,6 +128,7 @@ def start_amqp_queue_worker(
     exchange_name: str,
     upload_queue: queue.Queue[Dict[str, Any]],
     models_pack: ModelsPackForImage | ModelsPackForVoiceover,
+    shutdown_event: Event,
 ) -> None:
     logging.info(f"Starting rabbitmq queue worker\n")
 
@@ -148,9 +156,19 @@ def start_amqp_queue_worker(
 
     channel.basic_qos(prefetch_count=1)
     channel.basic_consume(queue=queue_name, on_message_callback=msg_callback)
+    global callback_in_progress
     try:
         channel.start_consuming()
     finally:
+        if callback_in_progress:
+            logging.info(f"Waiting for callback to finish")
+            # Give it a max of 30s to finish
+            for i in range(60):
+                if not callback_in_progress:
+                    break
+                # Sleep for 500ms
+                time.sleep(0.5)
+                pass
         try:
             logging.info(f"Stopping rabbitmq queue channel")
             channel.close()
@@ -159,6 +177,10 @@ def start_amqp_queue_worker(
             logging.info("rabbitmq worker terminated")
         except:
             pass
+    # Shouldn't have gotten here, exit the whole program
+    if not shutdown_event.is_set():
+        logging.info("rabbitmq worker terminated unexpectedly")
+        shutdown_event.set()
 
 
 def run_prediction_for_image(

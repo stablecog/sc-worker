@@ -115,6 +115,7 @@ if __name__ == "__main__":
             exchange_name=amqpExchangeName,
             upload_queue=upload_queue,
             models_pack=models_pack,
+            shutdown_event=shutdown_event,
         )
     )
 
