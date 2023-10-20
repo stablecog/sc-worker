@@ -86,6 +86,7 @@ if __name__ == "__main__":
     # Create redis worker thread
     redis_worker_thread = Thread(
         target=lambda: start_redis_queue_worker(
+            worker_type=WORKER_TYPE,
             redis=redis.Redis(
                 connection_pool=redisConn, socket_keepalive=True, socket_timeout=1000
             ),
