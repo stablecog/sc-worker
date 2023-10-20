@@ -15,6 +15,7 @@ import torch
 
 from predict.image.setup import setup as image_setup
 from predict.voiceover.setup import setup as voiceover_setup
+from rdqueue.worker import start_redis_queue_worker
 from rabbitmq_consumer.worker import start_amqp_queue_worker
 from upload.constants import (
     S3_ACCESS_KEY_ID,
@@ -50,6 +51,13 @@ if __name__ == "__main__":
     if amqpQueueName is None:
         raise ValueError("Missing RABBITMQ_QUEUE_NAME environment variable.")
 
+    # Stale redis
+    redisUrl = os.environ.get("REDIS_URL")
+    redisInputQueue = os.environ.get("REDIS_INPUT_QUEUE")
+    redisWorkerId = os.environ.get("WORKER_NAME", None)
+    if redisWorkerId is None:
+        raise ValueError("Missing WORKER_NAME environment variable.")
+
     # S3 client
     s3: ServiceResource = boto3.resource(
         "s3",
@@ -69,9 +77,25 @@ if __name__ == "__main__":
     else:
         models_pack = image_setup()
 
+    # Setup redis
+    redisConn = redis.BlockingConnectionPool.from_url(redisUrl)
+
     # Create queue for thread communication
     upload_queue: queue.Queue[Dict[str, Any]] = queue.Queue()
 
+    # Create redis worker thread
+    redis_worker_thread = Thread(
+        target=lambda: start_redis_queue_worker(
+            redis=redis.Redis(
+                connection_pool=redisConn, socket_keepalive=True, socket_timeout=1000
+            ),
+            input_queue=redisInputQueue,
+            s3_client=s3,
+            s3_bucket=S3_BUCKET_NAME_UPLOAD,
+            upload_queue=upload_queue,
+            models_pack=models_pack,
+        )
+    )
     # Create rabbitmq connection
     # Parse the AMQP URL
     params = pika.URLParameters(amqpUrl)
@@ -117,12 +141,14 @@ if __name__ == "__main__":
 
     try:
         mq_worker_thread.start()
+        redis_worker_thread.start()
         upload_thread.start()
         if WORKER_TYPE == "image":
             clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
             clipapi_thread.start()
             clipapi_thread.join()
         mq_worker_thread.join()
+        redis_worker_thread.join()
         upload_thread.join()
     except KeyboardInterrupt:
         pass  # Handle Ctrl+C gracefully. The signal handler already sets the shutdown_event.
