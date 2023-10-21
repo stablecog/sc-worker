@@ -54,6 +54,10 @@ from diffusers.models import AutoencoderKL
 import torch
 
 from shared.helpers import print_tuple
+from optimum.onnxruntime import (
+    ORTStableDiffusionPipeline,
+    ORTStableDiffusionXLImg2ImgPipeline,
+)
 
 
 class SDPipe:
@@ -147,29 +151,25 @@ def setup() -> ModelsPack:
                 torch_dtype=torch.float16,
                 cache_dir=SD_MODEL_CACHE,
             )
-            text2img = StableDiffusionXLPipeline.from_pretrained(
-                SD_MODELS[key]["id"],
+            text2img = ORTStableDiffusionPipeline.from_pretrained(
+                "stabilityai/stable-diffusion-xl-1.0-tensorrt",
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
                 cache_dir=SD_MODEL_CACHE,
                 variant=SD_MODELS[key]["variant"],
-                use_safetensors=True,
-                vae=vae,
                 add_watermarker=False,
             )
-            if "default_lora" in SD_MODELS[key]:
+            """ if "default_lora" in SD_MODELS[key]:
                 lora = SD_MODELS[key]["default_lora"]
                 text2img.load_lora_weights(
                     SD_MODELS[key]["id"],
                     weight_name=lora,
                 )
-                print(f"✅ Loaded LoRA weights: {lora}")
-            refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
-                SD_MODELS[key]["refiner_id"],
+                print(f"✅ Loaded LoRA weights: {lora}") """
+            refiner = ORTStableDiffusionXLImg2ImgPipeline.from_pretrained(
+                "stabilityai/stable-diffusion-xl-1.0-tensorrt",
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
                 cache_dir=SD_MODEL_CACHE,
                 variant=SD_MODELS[key]["variant"],
-                use_safetensors=True,
-                vae=vae,
                 add_watermarker=False,
             )
             refiner_inpaint = StableDiffusionXLInpaintPipeline.from_pretrained(
