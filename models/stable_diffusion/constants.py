@@ -36,6 +36,7 @@ SD_ENV_KEY_TO_KEY = {
     "LD": "Luna Diffusion",
     "SX": "SDXL",
     "WDX": "Waifu Diffusion XL",
+    "AD": "Arcane Diffusion",
 }
 SD_MODEL_CACHE = "/app/data/diffusers-cache"
 SD_MODELS_ALL = {
@@ -74,6 +75,12 @@ SD_MODELS_ALL = {
         "variant": "fp16",
         "refiner_id": "stabilityai/stable-diffusion-xl-refiner-1.0",
         "default_lora": "sd_xl_offset_example-lora_1.0.safetensors",
+    },
+    "Arcane Diffusion": {
+        "id": "nitrosocke/Arcane-Diffusion",
+        "prompt_prefix": "arcane style",
+        "torch_dtype": torch.float16,
+        "keep_in_cpu_when_idle": True,
     },
 }
 
