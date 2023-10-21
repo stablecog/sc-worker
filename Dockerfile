@@ -1,4 +1,4 @@
-FROM stablecog/cuda-torch:11.8.0-2.1.0-cudnn8-devel-ubuntu22.04
+FROM stablecog/cuda-torch:12.2.2-2.1.0-cudnn8-devel-ubuntu22.04
 
 RUN mkdir -p /app/data
 WORKDIR /app
