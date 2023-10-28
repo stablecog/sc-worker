@@ -143,13 +143,13 @@ def setup() -> ModelsPack:
 
         if key == "SDXL" or key == "Waifu Diffusion XL" or key == "SSD 1B":
             refiner_vae = AutoencoderKL.from_pretrained(
-                "madebyollin/sdxl-vae-fp16-fix",
+                "stabilityai/sdxl-vae",
                 torch_dtype=torch.float16,
                 cache_dir=SD_MODEL_CACHE,
             )
             if key == "SSD 1B":
                 vae = AutoencoderKL.from_pretrained(
-                    "stabilityai/sdxl-vae",
+                    "madebyollin/sdxl-vae-fp16-fix",
                     torch_dtype=torch.float16,
                     cache_dir=SD_MODEL_CACHE,
                 )
