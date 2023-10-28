@@ -194,7 +194,7 @@ def setup() -> ModelsPack:
             ) """
             text2img = text2img.to(DEVICE)
             refiner = refiner.to(DEVICE)
-            refiner_inpaint = refiner_inpaint.to(DEVICE)
+            """ refiner_inpaint = refiner_inpaint.to(DEVICE) """
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
             inpaint = StableDiffusionXLInpaintPipeline(**text2img.components)
             pipe = SDPipe(
