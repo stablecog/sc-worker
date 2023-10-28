@@ -141,12 +141,21 @@ def setup() -> ModelsPack:
         s = time.time()
         print(f"⏳ Loading SD model: {key}")
 
-        if key == "SDXL" or key == "Waifu Diffusion XL":
-            vae = AutoencoderKL.from_pretrained(
-                "stabilityai/sdxl-vae",
+        if key == "SDXL" or key == "Waifu Diffusion XL" or key == "SSD 1B":
+            refiner_vae = AutoencoderKL.from_pretrained(
+                "madebyollin/sdxl-vae-fp16-fix",
                 torch_dtype=torch.float16,
                 cache_dir=SD_MODEL_CACHE,
             )
+            if key == "SSD 1B":
+                vae = AutoencoderKL.from_pretrained(
+                    "stabilityai/sdxl-vae",
+                    torch_dtype=torch.float16,
+                    cache_dir=SD_MODEL_CACHE,
+                )
+            else:
+                vae = refiner_vae
+
             text2img = StableDiffusionXLPipeline.from_pretrained(
                 SD_MODELS[key]["id"],
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
@@ -169,7 +178,7 @@ def setup() -> ModelsPack:
                 cache_dir=SD_MODEL_CACHE,
                 variant=SD_MODELS[key]["variant"],
                 use_safetensors=True,
-                vae=vae,
+                vae=refiner_vae,
                 add_watermarker=False,
             )
             refiner_inpaint = StableDiffusionXLInpaintPipeline.from_pretrained(
@@ -179,7 +188,7 @@ def setup() -> ModelsPack:
                 cache_dir=SD_MODEL_CACHE,
                 variant=SD_MODELS[key]["variant"],
                 use_safetensors=True,
-                vae=text2img.vae,
+                vae=refiner_vae,
                 add_watermarker=False,
             )
             text2img = text2img.to(DEVICE)
