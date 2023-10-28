@@ -181,7 +181,7 @@ def predict(
     s = time.time()
     """ torch.cuda.empty_cache()  # Free up GPU memory """
     e = time.time()
-    print_tuple(f"CUDA empty cache", f"{round((e - s) * 1000)} ms")
+    """ print_tuple(f"CUDA empty cache", f"{round((e - s) * 1000)} ms") """
 
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
         t_prompt = input.prompt
