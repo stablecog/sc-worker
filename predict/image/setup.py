@@ -181,7 +181,8 @@ def setup() -> ModelsPack:
                 vae=refiner_vae,
                 add_watermarker=False,
             )
-            refiner_inpaint = StableDiffusionXLInpaintPipeline.from_pretrained(
+            refiner_inpaint = None
+            """ refiner_inpaint = StableDiffusionXLInpaintPipeline.from_pretrained(
                 SD_MODELS[key]["refiner_id"],
                 text_encoder_2=text2img.text_encoder_2,
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
@@ -190,7 +191,7 @@ def setup() -> ModelsPack:
                 use_safetensors=True,
                 vae=refiner_vae,
                 add_watermarker=False,
-            )
+            ) """
             text2img = text2img.to(DEVICE)
             refiner = refiner.to(DEVICE)
             refiner_inpaint = refiner_inpaint.to(DEVICE)
