@@ -179,7 +179,7 @@ def predict(
     saved_safety_checker = None
 
     s = time.time()
-    torch.cuda.empty_cache()  # Free up GPU memory
+    """ torch.cuda.empty_cache()  # Free up GPU memory """
     e = time.time()
     print_tuple(f"CUDA empty cache", f"{round((e - s) * 1000)} ms")
 
