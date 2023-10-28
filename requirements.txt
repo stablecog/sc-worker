@@ -1,9 +1,9 @@
-diffusers==0.19.2
-transformers==4.30.2
-safetensors==0.3.1
+diffusers==0.21.4
+transformers==4.34.1
+safetensors==0.4.0
 ftfy==6.1.1
 scipy==1.9.0
-accelerate==0.18.0
+accelerate==0.24.0
 bitsandbytes==0.37.2
 numpy==1.24.1
 opencv-python==4.7.0.68
