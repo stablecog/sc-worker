@@ -161,7 +161,7 @@ def setup() -> ModelsPack:
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
                 cache_dir=SD_MODEL_CACHE,
                 variant=SD_MODELS[key]["variant"],
-                use_safetensors=True,
+                use_safetensors=SD_MODELS[key]["use_safetensors"],
                 vae=vae,
                 add_watermarker=False,
             )
@@ -177,7 +177,7 @@ def setup() -> ModelsPack:
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
                 cache_dir=SD_MODEL_CACHE,
                 variant=SD_MODELS[key]["variant"],
-                use_safetensors=True,
+                use_safetensors=SD_MODELS[key]["use_safetensors"],
                 vae=refiner_vae,
                 add_watermarker=False,
             )
@@ -187,7 +187,7 @@ def setup() -> ModelsPack:
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
                 cache_dir=SD_MODEL_CACHE,
                 variant=SD_MODELS[key]["variant"],
-                use_safetensors=True,
+                use_safetensors=SD_MODELS[key]["use_safetensors"],
                 vae=refiner_vae,
                 add_watermarker=False,
             )

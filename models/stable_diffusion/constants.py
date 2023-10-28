@@ -76,6 +76,7 @@ SD_MODELS_ALL = {
         "variant": "fp16",
         "refiner_id": "stabilityai/stable-diffusion-xl-refiner-1.0",
         "default_lora": "sd_xl_offset_example-lora_1.0.safetensors",
+        "use_safetensors": True,
     },
     "Arcane Diffusion": {
         "id": "nitrosocke/Arcane-Diffusion",
@@ -87,8 +88,8 @@ SD_MODELS_ALL = {
         "id": "segmind/SSD-1B",
         "torch_dtype": torch.float16,
         "variant": "fp16",
-        "use_sdxl_refiner": True,
         "refiner_id": "stabilityai/stable-diffusion-xl-refiner-1.0",
+        "use_safetensors": False,
     },
 }
 
