@@ -85,16 +85,16 @@ if __name__ == "__main__":
 
     # Create redis worker thread
     redis_worker_thread = Thread(
+        name="Redis Thread",
         target=lambda: start_redis_queue_worker(
             worker_type=WORKER_TYPE,
             redis=redis.Redis(
                 connection_pool=redisConn, socket_keepalive=True, socket_timeout=1000
             ),
             input_queue=redisInputQueue,
-            s3_client=s3,
-            s3_bucket=S3_BUCKET_NAME_UPLOAD,
             upload_queue=upload_queue,
             models_pack=models_pack,
+            shutdown_event=shutdown_event,
         )
     )
     # Create rabbitmq connection
@@ -105,20 +105,10 @@ if __name__ == "__main__":
     connection = pika.BlockingConnection(params)
     channel = connection.channel()
 
-    # Setup signal handler for exit
-    def signal_handler(signum, frame):
-        if not shutdown_event.is_set():
-            print("Signal received, shutting down...")
-            shutdown_event.set()
-            channel.stop_consuming()
-            channel.close()
-            channel.connection.close()
-
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
 
     # Create rabbitmq worker thread
     mq_worker_thread = Thread(
+        name="RabbitMQ Thread",
         target=lambda: start_amqp_queue_worker(
             worker_type=WORKER_TYPE,
             channel=channel,
@@ -131,6 +121,7 @@ if __name__ == "__main__":
 
     # Create upload thread
     upload_thread = Thread(
+        name="Upload Thread",
         target=lambda: start_upload_worker(
             worker_type=WORKER_TYPE,
             q=upload_queue,
@@ -140,12 +131,26 @@ if __name__ == "__main__":
         )
     )
 
+    # Setup signal handler for exit
+    def signal_handler(signum, frame):
+        if not shutdown_event.is_set():
+            print("Signal received, shutting down...")
+            shutdown_event.set()
+            channel.stop_consuming()
+            channel.close()
+            channel.connection.close()
+            os.kill(redis_worker_thread.ident, signal.SIGTERM)
+            os.kill(upload_thread.ident, signal.SIGTERM)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     try:
         mq_worker_thread.start()
         redis_worker_thread.start()
         upload_thread.start()
         if WORKER_TYPE == "image":
-            clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
+            clipapi_thread = Thread(name="CLIP API Thread", target=lambda: run_clipapi(models_pack=models_pack))
             clipapi_thread.start()
             clipapi_thread.join()
         mq_worker_thread.join()

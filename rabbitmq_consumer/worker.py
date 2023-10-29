@@ -9,7 +9,6 @@ from typing import Any, Dict, Iterable, Tuple, Callable
 from threading import Event
 import logging
 
-from boto3_type_annotations.s3 import ServiceResource
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
 

@@ -15,8 +15,10 @@ def main():
     load_dotenv()
     url: str = os.environ.get("SUPABASE_URL")
     key: str = os.environ.get("SUPABASE_KEY")
+    qdrant_host: str = os.environ.get("QDRANT_HOST")
+    qdrant_port: str = os.environ.get("QDRANT_PORT")
     supabase: Client = create_client(url, key)
-    qdrant = QdrantClient("localhost", port=6333)
+    qdrant = QdrantClient(qdrant_host, port=int(qdrant_port))
     res = qdrant.get_collections()
     has_collection = False
     current_dir = os.path.dirname(os.path.realpath(__file__))

@@ -4,8 +4,8 @@ import queue
 import os
 import traceback
 from typing import Any, Dict, Iterable, Tuple, Callable
+import logging
 
-from boto3_type_annotations.s3 import ServiceResource
 import redis
 
 from rdqueue.events import Status, Event
@@ -29,26 +29,23 @@ def start_redis_queue_worker(
     worker_type: str,
     redis: redis.Redis,
     input_queue: str,
-    s3_client: ServiceResource,
-    s3_bucket: str,
     upload_queue: queue.Queue[Dict[str, Any]],
     models_pack: ModelsPackForImage | ModelsPackForVoiceover,
+
+    shutdown_event: Callable[[], None],
 ) -> None:
-    print(f"Starting redis queue worker, bucket is: {s3_bucket}\n")
+    logging.info(f"Starting redis queue worker\n")
 
     input_queue = input_queue
-    s3_client = s3_client
-    s3_bucket = s3_bucket
     upload_queue = upload_queue
     workerName = os.environ.get("WORKER_NAME")
     consumer_id = f"cog-{workerName}"
     # 1 minute
     autoclaim_messages_after = 1 * 60
 
-    print(f"Waiting for message on {input_queue}\n")
+    logging.info(f"Waiting for message on {input_queue}\n")
 
-    # TODO - figure out how to exit this with SIGINT/SIGTERM
-    while True:
+    while not shutdown_event.is_set():
         try:
             # Receive message
             # first, try to autoclaim old messages from pending queue
@@ -96,7 +93,7 @@ def start_redis_queue_worker(
 
             webhook_url = message["webhook_url"]
 
-            print(f"Received message {message_id} on {input_queue}\n")
+            logging.into(f"Received message {message_id} on {input_queue}\n")
 
             if "webhook_events_filter" in message:
                 valid_events = {ev.value for ev in Event}
@@ -130,19 +127,22 @@ def start_redis_queue_worker(
                     if worker_type == "voiceover"
                     else PredictResultForImage,
                 ):
-                    print(f"-- Upload: Putting to queue")
+                    logging.into(f"-- Upload: Putting to queue")
                     upload_queue.put(response)
-                    print(f"-- Upload: Put to queue")
+                    logging.into(f"-- Upload: Put to queue")
                 elif response_event in events_filter:
                     status_code = post_webhook(webhook_url, response)
-                    print(f"-- Webhook: {status_code}")
+                    logging.into(f"-- Webhook: {status_code}")
 
             redis.xack(input_queue, input_queue, message_id)
             redis.xdel(input_queue, message_id)
 
+        except SystemExit:
+            logging.info("Exiting...")
+            break
         except Exception as e:
             tb = traceback.format_exc()
-            print(f"Failed to handle message: {tb}\n")
+            logging.error(f"Failed to handle message: {tb}\n")
             try:
                 redis.xack(input_queue, input_queue, message_id)
                 redis.xdel(input_queue, message_id)
@@ -169,7 +169,7 @@ def run_prediction_for_image(
         input_obj: Dict[str, Any] = response["input"]
     except Exception as e:
         tb = traceback.format_exc()
-        print(f"Failed to start prediction: {tb}\n")
+        logging.error(f"Failed to start prediction: {tb}\n")
         response["status"] = Status.FAILED
         response["error"] = str(e)
         yield (Event.COMPLETED, response)
@@ -203,7 +203,7 @@ def run_prediction_for_image(
         }
     except Exception as e:
         tb = traceback.format_exc()
-        print(f"Failed to run prediction: {tb}\n")
+        logging.error(f"Failed to run prediction: {tb}\n")
         completed_at = datetime.datetime.now()
         response["completed_at"] = format_datetime(completed_at)
         response["status"] = Status.FAILED
@@ -231,7 +231,7 @@ def run_prediction_for_voiceover(
         input_obj: Dict[str, Any] = response["input"]
     except Exception as e:
         tb = traceback.format_exc()
-        print(f"Failed to start prediction: {tb}\n")
+        logging.error(f"Failed to start prediction: {tb}\n")
         response["status"] = Status.FAILED
         response["error"] = str(e)
         yield (Event.COMPLETED, response)
@@ -264,7 +264,7 @@ def run_prediction_for_voiceover(
         }
     except Exception as e:
         tb = traceback.format_exc()
-        print(f"Failed to run prediction: {tb}\n")
+        logging.error(f"Failed to run prediction: {tb}\n")
         completed_at = datetime.datetime.now()
         response["completed_at"] = format_datetime(completed_at)
         response["status"] = Status.FAILED
