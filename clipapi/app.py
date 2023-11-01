@@ -41,7 +41,13 @@ bucket = s3.Bucket(S3_BUCKET_NAME_UPLOAD)
 def health():
     return "OK", 200
 
-
+# You can test the embedding endpoint with the following command:
+# curl -X POST http://localhost:13339/clip/embed -d \
+#     '[
+#         {"text": "A photo of a delicious plate of pasta"},
+#         {"image": "https://www.foodiecrush.com/wp-content/uploads/2018/03/Penne-Pasta-with-Turkey-and-Spinach-foodiecrush.com-004.jpg"}
+#     ]' \
+#     -H 'Authorization: Bearer VerySecretToken' -H 'Content-Type: application/json
 @clipapi.route("/clip/embed", methods=["POST"])
 def clip_embed():
     s = time.time()
@@ -54,15 +60,14 @@ def clip_embed():
         return "Unauthorized", 401
     try:
         req_body = request.get_json()
-    except Exception as e:
-        tb = traceback.format_exc()
-        print(f"Error parsing request body: {tb}\n")
-        return str(e), 400
-    finally:
         if req_body is None:
             return "Missing request body", 400
         if isinstance(req_body, list) is not True:
             return "Body should be an array", 400
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(f"Error parsing request body: {tb}\n")
+        return str(e), 400
 
     embeds = [None for _ in range(len(req_body))]
     textObjects = []
