@@ -19,4 +19,7 @@ def post_webhook(url: str, data: Dict[str, Any], retries: int = 0) -> int:
         print(f"Sleeping {sleep_time} seconds before retrying webhook")
         time.sleep(sleep_time)
         return post_webhook(url, data, retries + 1)
+    
+    print(f"Webhook status code: {ret.status_code}")
+
     return ret.status_code

@@ -74,6 +74,8 @@ def start_upload_worker(
                 del uploadMsg["upload_prefix"]
 
             logging.info(f"-- Upload: Publishing to WEBHOOK --")
+            logging.info(f"-- Webhook url: {uploadMsg['webhook_url']} --")
+            # logging.info(f"-- Upload: Message: {uploadMsg} --")
             post_webhook(uploadMsg["webhook_url"], uploadMsg)
         except queue.Empty:
             continue

@@ -38,9 +38,14 @@ SD_ENV_KEY_TO_KEY = {
     "WDX": "Waifu Diffusion XL",
     "AD": "Arcane Diffusion",
     "SSD": "SSD 1B",
+    "IONET": "Io Cog"
 }
 SD_MODEL_CACHE = "/app/data/diffusers-cache"
 SD_MODELS_ALL = {
+    "IO Cog" : {
+        "id": "ionet-official/bc8-alpha",
+        "torch_dtype": torch.float32,
+    },
     "Openjourney": {
         "id": "prompthero/openjourney",
         "prompt_prefix": "mdjrny-v4 style",
