@@ -343,9 +343,8 @@ def predict(
 
     # Aesthetic Score
     s_aes = time.time()
-    print("🎨 Calculating aesthetic scores 🎨")
     aesthetic_scores: List[tuple[float, float]] = []
-    for image in output_images:
+    for i, image in enumerate(output_images):
         rating_score, artifact_score = generate_aesthetic_scores(
             img=image,
             rating_model=models_pack.aesthetics_scorer["rating_model"],
@@ -354,7 +353,9 @@ def predict(
             vision_model=models_pack.open_clip["model"].vision_model,
         )
         aesthetic_scores.append((rating_score, artifact_score))
-        print(f"🎨 Rating: {rating_score} | Artifact: {artifact_score}")
+        print(
+            f"🎨 Image {i} | Rating Score: {rating_score} | Artifact Score: {artifact_score}"
+        )
     e_aes = time.time()
     print(f"🎨 Calculated aesthetic scores in: {round((e_aes - s_aes) * 1000)} ms")
 
