@@ -96,7 +96,12 @@ def upload_files_for_image(
     for task in tasks:
         print(f"-- Upload: Got result")
         results.append(
-            {"image": task.result(), "image_embed": uo.open_clip_image_embed}
+            {
+                "image": task.result(),
+                "image_embed": uo.open_clip_image_embed,
+                "aesthetic_rating_score": uo.aesthetic_rating_score,
+                "aesthetic_artifact_score": uo.aesthetic_artifact_score
+            }
         )
 
     end = time.time()
