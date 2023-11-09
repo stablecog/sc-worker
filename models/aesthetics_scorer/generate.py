@@ -1,5 +1,5 @@
 import torch
-from model import preprocess
+from .model import preprocess
 from models.constants import DEVICE
 
 
