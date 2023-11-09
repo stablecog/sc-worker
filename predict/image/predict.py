@@ -354,7 +354,7 @@ def predict(
         )
         aesthetic_scores.append((rating_score, artifact_score))
         print(
-            f"🎨 Image {i} | Rating Score: {rating_score} | Artifact Score: {artifact_score}"
+            f"🎨 Image {i+1} | Rating Score: {rating_score} | Artifact Score: {artifact_score}"
         )
     e_aes = time.time()
     print(f"🎨 Calculated aesthetic scores in: {round((e_aes - s_aes) * 1000)} ms")
