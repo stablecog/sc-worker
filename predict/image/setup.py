@@ -1,7 +1,14 @@
 from typing import Any
 
 from lingua import LanguageDetectorBuilder
-from boto3_type_annotations.s3 import ServiceResource
+from models.aesthetics_scorer.constants import (
+    AESTHETICS_SCORER_CACHE_DIR,
+    AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_CONFIG,
+    AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_WEIGHT_URL,
+    AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_CONFIG,
+    AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_WEIGHT_URL,
+)
+from models.aesthetics_scorer.model import load_model as load_aesthetics_scorer_model
 from models.kandinsky.constants import (
     KANDINSKY_2_2_DECODER_INPAINT_MODEL_ID,
     KANDINSKY_2_2_DECODER_MODEL_ID,
@@ -23,7 +30,6 @@ from models.stable_diffusion.constants import (
 from diffusers import StableDiffusionPipeline
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
-from models.download.download_from_bucket import download_all_models_from_bucket
 from models.download.download_from_hf import download_models_from_hf
 import time
 from models.constants import DEVICE
@@ -110,6 +116,7 @@ class ModelsPack:
         kandinsky: KandinskyPipe,
         kandinsky_2_2: KandinskyPipe_2_2,
         safety_checker: Any,
+        aesthetics_scorer: Any,
     ):
         self.sd_pipes = sd_pipes
         self.upscaler = upscaler
@@ -118,6 +125,7 @@ class ModelsPack:
         self.kandinsky = kandinsky
         self.kandinsky_2_2 = kandinsky_2_2
         self.safety_checker = safety_checker
+        self.aesthetics_scorer = aesthetics_scorer
 
 
 def setup() -> ModelsPack:
@@ -349,6 +357,24 @@ def setup() -> ModelsPack:
     }
     print("✅ Loaded OpenCLIP")
 
+    # For asthetics scorer
+    print("⏳ Loading Aesthetics Scorer")
+    rating_model = load_aesthetics_scorer_model(
+        weight_url=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_WEIGHT_URL,
+        cache_dir=AESTHETICS_SCORER_CACHE_DIR,
+        config=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_CONFIG,
+    ).to(DEVICE)
+    artifact_model = load_aesthetics_scorer_model(
+        weight_url=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_WEIGHT_URL,
+        cache_dir=AESTHETICS_SCORER_CACHE_DIR,
+        config=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_CONFIG,
+    ).to(DEVICE)
+    aesthetics_scorer = {
+        "rating_model": rating_model,
+        "artifact_model": artifact_model,
+    }
+    print("✅ Loaded Aesthetics Scorer")
+
     end = time.time()
     print("//////////////////////////////////////////////////////////////////")
     print(f"✅ Predict setup is done in: {round((end - start))} sec.")
@@ -362,4 +388,5 @@ def setup() -> ModelsPack:
         kandinsky=kandinsky,
         kandinsky_2_2=kandinsky_2_2,
         safety_checker=safety_checker,
+        aesthetics_scorer=aesthetics_scorer,
     )
