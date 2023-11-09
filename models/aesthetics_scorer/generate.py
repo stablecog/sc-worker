@@ -5,7 +5,7 @@ from models.constants import DEVICE
 
 def generate_aesthetic_scores(
     img, rating_model, artifacts_model, vision_model, clip_processor
-) -> tuple(float, float):
+) -> tuple(float):
     inputs = clip_processor(images=img, return_tensors="pt").to(DEVICE)
     with torch.no_grad():
         vision_output = vision_model(**inputs)
