@@ -93,14 +93,15 @@ def upload_files_for_image(
 
     # Get results
     results = []
-    for task in tasks:
+    for i, task in enumerate(tasks):
         print(f"-- Upload: Got result")
+        uploadObject = uploadObjects[i]
         results.append(
             {
                 "image": task.result(),
-                "image_embed": uo.open_clip_image_embed,
-                "aesthetic_rating_score": uo.aesthetic_rating_score,
-                "aesthetic_artifact_score": uo.aesthetic_artifact_score,
+                "image_embed": uploadObject.open_clip_image_embed,
+                "aesthetic_rating_score": uploadObject.aesthetic_rating_score,
+                "aesthetic_artifact_score": uploadObject.aesthetic_artifact_score,
             }
         )
 
@@ -110,7 +111,6 @@ def upload_files_for_image(
         artifact = result["aesthetic_artifact_score"]
         embed = result["image_embed"]
         print(f"Rating: {rating} | Artifact: {artifact}")
-        print(f"Embed: {embed}")
     print(
         f"📤 All converted and uploaded to S3 in: {round((end - start) *1000)} ms - Bucket: {s3_bucket} 📤"
     )
