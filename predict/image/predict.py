@@ -378,9 +378,6 @@ def predict(
             aesthetic_rating_score=aesthetic_scores[i].rating_score,
             aesthetic_artifact_score=aesthetic_scores[i].artifact_score,
         )
-        print(
-            f"final rating score: {aesthetic_scores[i].rating_score} | final artifact score: {aesthetic_scores[i].artifact_score}"
-        )
         output_objects.append(obj)
 
     result = PredictResult(
@@ -398,5 +395,10 @@ def predict(
 
     print(f"✅ Process completed in: {round((process_end - process_start) * 1000)} ms ✅")
     print("//////////////////////////////////////////////////////////////////")
+
+    for result in result.outputs:
+        print(
+            f"final rating score: {result.aesthetic_rating_score} | final artifact score: {result.aesthetic_artifact_score}"
+        )
 
     return result
