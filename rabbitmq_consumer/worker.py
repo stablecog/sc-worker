@@ -179,11 +179,11 @@ def start_amqp_queue_worker(
         queue_name, worker_type, upload_queue, models_pack
     )
 
-    connection.channel.basic_qos(prefetch_count=1)
-    connection.channel.basic_consume(queue=queue_name, on_message_callback=msg_callback)
     global callback_in_progress
     while not shutdown_event.is_set() or callback_in_progress:
         try:
+            connection.channel.basic_qos(prefetch_count=1)
+            connection.channel.basic_consume(queue=queue_name, on_message_callback=msg_callback)
             connection.channel.start_consuming()
         except ConnectionClosedByBroker as err:
             logging.error(f"ConnectionClosedByBroker {err}")
