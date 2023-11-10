@@ -396,9 +396,4 @@ def predict(
     print(f"✅ Process completed in: {round((process_end - process_start) * 1000)} ms ✅")
     print("//////////////////////////////////////////////////////////////////")
 
-    for res in result.outputs:
-        print(
-            f"final rating score: {res.aesthetic_rating_score} | final artifact score: {res.aesthetic_artifact_score}"
-        )
-
     return result

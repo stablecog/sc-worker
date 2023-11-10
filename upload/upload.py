@@ -106,12 +106,6 @@ def upload_files_for_image(
         )
 
     end = time.time()
-    for result in results:
-        rating = result["aesthetic_rating_score"]
-        artifact = result["aesthetic_artifact_score"]
-        embed = result["image_embed"]
-        print(f"Rating: {rating} | Artifact: {artifact}")
-        print(f"Embed: {embed}")
     print(
         f"📤 All converted and uploaded to S3 in: {round((end - start) *1000)} ms - Bucket: {s3_bucket} 📤"
     )
