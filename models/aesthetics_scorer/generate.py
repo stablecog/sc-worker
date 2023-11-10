@@ -17,9 +17,19 @@ def normalize(value, range_min, range_max):
     return max(0, min(normalized_value, 1))  # Clamp between 0 and 1
 
 
+class AestheticScoreResult:
+    def __init__(
+        self,
+        rating_score: float,
+        artifact_score: float,
+    ):
+        self.rating_score = rating_score
+        self.artifact_score = artifact_score
+
+
 def generate_aesthetic_scores(
     img, rating_model, artifacts_model, vision_model, clip_processor
-) -> tuple[float, float]:
+) -> AestheticScoreResult:
     inputs = clip_processor(images=img, return_tensors="pt").to(DEVICE)
     with torch.no_grad():
         vision_output = vision_model(**inputs)
@@ -28,7 +38,7 @@ def generate_aesthetic_scores(
     with torch.no_grad():
         rating = rating_model(embedding)
         artifact = artifacts_model(embedding)
-    return (
-        normalize(rating.detach().cpu().item(), 0, 10),
-        normalize(artifact.detach().cpu().item(), 0, 5),
+    return AestheticScoreResult(
+        rating_score=normalize(rating.detach().cpu().item(), 0, 10),
+        artifact_score=normalize(artifact.detach().cpu().item(), 0, 5),
     )

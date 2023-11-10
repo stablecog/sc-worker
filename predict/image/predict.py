@@ -1,5 +1,8 @@
 import time
-from models.aesthetics_scorer.generate import generate_aesthetic_scores
+from models.aesthetics_scorer.generate import (
+    AestheticScoreResult,
+    generate_aesthetic_scores,
+)
 
 from models.kandinsky.constants import (
     KANDINSKY_MODEL_NAME,
@@ -343,18 +346,18 @@ def predict(
 
     # Aesthetic Score
     s_aes = time.time()
-    aesthetic_scores: List[tuple[float, float]] = []
+    aesthetic_scores: List[AestheticScoreResult] = []
     for i, image in enumerate(output_images):
-        rating_score, artifact_score = generate_aesthetic_scores(
+        aesthetic_score_result = generate_aesthetic_scores(
             img=image,
             rating_model=models_pack.aesthetics_scorer["rating_model"],
             artifacts_model=models_pack.aesthetics_scorer["artifact_model"],
             clip_processor=models_pack.open_clip["processor"],
             vision_model=models_pack.open_clip["model"].vision_model,
         )
-        aesthetic_scores.append((rating_score, artifact_score))
+        aesthetic_scores.append(aesthetic_score_result)
         print(
-            f"🎨 Image {i+1} | Rating Score: {rating_score} | Artifact Score: {artifact_score}"
+            f"🎨 Image {i+1} | Rating Score: {aesthetic_score_result.rating_score} | Artifact Score: {aesthetic_score_result.artifact_score}"
         )
     e_aes = time.time()
     print(f"🎨 Calculated aesthetic scores in: {round((e_aes - s_aes) * 1000)} ms")
@@ -372,8 +375,11 @@ def predict(
             open_clip_prompt_embed=open_clip_embed_of_prompt
             if open_clip_embed_of_prompt is not None
             else None,
-            aesthetic_rating_score=aesthetic_scores[i][0],
-            aesthetic_artifact_score=aesthetic_scores[i][1],
+            aesthetic_rating_score=aesthetic_scores[i].rating_score,
+            aesthetic_artifact_score=aesthetic_scores[i].artifact_score,
+        )
+        print(
+            f"final rating score: {aesthetic_scores[i].rating_score} | final artifact score: {aesthetic_scores[i].artifact_score}"
         )
         output_objects.append(obj)
 
