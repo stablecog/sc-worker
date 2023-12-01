@@ -17,6 +17,7 @@ from predict.image.setup import setup as image_setup
 from predict.voiceover.setup import setup as voiceover_setup
 from rdqueue.worker import start_redis_queue_worker
 from rabbitmq_consumer.worker import start_amqp_queue_worker
+from rabbitmq_consumer.connection import RabbitMQConnection
 from upload.constants import (
     S3_ACCESS_KEY_ID,
     S3_BUCKET_NAME_UPLOAD,
@@ -98,21 +99,16 @@ if __name__ == "__main__":
         )
     )
     # Create rabbitmq connection
-    # Parse the AMQP URL
-    params = pika.URLParameters(amqpUrl)
-
-    # Establish the connection using the parsed parameters
-    connection = pika.BlockingConnection(params)
-    channel = connection.channel()
+    connection = RabbitMQConnection(amqpUrl)
 
     # Setup signal handler for exit
     def signal_handler(signum, frame):
         if not shutdown_event.is_set():
             print("Signal received, shutting down...")
             shutdown_event.set()
-            channel.stop_consuming()
-            channel.close()
-            channel.connection.close()
+            connection.stop_consuming()
+            connection.close()
+            connection.connection.close()
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
@@ -121,7 +117,7 @@ if __name__ == "__main__":
     mq_worker_thread = Thread(
         target=lambda: start_amqp_queue_worker(
             worker_type=WORKER_TYPE,
-            channel=channel,
+            connection=connection,
             queue_name=amqpQueueName,
             upload_queue=upload_queue,
             models_pack=models_pack,
