@@ -220,6 +220,7 @@ def setup() -> ModelsPack:
                 cache_dir=SD_MODEL_CACHE,
                 variant=SD_MODELS[key]["variant"],
                 use_safetensors=True,
+                vae=vae,
                 add_watermarker=False,
             )
             text2img = text2img.to(DEVICE)
