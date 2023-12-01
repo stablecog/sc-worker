@@ -223,10 +223,9 @@ def setup() -> ModelsPack:
                 add_watermarker=False,
             )
             text2img = text2img.to(DEVICE)
-            img2img = AutoPipelineForText2Image(**text2img.components)
             pipe = SDPipe(
                 text2img=text2img,
-                img2img=img2img,
+                img2img=text2img,
                 inpaint=None,
                 refiner=None,
                 refiner_inpaint=None,
