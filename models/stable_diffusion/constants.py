@@ -89,7 +89,7 @@ SD_MODELS_ALL = {
         "torch_dtype": torch.float16,
         "keep_in_cpu_when_idle": True,
     },
-    "SSD-1B": {
+    "SSD 1B": {
         "id": "segmind/SSD-1B",
         "torch_dtype": torch.float16,
         "variant": "fp16",

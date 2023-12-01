@@ -48,7 +48,6 @@ def start_upload_worker(
                                 ),
                             }
                         else:
-                            # Final for the image job
                             uploadMsg["output"] = {
                                 "prompt_embed": predict_result.outputs[
                                     0

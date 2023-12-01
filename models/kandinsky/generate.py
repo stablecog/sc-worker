@@ -143,7 +143,7 @@ def generate(
     return filtered_output_images, nsfw_count
 
 
-kandinsky_2_2_negative_prompt_prefix = "overexposed"
+kandinsky_2_2_negative_prompt_fallback = "overexposed"
 
 
 def generate_2_2(
@@ -180,9 +180,7 @@ def generate_2_2(
             negative_prompt = f"{negative_prompt_prefix} {negative_prompt}"
 
     if negative_prompt is None or negative_prompt == "":
-        negative_prompt = kandinsky_2_2_negative_prompt_prefix
-    else:
-        negative_prompt = f"{kandinsky_2_2_negative_prompt_prefix}, {negative_prompt}"
+        negative_prompt = kandinsky_2_2_negative_prompt_fallback
 
     print(f"Negative prompt for Kandinsky 2.2: {negative_prompt}")
 

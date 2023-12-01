@@ -1,8 +1,4 @@
 import time
-from models.aesthetics_scorer.generate import (
-    AestheticScoreResult,
-    generate_aesthetic_scores,
-)
 
 from models.kandinsky.constants import (
     KANDINSKY_MODEL_NAME,
@@ -34,8 +30,9 @@ from models.open_clip.main import (
     open_clip_get_embeds_of_texts,
 )
 from pydantic import BaseModel, Field, validator
-from shared.helpers import return_value_if_in_list, wrap_text
+from shared.helpers import print_tuple, return_value_if_in_list, wrap_text
 from tabulate import tabulate
+import torch
 
 
 class PredictInput(BaseModel):
@@ -347,24 +344,6 @@ def predict(
         endTime = time.time()
         print(f"⭐️ Upscaled in: {round((endTime - startTime) * 1000)} ms ⭐️")
 
-    # Aesthetic Score
-    s_aes = time.time()
-    aesthetic_scores: List[AestheticScoreResult] = []
-    for i, image in enumerate(output_images):
-        aesthetic_score_result = generate_aesthetic_scores(
-            img=image,
-            rating_model=models_pack.aesthetics_scorer["rating_model"],
-            artifacts_model=models_pack.aesthetics_scorer["artifact_model"],
-            clip_processor=models_pack.open_clip["processor"],
-            vision_model=models_pack.open_clip["model"].vision_model,
-        )
-        aesthetic_scores.append(aesthetic_score_result)
-        print(
-            f"🎨 Image {i+1} | Rating Score: {aesthetic_score_result.rating_score} | Artifact Score: {aesthetic_score_result.artifact_score}"
-        )
-    e_aes = time.time()
-    print(f"🎨 Calculated aesthetic scores in: {round((e_aes - s_aes) * 1000)} ms")
-
     # Prepare output objects
     output_objects: List[PredictOutput] = []
     for i, image in enumerate(output_images):
@@ -378,8 +357,6 @@ def predict(
             open_clip_prompt_embed=open_clip_embed_of_prompt
             if open_clip_embed_of_prompt is not None
             else None,
-            aesthetic_rating_score=aesthetic_scores[i].rating_score,
-            aesthetic_artifact_score=aesthetic_scores[i].artifact_score,
         )
         output_objects.append(obj)
 
