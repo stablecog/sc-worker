@@ -1,4 +1,5 @@
 {
-  "python.formatting.provider": "black",
-  "python.analysis.typeCheckingMode": "off"
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  }
 }

@@ -12,8 +12,10 @@ import logging
 from boto3_type_annotations.s3 import ServiceResource
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
+from pika.exceptions import ConnectionClosedByBroker, AMQPConnectionError, AMQPChannelError
 
 from rabbitmq_consumer.events import Status, Event
+from rabbitmq_consumer.connection import RabbitMQConnection
 from predict.image.predict import (
     PredictInput as PredictInputForImage,
     predict as predict_for_image,
@@ -146,7 +148,7 @@ def create_amqp_callback(
 
 def start_amqp_queue_worker(
     worker_type: str,
-    channel: BlockingChannel,
+    connection: RabbitMQConnection,
     queue_name: str,
     upload_queue: queue.Queue[Dict[str, Any]],
     models_pack: ModelsPackForImage | ModelsPackForVoiceover,
@@ -177,29 +179,40 @@ def start_amqp_queue_worker(
         queue_name, worker_type, upload_queue, models_pack
     )
 
-    channel.basic_qos(prefetch_count=1)
-    channel.basic_consume(queue=queue_name, on_message_callback=msg_callback)
     global callback_in_progress
-    try:
-        channel.start_consuming()
-    finally:
-        if callback_in_progress:
-            logging.info(f"Waiting for callback to finish")
-            # Give it a max of 30s to finish
-            for i in range(60):
-                if not callback_in_progress:
-                    break
-                # Sleep for 500ms
-                time.sleep(0.5)
-                pass
+    while not shutdown_event.is_set() or callback_in_progress:
         try:
-            logging.info(f"Stopping rabbitmq queue channel")
-            channel.close()
-            logging.info(f"Closing rabbitmq connection")
-            channel.connection.close()
-            logging.info("rabbitmq worker terminated")
-        except:
+            connection.channel.basic_qos(prefetch_count=1)
+            connection.channel.basic_consume(queue=queue_name, on_message_callback=msg_callback)
+            connection.channel.start_consuming()
+        except ConnectionClosedByBroker as err:
+            logging.error(f"ConnectionClosedByBroker {err}")
+            connection.reconnect()
+            continue
+        except AMQPChannelError as err:
+            logging.error(f"AMQPChannelError {err}")
+            break
+        except AMQPConnectionError as err:
+            logging.error(f"AMQPConnectionError {err}")
+            connection.reconnect()
+            continue
+    if callback_in_progress:
+        logging.info(f"Waiting for callback to finish")
+        # Give it a max of 30s to finish
+        for i in range(60):
+            if not callback_in_progress:
+                break
+            # Sleep for 500ms
+            time.sleep(0.5)
             pass
+    try:
+        logging.info(f"Stopping rabbitmq queue channel")
+        connection.channel.close()
+        logging.info(f"Closing rabbitmq connection")
+        connection.channel.connection.close()
+        logging.info("rabbitmq worker terminated")
+    except:
+        pass
     # Shouldn't have gotten here, exit the whole program
     if not shutdown_event.is_set():
         logging.info("rabbitmq worker terminated unexpectedly")
