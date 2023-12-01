@@ -252,9 +252,6 @@ def predict(
         )
 
         startTime = time.time()
-        if input.model == "SDXL Turbo":
-            input.num_inference_steps = 4
-            input.guidance_scale = 0.0
         args = {
             "prompt": t_prompt,
             "negative_prompt": t_negative_prompt,

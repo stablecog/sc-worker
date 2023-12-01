@@ -205,25 +205,6 @@ def setup() -> ModelsPack:
                 refiner=refiner,
                 refiner_inpaint=refiner_inpaint,
             )
-        elif key == "SDXL Turbo":
-            text2img = AutoPipelineForText2Image.from_pretrained(
-                SD_MODELS[key]["id"],
-                torch_dtype=SD_MODELS[key]["torch_dtype"],
-                cache_dir=SD_MODEL_CACHE,
-                variant=SD_MODELS[key]["variant"],
-                use_safetensors=True,
-                vae=vae,
-                add_watermarker=False,
-            )
-            text2img = text2img.to(DEVICE)
-            img2img = AutoPipelineForText2Image(**text2img.components)
-            pipe = SDPipe(
-                text2img=text2img,
-                img2img=img2img,
-                inpaint=None,
-                refiner=None,
-                refiner_inpaint=None,
-            )
         else:
             extra_args = {}
             if SKIP_SAFETY_CHECKER == "1":
