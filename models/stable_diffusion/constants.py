@@ -38,6 +38,7 @@ SD_ENV_KEY_TO_KEY = {
     "WDX": "Waifu Diffusion XL",
     "AD": "Arcane Diffusion",
     "SSD": "SSD 1B",
+    "SXT": "SDXL Turbo",
 }
 SD_MODEL_CACHE = "/app/data/diffusers-cache"
 SD_MODELS_ALL = {
@@ -76,6 +77,11 @@ SD_MODELS_ALL = {
         "variant": "fp16",
         "refiner_id": "stabilityai/stable-diffusion-xl-refiner-1.0",
         "default_lora": "sd_xl_offset_example-lora_1.0.safetensors",
+    },
+    "SDXL Turbo": {
+        "id": "stabilityai/stable-diffusion-xl-base-1.0",
+        "torch_dtype": torch.float16,
+        "variant": "fp16",
     },
     "Arcane Diffusion": {
         "id": "nitrosocke/Arcane-Diffusion",
