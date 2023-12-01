@@ -79,7 +79,7 @@ SD_MODELS_ALL = {
         "default_lora": "sd_xl_offset_example-lora_1.0.safetensors",
     },
     "SDXL Turbo": {
-        "id": "stabilityai/sdxl-turbo",
+        "id": "stabilityai/stable-diffusion-xl-base-1.0",
         "torch_dtype": torch.float16,
         "variant": "fp16",
     },
