@@ -59,7 +59,6 @@ from diffusers.models import AutoencoderKL
 import torch
 
 from shared.helpers import print_tuple
-from diffusers import AutoPipelineForText2Image
 
 
 class SDPipe:
@@ -69,13 +68,11 @@ class SDPipe:
         img2img: StableDiffusionImg2ImgPipeline | StableDiffusionImg2ImgPipeline,
         inpaint: StableDiffusionInpaintPipeline | None,
         refiner: StableDiffusionXLImg2ImgPipeline | None,
-        refiner_inpaint: StableDiffusionXLInpaintPipeline | None,
     ):
         self.text2img = text2img
         self.img2img = img2img
         self.inpaint = inpaint
         self.refiner = refiner
-        self.refiner_inpaint = refiner_inpaint
 
 
 class KandinskyPipe:
@@ -189,20 +186,8 @@ def setup() -> ModelsPack:
                 vae=refiner_vae,
                 add_watermarker=False,
             )
-            refiner_inpaint = None
-            """ refiner_inpaint = StableDiffusionXLInpaintPipeline.from_pretrained(
-                SD_MODELS[key]["refiner_id"],
-                text_encoder_2=text2img.text_encoder_2,
-                torch_dtype=SD_MODELS[key]["torch_dtype"],
-                cache_dir=SD_MODEL_CACHE,
-                variant=SD_MODELS[key]["variant"],
-                use_safetensors=True,
-                vae=refiner_vae,
-                add_watermarker=False,
-            ) """
             text2img = text2img.to(DEVICE)
             refiner = refiner.to(DEVICE)
-            """ refiner_inpaint = refiner_inpaint.to(DEVICE) """
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
             inpaint = StableDiffusionXLInpaintPipeline(**text2img.components)
             pipe = SDPipe(
@@ -210,7 +195,6 @@ def setup() -> ModelsPack:
                 img2img=img2img,
                 inpaint=inpaint,
                 refiner=refiner,
-                refiner_inpaint=refiner_inpaint,
             )
         else:
             extra_args = {}

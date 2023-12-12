@@ -106,7 +106,6 @@ if __name__ == "__main__":
         if not shutdown_event.is_set():
             print("Signal received, shutting down...")
             shutdown_event.set()
-            connection.stop_consuming()
             connection.close()
             connection.connection.close()
 
