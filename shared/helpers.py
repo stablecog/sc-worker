@@ -371,4 +371,4 @@ def log_gpu_memory(device_id=0, message=None):
             tabulate([["GPU Memory Log", "Value"]] + log_table, tablefmt="double_grid")
         )
     except Exception as e:
-        print(f"Failed to log GPU memory: {e}")
+        print(f"Failed to log GPU memory")
