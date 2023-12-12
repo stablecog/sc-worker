@@ -219,7 +219,6 @@ def setup() -> ModelsPack:
                 img2img=img2img,
                 inpaint=inpaint,
                 refiner=None,
-                refiner_inpaint=None,
             )
 
         sd_pipes[key] = pipe
