@@ -63,8 +63,6 @@ def generate(
     extra_kwargs = {}
     pipe_selected = None
 
-    if pipe.refiner is not None:
-        extra_kwargs["output_type"] = "latent"
     if init_image_url is not None:
         # The process is: img2img or inpainting
         start_i = time.time()
@@ -141,7 +139,7 @@ def generate(
     else:
         output_images = output.images
 
-    if pipe.refiner is not None:
+    """ if pipe.refiner is not None:
         args = {
             "prompt": prompt,
             "negative_prompt": negative_prompt,
@@ -151,7 +149,7 @@ def generate(
             "num_inference_steps": num_inference_steps,
             "image": output_images,
         }
-        output_images = pipe.refiner(**args).images
+        output_images = pipe.refiner(**args).images """
 
     if nsfw_count > 0:
         print(f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs.")
