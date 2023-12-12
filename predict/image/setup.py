@@ -148,6 +148,9 @@ def setup() -> ModelsPack:
             matching_model_id in sd_pipes
             and sd_pipes[matching_model_id].inpaint is not None
         ):
+            print(
+                f"✅ Reusing inpaint model - Model ID: {matching_model_id} - Inpaint ID: {inpaint_id}"
+            )
             return sd_pipes[matching_model_id].inpaint
 
         return None
