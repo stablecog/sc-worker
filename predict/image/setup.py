@@ -26,7 +26,7 @@ from models.stable_diffusion.constants import (
     SD_MODELS,
     SD_MODEL_CACHE,
 )
-from diffusers import StableDiffusionPipeline
+from diffusers import StableDiffusionPipeline, AutoPipelineForInpainting
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
 from models.download.download_from_hf import download_models_from_hf
@@ -61,7 +61,7 @@ import torch
 from shared.helpers import print_tuple
 
 
-class SDPipe:
+class SDPipeSet:
     def __init__(
         self,
         text2img: StableDiffusionPipeline | StableDiffusionXLPipeline,
@@ -104,9 +104,7 @@ class KandinskyPipe_2_2:
 class ModelsPack:
     def __init__(
         self,
-        sd_pipes: dict[
-            str, SDPipe | StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline
-        ],
+        sd_pipes: dict[str, SDPipeSet],
         upscaler: Any,
         translator: Any,
         open_clip: Any,
@@ -136,11 +134,22 @@ def setup() -> ModelsPack:
 
     download_models_from_hf(downloadAll=False)
 
-    sd_pipes: dict[
-        str,
-        SDPipe | StableDiffusionXLPipeline,
-        StableDiffusionXLImg2ImgPipeline,
-    ] = {}
+    sd_pipes: dict[str, SDPipeSet] = {}
+
+    def get_inpaint_model(inpaint_id: str):
+        matching_model_id = None
+        for model_id in SD_MODELS:
+            if SD_MODELS[model_id]["inpaint_id"] == inpaint_id:
+                matching_model_id = model_id
+                break
+
+        if (
+            matching_model_id in sd_pipes
+            and sd_pipes[matching_model_id].inpaint is not None
+        ):
+            return sd_pipes[matching_model_id].inpaint
+
+        return None
 
     for key in SD_MODELS:
         s = time.time()
@@ -189,8 +198,19 @@ def setup() -> ModelsPack:
             text2img = text2img.to(DEVICE)
             refiner = refiner.to(DEVICE)
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
-            inpaint = StableDiffusionXLInpaintPipeline(**text2img.components)
-            pipe = SDPipe(
+
+            inpaint = get_inpaint_model(SD_MODELS[key]["inpaint_id"])
+            if inpaint is None:
+                inpaint = AutoPipelineForInpainting.from_pretrained(
+                    SD_MODELS[key]["inpaint_id"],
+                    torch_dtype=SD_MODELS[key]["torch_dtype"],
+                    cache_dir=SD_MODEL_CACHE,
+                    variant=SD_MODELS[key]["variant"],
+                    use_safetensors=True,
+                    add_watermarker=False,
+                )
+                inpaint.to(DEVICE)
+            pipe = SDPipeSet(
                 text2img=text2img,
                 img2img=img2img,
                 inpaint=inpaint,
@@ -213,13 +233,15 @@ def setup() -> ModelsPack:
                 text2img = text2img.to(DEVICE)
                 print_tuple("🚀 Keep in GPU", key)
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
-            inpaint = StableDiffusionInpaintPipeline(**text2img.components)
-            pipe = SDPipe(
-                text2img=text2img,
-                img2img=img2img,
-                inpaint=inpaint,
-                refiner=None,
-            )
+            inpaint = get_inpaint_model(SD_MODELS[key]["inpaint_id"])
+            if inpaint is None:
+                inpaint = StableDiffusionInpaintPipeline(**text2img.components)
+                pipe = SDPipeSet(
+                    text2img=text2img,
+                    img2img=img2img,
+                    inpaint=inpaint,
+                    refiner=None,
+                )
 
         sd_pipes[key] = pipe
         print(

@@ -36,6 +36,7 @@ SD_MODEL_CACHE = "/app/data/diffusers-cache"
 SD_MODELS_ALL = {
     "SDXL": {
         "id": "stabilityai/stable-diffusion-xl-base-1.0",
+        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
         "torch_dtype": torch.float16,
         "variant": "fp16",
         "refiner_id": "stabilityai/stable-diffusion-xl-refiner-1.0",
@@ -43,16 +44,19 @@ SD_MODELS_ALL = {
     },
     "SSD-1B": {
         "id": "segmind/SSD-1B",
+        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
         "torch_dtype": torch.float16,
         "variant": "fp16",
         "refiner_id": "stabilityai/stable-diffusion-xl-refiner-1.0",
     },
     "Luna Diffusion": {
         "id": "proximasanfinetuning/luna-diffusion",
+        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
         "torch_dtype": torch.float16,
     },
     "Waifu Diffusion": {
         "id": "hakurei/waifu-diffusion",
+        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
         "prompt_prefix": "masterpiece, best quality, high quality",
         "negative_prompt_prefix": "worst quality, low quality, deleted, nsfw, blurry",
         "torch_dtype": torch.float16,
@@ -61,24 +65,28 @@ SD_MODELS_ALL = {
     },
     "Openjourney": {
         "id": "prompthero/openjourney",
+        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
         "prompt_prefix": "mdjrny-v4 style",
         "torch_dtype": torch.float16,
         "keep_in_cpu_when_idle": True,
     },
     "22h Diffusion": {
         "id": "22h/vintedois-diffusion-v0-1",
+        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
         "prompt_prefix": "estilovintedois",
         "torch_dtype": torch.float16,
         "keep_in_cpu_when_idle": True,
     },
     "Redshift Diffusion": {
         "id": "nitrosocke/redshift-diffusion",
+        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
         "prompt_prefix": "redshift style",
         "torch_dtype": torch.float16,
         "keep_in_cpu_when_idle": True,
     },
     "Arcane Diffusion": {
         "id": "nitrosocke/Arcane-Diffusion",
+        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
         "prompt_prefix": "arcane style",
         "torch_dtype": torch.float16,
         "keep_in_cpu_when_idle": True,

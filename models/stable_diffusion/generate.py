@@ -88,6 +88,7 @@ def generate(
                 width=width,
                 height=height,
             )
+            extra_kwargs["strength"] = 0.99
             end_i = time.time()
             print(
                 f"-- Downloaded and cropped mask image in: {round((end_i - start_i) * 1000)} ms"
