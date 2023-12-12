@@ -30,7 +30,7 @@ SD_ENV_KEY_TO_KEY = {
     "SX": "SDXL",
     "WDX": "Waifu Diffusion XL",
     "AD": "Arcane Diffusion",
-    "SSD": "SSD 1B",
+    "SSD": "SSD-1B",
 }
 SD_MODEL_CACHE = "/app/data/diffusers-cache"
 SD_MODELS_ALL = {
