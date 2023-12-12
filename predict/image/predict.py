@@ -5,9 +5,11 @@ from models.aesthetics_scorer.generate import (
 )
 
 from models.kandinsky.constants import (
-    KANDINSKY_MODEL_NAME,
+    KANDINSKY_2_1_MODEL_NAME,
     KANDINKSY_2_2_MODEL_NAME,
-    KANDINSKY_SCHEDULER_CHOICES,
+    KANDINSKY_2_1_SCHEDULER_CHOICES,
+    LOAD_KANDINSKY_2_1,
+    LOAD_KANDINSKY_2_2,
 )
 from models.kandinsky.generate import generate as generate_with_kandinsky
 from models.kandinsky.generate import generate_2_2 as generate_with_kandinsky_2_2
@@ -25,7 +27,6 @@ from models.swinir.upscale import upscale
 
 from typing import List
 
-from shared.constants import SHOULD_LOAD_KANDINSKY_2_1, SHOULD_LOAD_KANDINSKY_2_2
 from .classes import PredictOutput, PredictResult
 from .constants import SIZE_LIST
 from .setup import ModelsPack
@@ -127,16 +128,16 @@ class PredictInput(BaseModel):
     @validator("model")
     def validate_model(cls, v):
         rest = []
-        if SHOULD_LOAD_KANDINSKY_2_1:
-            rest += [KANDINSKY_MODEL_NAME]
-        if SHOULD_LOAD_KANDINSKY_2_2:
+        if LOAD_KANDINSKY_2_1:
+            rest += [KANDINSKY_2_1_MODEL_NAME]
+        if LOAD_KANDINSKY_2_2:
             rest += [KANDINKSY_2_2_MODEL_NAME]
         choices = SD_MODEL_CHOICES + rest
         return return_value_if_in_list(v, choices)
 
     @validator("scheduler")
     def validate_scheduler(cls, v):
-        choices = SD_SCHEDULER_CHOICES + KANDINSKY_SCHEDULER_CHOICES
+        choices = SD_SCHEDULER_CHOICES + KANDINSKY_2_1_SCHEDULER_CHOICES
         return return_value_if_in_list(v, choices)
 
     @validator("height")
@@ -206,7 +207,7 @@ def predict(
         )
 
         generator_pipe = None
-        if input.model == KANDINSKY_MODEL_NAME:
+        if input.model == KANDINSKY_2_1_MODEL_NAME:
             generator_pipe = models_pack.kandinsky
         elif input.model == KANDINKSY_2_2_MODEL_NAME:
             generator_pipe = models_pack.kandinsky_2_2
@@ -274,7 +275,7 @@ def predict(
             "pipe": generator_pipe,
         }
 
-        if input.model == KANDINSKY_MODEL_NAME:
+        if input.model == KANDINSKY_2_1_MODEL_NAME:
             generate_output_images, generate_nsfw_count = generate_with_kandinsky(
                 **args,
                 safety_checker=None

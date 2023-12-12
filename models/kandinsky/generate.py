@@ -1,6 +1,6 @@
 import os
 import time
-from models.kandinsky.constants import KANDIKSKY_SCHEDULERS
+from models.kandinsky.constants import KANDIKSKY_2_1_SCHEDULERS
 from .helpers import get_scheduler
 from predict.image.setup import KandinskyPipe, KandinskyPipe_2_2
 from shared.helpers import (
@@ -55,7 +55,7 @@ def generate(
         "guidance_scale": guidance_scale,
         "h": height,
         "w": width,
-        "sampler": KANDIKSKY_SCHEDULERS[scheduler],
+        "sampler": KANDIKSKY_2_1_SCHEDULERS[scheduler],
         "prior_cf_scale": 4,
         "prior_steps": "5",
         "negative_prior_prompt": negative_prompt,

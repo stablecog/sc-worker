@@ -13,12 +13,11 @@ from models.kandinsky.constants import (
     KANDINSKY_2_2_DECODER_INPAINT_MODEL_ID,
     KANDINSKY_2_2_DECODER_MODEL_ID,
     KANDINSKY_2_2_PRIOR_MODEL_ID,
+    LOAD_KANDINSKY_2_1,
+    LOAD_KANDINSKY_2_2,
 )
 from models.nllb.constants import TRANSLATOR_CACHE
 from shared.constants import (
-    SHOULD_LOAD_KANDINSKY_2_1,
-    SHOULD_LOAD_KANDINSKY_2_2,
-    SHOULD_LOAD_KANDINSKY_SAFETY_CHECKER,
     SKIP_SAFETY_CHECKER,
     WORKER_VERSION,
 )
@@ -246,7 +245,9 @@ def setup() -> ModelsPack:
 
     # Safety checker for Kandinsky
     safety_checker = None
-    if SHOULD_LOAD_KANDINSKY_SAFETY_CHECKER == "1":
+    if SKIP_SAFETY_CHECKER == "1":
+        safety_checker = None
+    else:
         print("⏳ Loading safety checker")
         safety_pipe = StableDiffusionPipeline.from_pretrained(
             SD_MODELS[SD_MODEL_FOR_SAFETY_CHECKER]["id"],
@@ -265,7 +266,7 @@ def setup() -> ModelsPack:
 
     # Kandinsky 2.1
     kandinsky = None
-    if SHOULD_LOAD_KANDINSKY_2_1 == "1":
+    if LOAD_KANDINSKY_2_1:
         s = time.time()
         print("⏳ Loading Kandinsky 2.1")
         text2img = get_kandinsky2(
@@ -291,7 +292,7 @@ def setup() -> ModelsPack:
 
     # Kandinsky 2.2
     kandinsky_2_2 = None
-    if SHOULD_LOAD_KANDINSKY_2_2 == "1":
+    if LOAD_KANDINSKY_2_2:
         s = time.time()
         print("⏳ Loading Kandinsky 2.2")
         prior = KandinskyV22PriorPipeline.from_pretrained(

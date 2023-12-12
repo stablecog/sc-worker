@@ -1,4 +1,3 @@
-import os
 import torch
 from diffusers import (
     PNDMScheduler,
@@ -15,16 +14,10 @@ from diffusers import (
 )
 from dotenv import load_dotenv
 
+from shared.constants import MODELS_FROM_ENV, MODELS_FROM_ENV_LIST
+
 
 load_dotenv()
-
-
-def clean_prefix_or_suffix_space(text: str):
-    if text.startswith(" "):
-        text = text[1:]
-    if text.endswith(" "):
-        text = text[:-1]
-    return text
 
 
 SD_ENV_KEY_TO_KEY = {
@@ -93,14 +86,10 @@ SD_MODELS_ALL = {
 
 SD_MODEL_FOR_SAFETY_CHECKER = "Luna Diffusion"
 SD_MODELS = {}
-models_from_env = os.environ.get("MODELS", "Luna Diffusion")
-if models_from_env == "all":
+if MODELS_FROM_ENV == "all":
     SD_MODELS = SD_MODELS_ALL
 else:
-    models_from_env_list = map(
-        lambda x: clean_prefix_or_suffix_space(x), models_from_env.split(",")
-    )
-    for model_env in models_from_env_list:
+    for model_env in MODELS_FROM_ENV_LIST:
         if model_env in SD_MODELS_ALL:
             SD_MODELS[model_env] = SD_MODELS_ALL[model_env]
         elif model_env in SD_ENV_KEY_TO_KEY:
