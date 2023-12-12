@@ -7,6 +7,7 @@ from .constants import SD_MODELS
 import time
 from shared.helpers import (
     download_and_fit_image,
+    log_gpu_memory,
     print_tuple,
 )
 
@@ -116,6 +117,7 @@ def generate(
         num_inference_steps=num_inference_steps,
         **extra_kwargs,
     )
+    log_gpu_memory(message="GPU status after inference")
 
     if "keep_in_cpu_when_idle" in SD_MODELS[model]:
         s = time.time()

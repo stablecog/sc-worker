@@ -15,6 +15,7 @@ from io import BytesIO
 from pydub.silence import split_on_silence
 import numpy as np
 import textwrap
+import torch
 
 from pydub import AudioSegment
 from pyloudnorm import Meter, normalize
@@ -345,3 +346,29 @@ def clean_prefix_or_suffix_space(text: str):
     if text.endswith(" "):
         text = text[:-1]
     return text
+
+
+def log_gpu_memory(device_id=0, message=None):
+    try:
+        device_properties = torch.cuda.get_device_properties(device_id)
+
+        total_memory = device_properties.total_memory
+        allocated_memory = torch.cuda.memory_allocated(device_id)
+        cached_memory = torch.cuda.memory_reserved(device_id)
+
+        total = total_memory / (1024**3)
+        allocated = allocated_memory / (1024**3)
+        total_and_allocated_str = f"{allocated:.1f} / {total:.1f} GB"
+        cached = cached_memory / (1024**3)
+        cached_str = f"{cached:.1f} GB"
+        log_table = [
+            ["Allocated / Total (GB)", total_and_allocated_str],
+            ["Cached Memory (GB)", cached_str],
+        ]
+        if message is not None:
+            print(message)
+        print(
+            tabulate([["GPU Memory Log", "Value"]] + log_table, tablefmt="double_grid")
+        )
+    except Exception as e:
+        print(f"Failed to log GPU memory: {e}")

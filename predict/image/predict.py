@@ -35,7 +35,7 @@ from models.open_clip.main import (
     open_clip_get_embeds_of_texts,
 )
 from pydantic import BaseModel, Field, validator
-from shared.helpers import return_value_if_in_list, wrap_text
+from shared.helpers import log_gpu_memory, return_value_if_in_list, wrap_text
 from tabulate import tabulate
 
 
@@ -176,16 +176,12 @@ def predict(
     process_start = time.time()
     print("//////////////////////////////////////////////////////////////////")
     print(f"⏳ Process started: {input.process_type} ⏳")
+    log_gpu_memory(message="GPU status before inference")
     output_images = []
     nsfw_count = 0
     open_clip_embeds_of_images = None
     open_clip_embed_of_prompt = None
     saved_safety_checker = None
-
-    s = time.time()
-    """ torch.cuda.empty_cache()  # Free up GPU memory """
-    e = time.time()
-    """ print_tuple(f"CUDA empty cache", f"{round((e - s) * 1000)} ms") """
 
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
         t_prompt = input.prompt
