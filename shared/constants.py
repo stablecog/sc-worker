@@ -1,6 +1,8 @@
 import os
-
 from .helpers import clean_prefix_or_suffix_space
+from dotenv import load_dotenv
+
+load_dotenv()
 
 WORKER_VERSION = "v2.51"
 SKIP_SAFETY_CHECKER = os.environ.get("SKIP_SAFETY_CHECKER", "1")

@@ -6,7 +6,6 @@ from diffusers import (
 
 from shared.constants import MODELS_FROM_ENV, MODELS_FROM_ENV_LIST
 
-
 KANDIKSKY_2_1_SCHEDULERS = {
     "P_SAMPLER": "p_sampler",
     "DDIM": "ddim_sampler",
