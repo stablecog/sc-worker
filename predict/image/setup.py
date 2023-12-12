@@ -29,7 +29,9 @@ from models.stable_diffusion.constants import (
 from diffusers import StableDiffusionPipeline, AutoPipelineForInpainting
 from models.swinir.helpers import get_args_swinir, define_model_swinir
 from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
-from models.download.download_from_hf import download_models_from_hf
+from models.download.download_from_hf import (
+    download_swinir_models,
+)
 import time
 from models.constants import DEVICE
 from transformers import (
@@ -46,7 +48,6 @@ from models.stable_diffusion.filter import forward_inspect
 from diffusers import (
     StableDiffusionXLPipeline,
     StableDiffusionXLImg2ImgPipeline,
-    StableDiffusionXLInpaintPipeline,
     StableDiffusionPipeline,
     StableDiffusionImg2ImgPipeline,
     StableDiffusionInpaintPipeline,
@@ -132,7 +133,7 @@ def setup() -> ModelsPack:
         _login.login(token=hf_token)
         print(f"✅ Logged in to HuggingFace")
 
-    download_models_from_hf(downloadAll=False)
+    download_swinir_models()
 
     sd_pipes: dict[str, SDPipeSet] = {}
 
