@@ -78,6 +78,7 @@ def generate(
         )
 
         if mask_image_url is not None and pipe.inpaint is not None:
+            print("-- Using inpainting --")
             # The process is: inpainting
             pipe_selected = pipe.inpaint
             start_i = time.time()
