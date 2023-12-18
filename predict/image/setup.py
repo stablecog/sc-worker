@@ -202,7 +202,10 @@ def setup() -> ModelsPack:
                 print(f"✅ Loaded LoRA weights: {lora}")
 
             refiner = None
-            if SD_MODELS[key]["refiner_id"] is not None:
+            if (
+                "refiner_id" in SD_MODELS[key]
+                and SD_MODELS[key]["refiner_id"] is not None
+            ):
                 refiner_args = {
                     "pretrained_model_name_or_path": SD_MODELS[key]["refiner_id"],
                     "torch_dtype": SD_MODELS[key]["torch_dtype"],
