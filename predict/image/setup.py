@@ -159,30 +159,40 @@ def setup() -> ModelsPack:
         s = time.time()
         print(f"⏳ Loading SD model: {key}")
 
-        if key == "SDXL" or key == "Waifu Diffusion XL" or key == "SSD-1B":
-            refiner_vae = AutoencoderKL.from_pretrained(
-                "stabilityai/sdxl-vae",
-                torch_dtype=torch.float16,
-                cache_dir=SD_MODEL_CACHE,
-            )
-            if key == "SSD-1B":
+        if (
+            key == "SDXL"
+            or key == "Waifu Diffusion XL"
+            or key == "SSD-1B"
+            or key == "Segmind Vega"
+        ):
+            refiner_vae = None
+            vae = None
+            if key == "SDXL" or key == "Waifu Diffusion XL" or key == "SSD-1B":
+                refiner_vae = AutoencoderKL.from_pretrained(
+                    "stabilityai/sdxl-vae",
+                    torch_dtype=torch.float16,
+                    cache_dir=SD_MODEL_CACHE,
+                )
+            if key == "SDXL" or key == "Waifu Diffusion XL":
+                vae = refiner_vae
+            elif key == "SSD-1B":
                 vae = AutoencoderKL.from_pretrained(
                     "madebyollin/sdxl-vae-fp16-fix",
                     torch_dtype=torch.float16,
                     cache_dir=SD_MODEL_CACHE,
                 )
-            else:
-                vae = refiner_vae
+            args = {
+                "pretrained_model_name_or_path": SD_MODELS[key]["id"],
+                "torch_dtype": SD_MODELS[key]["torch_dtype"],
+                "cache_dir": SD_MODEL_CACHE,
+                "variant": SD_MODELS[key]["variant"],
+                "use_safetensors": True,
+                "add_watermarker": False,
+            }
+            if vae is not None:
+                args["vae"] = vae
+            text2img = StableDiffusionXLPipeline.from_pretrained(**args)
 
-            text2img = StableDiffusionXLPipeline.from_pretrained(
-                SD_MODELS[key]["id"],
-                torch_dtype=SD_MODELS[key]["torch_dtype"],
-                cache_dir=SD_MODEL_CACHE,
-                variant=SD_MODELS[key]["variant"],
-                use_safetensors=True,
-                vae=vae,
-                add_watermarker=False,
-            )
             if "default_lora" in SD_MODELS[key]:
                 lora = SD_MODELS[key]["default_lora"]
                 text2img.load_lora_weights(
@@ -190,17 +200,31 @@ def setup() -> ModelsPack:
                     weight_name=lora,
                 )
                 print(f"✅ Loaded LoRA weights: {lora}")
-            refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
-                SD_MODELS[key]["refiner_id"],
-                torch_dtype=SD_MODELS[key]["torch_dtype"],
-                cache_dir=SD_MODEL_CACHE,
-                variant=SD_MODELS[key]["variant"],
-                use_safetensors=True,
-                vae=refiner_vae,
-                add_watermarker=False,
-            )
+
+            refiner = None
+            if SD_MODELS[key]["refiner_id"] is not None:
+                refiner_args = {
+                    "pretrained_model_name_or_path": SD_MODELS[key]["refiner_id"],
+                    "torch_dtype": SD_MODELS[key]["torch_dtype"],
+                    "cache_dir": SD_MODEL_CACHE,
+                    "variant": SD_MODELS[key]["variant"],
+                    "use_safetensors": True,
+                    "add_watermarker": False,
+                }
+                if refiner_vae is not None:
+                    refiner_args["vae"] = refiner_vae
+                refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
+                    SD_MODELS[key]["refiner_id"],
+                    torch_dtype=SD_MODELS[key]["torch_dtype"],
+                    cache_dir=SD_MODEL_CACHE,
+                    variant=SD_MODELS[key]["variant"],
+                    use_safetensors=True,
+                    vae=refiner_vae,
+                    add_watermarker=False,
+                )
             text2img = text2img.to(DEVICE)
-            refiner = refiner.to(DEVICE)
+            if refiner is not None:
+                refiner = refiner.to(DEVICE)
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
 
             inpaint = get_inpaint_model(SD_MODELS[key]["inpaint_id"])

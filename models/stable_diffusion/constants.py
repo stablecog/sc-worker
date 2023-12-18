@@ -49,6 +49,12 @@ SD_MODELS_ALL = {
         "variant": "fp16",
         "refiner_id": "stabilityai/stable-diffusion-xl-refiner-1.0",
     },
+    "Segmind Vega": {
+        "id": "segmind/Segmind-Vega",
+        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
+        "torch_dtype": torch.float16,
+        "variant": "fp16",
+    },
     "Luna Diffusion": {
         "id": "proximasanfinetuning/luna-diffusion",
         "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
