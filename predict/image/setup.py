@@ -159,26 +159,36 @@ def setup() -> ModelsPack:
         s = time.time()
         print(f"⏳ Loading SD model: {key}")
 
-        if key == "SDXL" or key == "SSD-1B" or key == "Segmind Vega":
+        base_model = SD_MODELS[key].get("base_model", None)
+
+        if base_model == "SDXL":
             refiner_vae = None
             vae = None
-            if key == "SDXL" or key == "SSD-1B":
+            refiner_vae_id = SD_MODELS[key].get("refiner_vae", None)
+            vae_id = SD_MODELS[key].get("vae", None)
+            if refiner_vae_id is not None:
                 refiner_vae = get_saved_sd_model(
-                    "refiner_vae", "stabilityai/sdxl-vae", refiner_vae
+                    model_id_key="refiner_vae",
+                    model_id=refiner_vae_id,
+                    model_type_for_class="refiner_vae",
                 )
                 if refiner_vae == None:
                     AutoencoderKL.from_pretrained(
-                        "stabilityai/sdxl-vae",
+                        refiner_vae_id,
                         torch_dtype=torch.float16,
                         cache_dir=SD_MODEL_CACHE,
                     )
             if key == "SDXL":
                 vae = refiner_vae
-            elif key == "SSD-1B":
-                vae = get_saved_sd_model("vae", "madebyollin/sdxl-vae-fp16-fix", vae)
+            elif vae_id is not None:
+                vae = get_saved_sd_model(
+                    model_id_key="vae",
+                    model_id=vae_id,
+                    model_type_for_class="vae",
+                )
                 if vae == None:
                     AutoencoderKL.from_pretrained(
-                        "madebyollin/sdxl-vae-fp16-fix",
+                        vae_id,
                         torch_dtype=torch.float16,
                         cache_dir=SD_MODEL_CACHE,
                     )

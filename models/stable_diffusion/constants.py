@@ -43,6 +43,7 @@ SD_MODELS_ALL = {
         "default_lora": "sd_xl_offset_example-lora_1.0.safetensors",
         "vae": "stabilityai/sdxl-vae",
         "refiner_vae": "stabilityai/sdxl-vae",
+        "base_model": "SDXL",
     },
     "SSD-1B": {
         "id": "segmind/SSD-1B",
@@ -52,12 +53,13 @@ SD_MODELS_ALL = {
         "refiner_id": "stabilityai/stable-diffusion-xl-refiner-1.0",
         "vae": "madebyollin/sdxl-vae-fp16-fix",
         "refiner_vae": "stabilityai/sdxl-vae",
+        "base_model": "SDXL",
     },
     "Segmind Vega": {
         "id": "segmind/Segmind-Vega",
         "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
         "torch_dtype": torch.float16,
-        "variant": "fp16",
+        "base_model": "SDXL",
     },
     "Luna Diffusion": {
         "id": "proximasanfinetuning/luna-diffusion",
