@@ -41,6 +41,8 @@ SD_MODELS_ALL = {
         "variant": "fp16",
         "refiner_id": "stabilityai/stable-diffusion-xl-refiner-1.0",
         "default_lora": "sd_xl_offset_example-lora_1.0.safetensors",
+        "vae": "stabilityai/sdxl-vae",
+        "refiner_vae": "stabilityai/sdxl-vae",
     },
     "SSD-1B": {
         "id": "segmind/SSD-1B",
@@ -48,6 +50,8 @@ SD_MODELS_ALL = {
         "torch_dtype": torch.float16,
         "variant": "fp16",
         "refiner_id": "stabilityai/stable-diffusion-xl-refiner-1.0",
+        "vae": "madebyollin/sdxl-vae-fp16-fix",
+        "refiner_vae": "stabilityai/sdxl-vae",
     },
     "Segmind Vega": {
         "id": "segmind/Segmind-Vega",
@@ -59,6 +63,7 @@ SD_MODELS_ALL = {
         "id": "proximasanfinetuning/luna-diffusion",
         "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
         "torch_dtype": torch.float16,
+        "keep_in_cpu_when_idle": True,
     },
     "Waifu Diffusion": {
         "id": "hakurei/waifu-diffusion",

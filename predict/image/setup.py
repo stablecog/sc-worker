@@ -69,11 +69,15 @@ class SDPipeSet:
         img2img: StableDiffusionImg2ImgPipeline | StableDiffusionImg2ImgPipeline,
         inpaint: StableDiffusionInpaintPipeline | None,
         refiner: StableDiffusionXLImg2ImgPipeline | None,
+        vae: Any | None = None,
+        inpaint_vae: Any | None = None,
     ):
         self.text2img = text2img
         self.img2img = img2img
         self.inpaint = inpaint
         self.refiner = refiner
+        self.vae = vae
+        self.inpaint_vae = inpaint_vae
 
 
 class KandinskyPipe:
@@ -137,50 +141,47 @@ def setup() -> ModelsPack:
 
     sd_pipes: dict[str, SDPipeSet] = {}
 
-    def get_inpaint_model(inpaint_id: str):
-        matching_model_id = None
-        for model_id in SD_MODELS:
-            if SD_MODELS[model_id]["inpaint_id"] == inpaint_id:
-                matching_model_id = model_id
-                break
-
-        if (
-            matching_model_id in sd_pipes
-            and sd_pipes[matching_model_id].inpaint is not None
-        ):
-            print(
-                f"🖌️ Reusing inpaint model - Model ID: {matching_model_id} - Inpaint ID: {inpaint_id}"
-            )
-            return sd_pipes[matching_model_id].inpaint
-
+    def get_saved_sd_model(model_id_key: str, model_id: str, model_type_for_class: str):
+        for key in sd_pipes:
+            model_definition = SD_MODELS.get(key, None)
+            if model_definition is None:
+                continue
+            relevant_model_id = model_definition.get(model_id_key, None)
+            if relevant_model_id is None:
+                continue
+            if relevant_model_id == model_id:
+                model = getattr(sd_pipes[key], model_type_for_class, None)
+                if model:
+                    return model
         return None
 
     for key in SD_MODELS:
         s = time.time()
         print(f"⏳ Loading SD model: {key}")
 
-        if (
-            key == "SDXL"
-            or key == "Waifu Diffusion XL"
-            or key == "SSD-1B"
-            or key == "Segmind Vega"
-        ):
+        if key == "SDXL" or key == "SSD-1B" or key == "Segmind Vega":
             refiner_vae = None
             vae = None
-            if key == "SDXL" or key == "Waifu Diffusion XL" or key == "SSD-1B":
-                refiner_vae = AutoencoderKL.from_pretrained(
-                    "stabilityai/sdxl-vae",
-                    torch_dtype=torch.float16,
-                    cache_dir=SD_MODEL_CACHE,
+            if key == "SDXL" or key == "SSD-1B":
+                refiner_vae = get_saved_sd_model(
+                    "refiner_vae", "stabilityai/sdxl-vae", refiner_vae
                 )
-            if key == "SDXL" or key == "Waifu Diffusion XL":
+                if refiner_vae == None:
+                    AutoencoderKL.from_pretrained(
+                        "stabilityai/sdxl-vae",
+                        torch_dtype=torch.float16,
+                        cache_dir=SD_MODEL_CACHE,
+                    )
+            if key == "SDXL":
                 vae = refiner_vae
             elif key == "SSD-1B":
-                vae = AutoencoderKL.from_pretrained(
-                    "madebyollin/sdxl-vae-fp16-fix",
-                    torch_dtype=torch.float16,
-                    cache_dir=SD_MODEL_CACHE,
-                )
+                vae = get_saved_sd_model("vae", "madebyollin/sdxl-vae-fp16-fix", vae)
+                if vae == None:
+                    AutoencoderKL.from_pretrained(
+                        "madebyollin/sdxl-vae-fp16-fix",
+                        torch_dtype=torch.float16,
+                        cache_dir=SD_MODEL_CACHE,
+                    )
             args = {
                 "pretrained_model_name_or_path": SD_MODELS[key]["id"],
                 "torch_dtype": SD_MODELS[key]["torch_dtype"],
@@ -230,7 +231,11 @@ def setup() -> ModelsPack:
                 refiner = refiner.to(DEVICE)
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
 
-            inpaint = get_inpaint_model(SD_MODELS[key]["inpaint_id"])
+            inpaint = get_saved_sd_model(
+                model_id_key="inpaint_id",
+                model_id=SD_MODELS[key]["inpaint_id"],
+                model_type_for_class="inpaint",
+            )
             if inpaint is None:
                 inpaint = AutoPipelineForInpainting.from_pretrained(
                     SD_MODELS[key]["inpaint_id"],
@@ -246,6 +251,8 @@ def setup() -> ModelsPack:
                 img2img=img2img,
                 inpaint=inpaint,
                 refiner=refiner,
+                refiner_vae=refiner_vae,
+                vae=vae,
             )
         else:
             extra_args = {}
@@ -264,7 +271,11 @@ def setup() -> ModelsPack:
                 text2img = text2img.to(DEVICE)
                 print_tuple("🚀 Keep in GPU", key)
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
-            inpaint = get_inpaint_model(SD_MODELS[key]["inpaint_id"])
+            inpaint = get_saved_sd_model(
+                model_id_key="inpaint_id",
+                model_id=SD_MODELS[key]["inpaint_id"],
+                model_type_for_class="inpaint",
+            )
             if inpaint is None:
                 inpaint = StableDiffusionInpaintPipeline(**text2img.components)
                 pipe = SDPipeSet(
