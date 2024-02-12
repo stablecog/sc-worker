@@ -4,13 +4,38 @@ from .constants import OPEN_CLIP_TOKEN_LENGTH_MAX
 from typing import List
 import torch
 from shared.helpers import time_it, time_code_block
+from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize
+
+CLIP_IMAGE_SIZE = 224
+
+
+def create_clip_transform(n_px):
+    return Compose(
+        [
+            Resize(n_px, interpolation=Image.BICUBIC),
+            CenterCrop(n_px),
+            lambda image: image.convert("RGB"),
+            ToTensor(),
+            Normalize(
+                (0.48145466, 0.4578275, 0.40821073),
+                (0.26862954, 0.26130258, 0.27577711),
+            ),
+        ]
+    )
+
+
+clip_transform = create_clip_transform(CLIP_IMAGE_SIZE)
+
+
+def clip_preprocessor(images: List[Image.Image], return_tensors="pt"):
+    return torch.stack([clip_transform(img) for img in images])
 
 
 @time_it
 def open_clip_get_embeds_of_images(images: List[Image.Image], model, processor):
     with torch.no_grad():
         with time_code_block(prefix=f"Processed {len(images)} image(s)"):
-            inputs = processor(images=images, return_tensors="pt")
+            inputs = clip_preprocessor(images=images, return_tensors="pt")
         inputs = inputs.to(DEVICE)
         with time_code_block(prefix=f"Embedded {len(images)} image(s)"):
             image_embeddings = model.get_image_features(**inputs)
