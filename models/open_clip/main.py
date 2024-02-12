@@ -4,6 +4,14 @@ from .constants import OPEN_CLIP_TOKEN_LENGTH_MAX
 from typing import List
 import torch
 from shared.helpers import time_it, time_code_block
+from torchvision.transforms import (
+    Compose,
+    Resize,
+    CenterCrop,
+    ToTensor,
+    Normalize,
+)
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 CLIP_IMAGE_SIZE = 224
 
