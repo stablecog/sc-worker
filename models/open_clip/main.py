@@ -34,7 +34,7 @@ def clip_preprocessor(images: List[Image.Image], return_tensors="pt"):
 @time_it
 def open_clip_get_embeds_of_images(images: List[Image.Image], model, processor):
     with torch.no_grad():
-        with time_code_block(prefix=f"Processed {len(images)} image(s)"):
+        with time_code_block(prefix=f"Preprocessed {len(images)} image(s)"):
             inputs = clip_preprocessor(images=images, return_tensors="pt")
         inputs = inputs.to(DEVICE)
         with time_code_block(prefix=f"Embedded {len(images)} image(s)"):
