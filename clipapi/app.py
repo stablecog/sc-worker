@@ -9,7 +9,7 @@ from models.open_clip.main import (
     open_clip_get_embeds_of_images,
 )
 from predict.image.setup import ModelsPack
-from shared.helpers import download_images, download_images_from_s3
+from shared.helpers import download_images, download_images_from_s3, time_code_block
 import time
 import boto3
 from boto3_type_annotations.s3 import ServiceResource
@@ -98,7 +98,8 @@ def clip_embed():
         for obj in imageObjects:
             image_urls.append(obj["item"]["image"])
         try:
-            pil_images = download_images(urls=image_urls, max_workers=25)
+            with time_code_block(prefix=f"Downloaded {len(image_urls)} image(s)"):
+                pil_images = download_images(urls=image_urls, max_workers=25)
         except Exception as e:
             tb = traceback.format_exc()
             print(f"Failed to download images: {tb}\n")
@@ -123,9 +124,10 @@ def clip_embed():
         for obj in imageIdObjects:
             image_ids.append(obj["item"]["image_id"])
         try:
-            pil_images = download_images_from_s3(
-                keys=image_ids, bucket=bucket, max_workers=100
-            )
+            with time_code_block(prefix=f"Downloaded {len(image_urls)} image(s)"):
+                pil_images = download_images_from_s3(
+                    keys=image_ids, bucket=bucket, max_workers=100
+                )
         except Exception as e:
             tb = traceback.format_exc()
             print(f"Failed to download images: {tb}\n")
