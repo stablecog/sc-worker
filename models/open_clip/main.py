@@ -4,7 +4,15 @@ from .constants import OPEN_CLIP_TOKEN_LENGTH_MAX
 from typing import List
 import torch
 from shared.helpers import time_it, time_code_block
-from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize
+from torchvision.transforms import (
+    Compose,
+    Resize,
+    CenterCrop,
+    ToTensor,
+    Normalize,
+    Lambda,
+    InterpolationMode,
+)
 
 CLIP_IMAGE_SIZE = 224
 
@@ -24,7 +32,23 @@ def create_clip_transform(n_px):
     )
 
 
-clip_transform = create_clip_transform(CLIP_IMAGE_SIZE)
+def create_clip_transform_gpu(n_px):
+    # This function assumes input is a PIL Image and outputs a tensor transformed and moved to the GPU.
+    return Compose(
+        [
+            ToTensor(),  # Convert PIL image to tensor.
+            Lambda(lambda x: x.to("cuda")),  # Transfer tensor to the GPU.
+            Resize(n_px, interpolation=InterpolationMode.BICUBIC),  # Resize the image.
+            CenterCrop(n_px),  # Center crop the image.
+            Normalize(  # Normalize the tensor.
+                mean=torch.tensor([0.48145466, 0.4578275, 0.40821073], device="cuda"),
+                std=torch.tensor([0.26862954, 0.26130258, 0.27577711], device="cuda"),
+            ),
+        ]
+    )
+
+
+clip_transform = create_clip_transform_gpu(CLIP_IMAGE_SIZE)
 
 
 def clip_preprocessor(images: List[Image.Image], return_tensors="pt"):
