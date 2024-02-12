@@ -5,6 +5,40 @@ from typing import List
 import torch
 from shared.helpers import time_it, time_code_block
 
+CLIP_IMAGE_SIZE = 224
+
+
+def create_clip_transform(n_px):
+    return Compose(
+        [
+            Resize(n_px, interpolation=Image.BICUBIC),
+            CenterCrop(n_px),
+            lambda image: image.convert("RGB"),
+            ToTensor(),
+            Normalize(
+                (0.48145466, 0.4578275, 0.40821073),
+                (0.26862954, 0.26130258, 0.27577711),
+            ),
+        ]
+    )
+
+
+clip_transform = create_clip_transform(CLIP_IMAGE_SIZE)
+
+
+def clip_preprocessor(images: List[Image.Image], return_tensors="pt"):
+    def process_image(img):
+        return clip_transform(img)
+
+    with ThreadPoolExecutor() as executor:
+        # Submit all images for processing
+        futures = [executor.submit(process_image, img) for img in images]
+
+        # Wait for all futures to complete and collect results
+        results = [future.result() for future in as_completed(futures)]
+
+    return torch.stack(results)
+
 
 @time_it
 def open_clip_get_embeds_of_images(images: List[Image.Image], model, processor):
