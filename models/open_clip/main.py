@@ -10,9 +10,9 @@ from torchvision.transforms import (
     CenterCrop,
     ToTensor,
     Normalize,
-    Lambda,
-    InterpolationMode,
 )
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 CLIP_IMAGE_SIZE = 224
 
@@ -32,27 +32,21 @@ def create_clip_transform(n_px):
     )
 
 
-def create_clip_transform_gpu(n_px):
-    # This function assumes input is a PIL Image and outputs a tensor transformed and moved to the GPU.
-    return Compose(
-        [
-            ToTensor(),  # Convert PIL image to tensor.
-            Lambda(lambda x: x.to("cuda")),  # Transfer tensor to the GPU.
-            Resize(n_px, interpolation=InterpolationMode.BICUBIC),  # Resize the image.
-            CenterCrop(n_px),  # Center crop the image.
-            Normalize(  # Normalize the tensor.
-                mean=torch.tensor([0.48145466, 0.4578275, 0.40821073], device="cuda"),
-                std=torch.tensor([0.26862954, 0.26130258, 0.27577711], device="cuda"),
-            ),
-        ]
-    )
-
-
-clip_transform = create_clip_transform_gpu(CLIP_IMAGE_SIZE)
+clip_transform = create_clip_transform(CLIP_IMAGE_SIZE)
 
 
 def clip_preprocessor(images: List[Image.Image], return_tensors="pt"):
-    return torch.stack([clip_transform(img) for img in images])
+    def process_image(img):
+        return clip_transform(img)
+
+    with ThreadPoolExecutor() as executor:
+        # Submit all images for processing
+        futures = [executor.submit(process_image, img) for img in images]
+
+        # Wait for all futures to complete and collect results
+        results = [future.result() for future in as_completed(futures)]
+
+    return torch.stack(results)
 
 
 @time_it
