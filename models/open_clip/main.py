@@ -49,6 +49,17 @@ def clip_preprocessor(images: List[Image.Image], return_tensors="pt"):
     return torch.stack(results)
 
 
+def embeddings_to_list_cpu(embeddings):
+    return embeddings.cpu().numpy().tolist()
+
+
+def convert_embeddings_to_lists_multithreaded(image_embeddings):
+    with ThreadPoolExecutor() as executor:
+        results = list(executor.map(embeddings_to_list_cpu, image_embeddings))
+
+    return results
+
+
 @time_it
 def open_clip_get_embeds_of_images(images: List[Image.Image], model, processor):
     with torch.no_grad():
@@ -58,7 +69,9 @@ def open_clip_get_embeds_of_images(images: List[Image.Image], model, processor):
         with time_code_block(prefix=f"Embedded {len(images)} image(s)"):
             image_embeddings = model.get_image_features(pixel_values=inputs)
         with time_code_block(prefix=f"Moved {len(images)} embedding(s) to CPU"):
-            image_embeddings = image_embeddings.cpu().numpy().tolist()
+            image_embeddings = convert_embeddings_to_lists_multithreaded(
+                image_embeddings
+            )
         return image_embeddings
 
 
