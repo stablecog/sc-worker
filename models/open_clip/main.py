@@ -22,6 +22,7 @@ def create_clip_transform(n_px):
         [
             lambda image: image.convert("RGB"),
             ToTensor(),
+            lambda x: x.to(DEVICE),
             Resize(n_px, interpolation=Image.BICUBIC),
             CenterCrop(n_px),
             Normalize(
