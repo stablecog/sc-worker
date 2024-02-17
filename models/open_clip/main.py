@@ -54,17 +54,15 @@ def clip_preprocessor(images: List[Image.Image], return_tensors="pt"):
 @time_it
 def open_clip_get_embeds_of_images(images: List[Image.Image], model, processor):
     with torch.no_grad():
-        with time_code_block(prefix=f"Preprocessed {len(images)} image(s)"):
+        with time_code_block(prefix=f"// Preprocessed {len(images)} image(s)"):
             inputs = clip_preprocessor(images=images, return_tensors="pt")
         inputs = inputs.to(DEVICE)
-        with time_code_block(prefix=f"Embedded {len(images)} image(s)"):
+        with time_code_block(prefix=f"// Embedded {len(images)} image(s)"):
             image_embeddings = model.get_image_features(pixel_values=inputs)
-        with time_code_block(prefix=f"Moved {len(images)} embedding(s) to CPU"):
-            image_embeddings = image_embeddings.cpu()
-        with time_code_block(prefix=f"Converted {len(images)} embedding(s) to NumPy"):
-            image_embeddings = image_embeddings.numpy()
-        with time_code_block(prefix=f"Converted {len(images)} embedding(s) to list"):
-            image_embeddings = image_embeddings.tolist()
+        with time_code_block(
+            prefix=f"// Moved {len(images)} embedding(s) to CPU as list"
+        ):
+            image_embeddings = image_embeddings.cpu().numpy().tolist()
         return image_embeddings
 
 
