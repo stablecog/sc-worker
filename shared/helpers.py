@@ -71,11 +71,11 @@ def time_it(func):
     # This function shows the execution time of
     # the function object passed
     def wrap_func(*args, **kwargs):
-        print(f"//// Running function: {func.__name__!r}")
+        print(f"////// Running function: {func.__name__!r}")
         t1 = time.time()
         result = func(*args, **kwargs)
         t2 = time.time()
-        print(f"//// Function {func.__name__!r} executed in {((t2-t1)*1000):.0f}ms")
+        print(f"////// Function {func.__name__!r} executed in {((t2-t1)*1000):.0f}ms")
         return result
 
     return wrap_func
