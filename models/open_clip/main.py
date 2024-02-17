@@ -17,12 +17,16 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 CLIP_IMAGE_SIZE = 224
 
 
+def convert_to_rgb(img: Image.Image):
+    return img.convert("RGB")
+
+
 def create_clip_transform(n_px):
     return Compose(
         [
             Resize(n_px, interpolation=Image.BICUBIC),
             CenterCrop(n_px),
-            lambda image: image.convert("RGB"),
+            convert_to_rgb,
             ToTensor(),
             Normalize(
                 (0.48145466, 0.4578275, 0.40821073),
@@ -35,11 +39,15 @@ def create_clip_transform(n_px):
 clip_transform = create_clip_transform(CLIP_IMAGE_SIZE)
 
 
+def process_image(img: Image.Image):
+    return clip_transform(img)
+
+
 def clip_preprocessor(images: List[Image.Image], return_tensors="pt"):
     # Use ProcessPoolExecutor instead of ThreadPoolExecutor
     with ProcessPoolExecutor() as executor:
         # Submit all images for processing
-        futures = [executor.submit(clip_transform, img) for img in images]
+        futures = [executor.submit(process_image, img) for img in images]
 
         # Wait for all futures to complete and collect results
         results = [future.result() for future in as_completed(futures)]
