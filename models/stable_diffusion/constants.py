@@ -55,12 +55,6 @@ SD_MODELS_ALL = {
         "refiner_vae": "stabilityai/sdxl-vae",
         "base_model": "SDXL",
     },
-    "Segmind Vega": {
-        "id": "segmind/Segmind-Vega",
-        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
-        "torch_dtype": torch.float16,
-        "base_model": "SDXL",
-    },
     "Luna Diffusion": {
         "id": "proximasanfinetuning/luna-diffusion",
         "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
