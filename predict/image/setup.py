@@ -173,7 +173,7 @@ def setup() -> ModelsPack:
                     model_type_for_class="refiner_vae",
                 )
                 if refiner_vae == None:
-                    AutoencoderKL.from_pretrained(
+                    refiner_vae = AutoencoderKL.from_pretrained(
                         refiner_vae_id,
                         torch_dtype=torch.float16,
                         cache_dir=SD_MODEL_CACHE,
@@ -187,7 +187,7 @@ def setup() -> ModelsPack:
                     model_type_for_class="vae",
                 )
                 if vae == None:
-                    AutoencoderKL.from_pretrained(
+                    vae = AutoencoderKL.from_pretrained(
                         vae_id,
                         torch_dtype=torch.float16,
                         cache_dir=SD_MODEL_CACHE,
