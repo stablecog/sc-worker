@@ -11,7 +11,7 @@ tqdm==4.66.1
 Pillow==10.1.0
 timm==0.9.12
 ipython==8.18.1
-lingua-language-detector==2.0.1
+lingua-language-detector==2.0.2
 huggingface-hub==0.19.4
 boto3>=1.26.63,<2
 boto3-type-annotations>=0.3.1,<1
