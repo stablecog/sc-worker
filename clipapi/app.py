@@ -9,7 +9,7 @@ from models.open_clip.main import (
     open_clip_get_embeds_of_images,
 )
 from predict.image.setup import ModelsPack
-from shared.helpers import download_images, download_images_from_s3, time_code_block
+from shared.helpers import download_images, download_images_from_s3
 import time
 import boto3
 from boto3_type_annotations.s3 import ServiceResource
@@ -21,6 +21,7 @@ from upload.constants import (
     S3_REGION,
     S3_SECRET_ACCESS_KEY,
 )
+from shared.helpers import time_code_block
 
 clipapi = Flask(__name__)
 
@@ -124,7 +125,7 @@ def clip_embed():
         for obj in imageIdObjects:
             image_ids.append(obj["item"]["image_id"])
         try:
-            with time_code_block(prefix=f"Downloaded {len(image_urls)} image(s)"):
+            with time_code_block(prefix=f"Downloaded {len(image_ids)} image(s)"):
                 pil_images = download_images_from_s3(
                     keys=image_ids, bucket=bucket, max_workers=100
                 )
