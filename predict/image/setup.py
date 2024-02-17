@@ -70,6 +70,7 @@ class SDPipeSet:
         inpaint: StableDiffusionInpaintPipeline | None,
         refiner: StableDiffusionXLImg2ImgPipeline | None,
         vae: Any | None = None,
+        refiner_vae: Any | None = None,
         inpaint_vae: Any | None = None,
     ):
         self.text2img = text2img
@@ -77,6 +78,7 @@ class SDPipeSet:
         self.inpaint = inpaint
         self.refiner = refiner
         self.vae = vae
+        self.refiner_vae = refiner_vae
         self.inpaint_vae = inpaint_vae
 
 
@@ -262,7 +264,7 @@ def setup() -> ModelsPack:
                 img2img=img2img,
                 inpaint=inpaint,
                 refiner=refiner,
-                vae=refiner_vae,
+                refiner_vae=refiner_vae,
                 vae=vae,
             )
         else:
