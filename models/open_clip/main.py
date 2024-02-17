@@ -36,13 +36,10 @@ clip_transform = create_clip_transform(CLIP_IMAGE_SIZE)
 
 
 def clip_preprocessor(images: List[Image.Image], return_tensors="pt"):
-    def process_image(img):
-        return clip_transform(img)
-
     # Use ProcessPoolExecutor instead of ThreadPoolExecutor
     with ProcessPoolExecutor() as executor:
         # Submit all images for processing
-        futures = [executor.submit(process_image, img) for img in images]
+        futures = [executor.submit(clip_transform, img) for img in images]
 
         # Wait for all futures to complete and collect results
         results = [future.result() for future in as_completed(futures)]
