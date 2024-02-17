@@ -15,6 +15,7 @@ from io import BytesIO
 from pydub.silence import split_on_silence
 import numpy as np
 import textwrap
+import torch
 
 from pydub import AudioSegment
 from pyloudnorm import Meter, normalize
@@ -84,9 +85,11 @@ class time_code_block:
         self.prefix = prefix
 
     def __enter__(self):
+        torch.cuda.synchronize()
         self.start_time = time.time()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        torch.cuda.synchronize()
         self.end_time = time.time()
         self.elapsed_time = (self.end_time - self.start_time) * 1000
         statement = f"Executed in: {self.elapsed_time:.2f} ms"
