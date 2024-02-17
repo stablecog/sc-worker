@@ -39,16 +39,23 @@ def create_clip_transform(n_px):
 clip_transform = create_clip_transform(CLIP_IMAGE_SIZE)
 
 
-def process_image(img: Image.Image):
-    return clip_transform(img)
-
-
 def clip_preprocessor(images: List[Image.Image], return_tensors="pt"):
+    def process_image(img: Image.Image, index: int):
+        return clip_transform(img), index
+
+    images_with_index = [(img, i) for i, img in enumerate(images)]
+
     with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(process_image, img) for img in images]
+        futures = [
+            executor.submit(process_image, img_tuple[0], img_tuple[1])
+            for img_tuple in images_with_index
+        ]
         results = [future.result() for future in as_completed(futures)]
 
-    return torch.stack(results)
+    results_sorted = sorted(results, key=lambda x: x[1])
+    results_sorted = [result[0] for result in results_sorted]
+
+    return torch.stack(results_sorted)
 
 
 @time_it
