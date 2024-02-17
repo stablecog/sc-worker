@@ -60,7 +60,11 @@ def open_clip_get_embeds_of_images(images: List[Image.Image], model, processor):
         with time_code_block(prefix=f"Embedded {len(images)} image(s)"):
             image_embeddings = model.get_image_features(pixel_values=inputs)
         with time_code_block(prefix=f"Moved {len(images)} embedding(s) to CPU"):
-            image_embeddings = image_embeddings.cpu().numpy().tolist()
+            image_embeddings = image_embeddings.cpu()
+        with time_code_block(prefix=f"Converted {len(images)} embedding(s) to Numpy"):
+            image_embeddings = image_embeddings.numpy()
+        with time_code_block(prefix=f"Converted {len(images)} embedding(s) to list"):
+            image_embeddings = image_embeddings.tolist()
         return image_embeddings
 
 
