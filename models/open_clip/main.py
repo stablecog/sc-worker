@@ -45,8 +45,16 @@ def process_image(img: Image.Image):
 
 def clip_preprocessor(images: List[Image.Image], return_tensors="pt"):
     with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(process_image, img) for img in images]
-        results = [future.result() for future in as_completed(futures)]
+        # Create a list of futures along with their original index
+        future_to_index = {
+            executor.submit(process_image, img): i for i, img in enumerate(images)
+        }
+        results = [None] * len(images)  # Pre-allocate a list of the correct size
+        for future in as_completed(future_to_index):
+            index = future_to_index[future]
+            results[index] = (
+                future.result()
+            )  # Place the result back in its original position
 
     return torch.stack(results)
 
