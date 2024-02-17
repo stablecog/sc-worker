@@ -50,7 +50,7 @@ def open_clip_get_embeds_of_images(images: List[Image.Image], model, processor):
         with time_code_block(prefix=f"Embedded {len(images)} image(s)"):
             image_embeddings = model.get_image_features(pixel_values=inputs)
         with time_code_block(prefix=f"Moved {len(images)} embedding(s) to CPU"):
-            image_embeddings = image_embeddings.cpu().tolist()
+            image_embeddings = image_embeddings.cpu().numpy().tolist()
         return image_embeddings
 
 
@@ -69,5 +69,5 @@ def open_clip_get_embeds_of_texts(texts: str, model, tokenizer):
         with time_code_block(prefix=f"Embedded {len(texts)} text(s)"):
             text_embeddings = model.get_text_features(**inputs)
         with time_code_block(prefix=f"Moved {len(texts)} embeddings(s) to CPU"):
-            text_embeddings = text_embeddings.cpu().tolist()
+            text_embeddings = text_embeddings.cpu().numpy().tolist()
         return text_embeddings
