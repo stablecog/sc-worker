@@ -262,7 +262,7 @@ def setup() -> ModelsPack:
                 img2img=img2img,
                 inpaint=inpaint,
                 refiner=refiner,
-                refiner_vae=refiner_vae,
+                vae=refiner_vae,
                 vae=vae,
             )
         else:
