@@ -23,7 +23,7 @@ from upload.constants import (
     S3_REGION,
     S3_SECRET_ACCESS_KEY,
 )
-from shared.helpers import time_it, time_code_block
+from shared.helpers import time_code_block
 
 clipapi = Flask(__name__)
 
