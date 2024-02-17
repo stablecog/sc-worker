@@ -11,7 +11,7 @@ from torchvision.transforms import (
     ToTensor,
     Normalize,
 )
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 CLIP_IMAGE_SIZE = 224
@@ -44,12 +44,8 @@ def process_image(img: Image.Image):
 
 
 def clip_preprocessor(images: List[Image.Image], return_tensors="pt"):
-    # Use ProcessPoolExecutor instead of ThreadPoolExecutor
-    with ProcessPoolExecutor() as executor:
-        # Submit all images for processing
+    with ThreadPoolExecutor() as executor:
         futures = [executor.submit(process_image, img) for img in images]
-
-        # Wait for all futures to complete and collect results
         results = [future.result() for future in as_completed(futures)]
 
     return torch.stack(results)
