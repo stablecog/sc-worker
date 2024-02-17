@@ -241,7 +241,8 @@ def setup() -> ModelsPack:
                 refiner = refiner.to(DEVICE)
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
 
-            inpaint = get_saved_sd_model(
+            inpaint = None
+            """ inpaint = get_saved_sd_model(
                 model_id_key="inpaint_id",
                 model_id=SD_MODELS[key]["inpaint_id"],
                 model_type_for_class="inpaint",
@@ -255,7 +256,7 @@ def setup() -> ModelsPack:
                     use_safetensors=True,
                     add_watermarker=False,
                 )
-                inpaint.to(DEVICE)
+                inpaint.to(DEVICE) """
             pipe = SDPipeSet(
                 text2img=text2img,
                 img2img=img2img,
@@ -281,7 +282,8 @@ def setup() -> ModelsPack:
                 text2img = text2img.to(DEVICE)
                 print_tuple("🚀 Keep in GPU", key)
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
-            inpaint = get_saved_sd_model(
+            inpaint = None
+            """ inpaint = get_saved_sd_model(
                 model_id_key="inpaint_id",
                 model_id=SD_MODELS[key]["inpaint_id"],
                 model_type_for_class="inpaint",
@@ -293,7 +295,7 @@ def setup() -> ModelsPack:
                     img2img=img2img,
                     inpaint=inpaint,
                     refiner=None,
-                )
+                ) """
 
         sd_pipes[key] = pipe
         print(
@@ -345,7 +347,9 @@ def setup() -> ModelsPack:
             img2img=text2img,
             inpaint=inpaint,
         )
-        print(f"✅ Loaded Kandinsky 2.1 | Duration: {round(time.time() - s, 1)} seconds")
+        print(
+            f"✅ Loaded Kandinsky 2.1 | Duration: {round(time.time() - s, 1)} seconds"
+        )
 
     # Kandinsky 2.2
     kandinsky_2_2 = None
@@ -374,7 +378,9 @@ def setup() -> ModelsPack:
             img2img=img2img,
             inpaint=inpaint,
         )
-        print(f"✅ Loaded Kandinsky 2.2 | Duration: {round(time.time() - s, 1)} seconds")
+        print(
+            f"✅ Loaded Kandinsky 2.2 | Duration: {round(time.time() - s, 1)} seconds"
+        )
 
     # For upscaler
     upscaler_args = get_args_swinir()
