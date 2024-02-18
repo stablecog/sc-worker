@@ -285,6 +285,7 @@ def setup() -> ModelsPack:
                 print_tuple("🚀 Keep in GPU", key)
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
             inpaint = None
+
             """ inpaint = get_saved_sd_model(
                 model_id_key="inpaint_id",
                 model_id=SD_MODELS[key]["inpaint_id"],
