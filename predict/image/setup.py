@@ -291,13 +291,14 @@ def setup() -> ModelsPack:
                 model_type_for_class="inpaint",
             )
             if inpaint is None:
-                inpaint = StableDiffusionInpaintPipeline(**text2img.components)
-                pipe = SDPipeSet(
-                    text2img=text2img,
-                    img2img=img2img,
-                    inpaint=inpaint,
-                    refiner=None,
-                ) """
+                inpaint = StableDiffusionInpaintPipeline(**text2img.components)"""
+
+            pipe = SDPipeSet(
+                text2img=text2img,
+                img2img=img2img,
+                inpaint=inpaint,
+                refiner=None,
+            )
 
         sd_pipes[key] = pipe
         print(
