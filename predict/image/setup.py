@@ -59,6 +59,9 @@ from diffusers import (
 from diffusers.models import AutoencoderKL
 import torch
 
+import subprocess
+import sys
+
 from shared.helpers import print_tuple
 
 
@@ -138,6 +141,9 @@ def setup() -> ModelsPack:
     if hf_token is not None:
         _login.login(token=hf_token)
         print(f"✅ Logged in to HuggingFace")
+
+    package_name = "flash-attn==2.5.1.post1"
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
 
     download_swinir_models()
 
