@@ -21,6 +21,7 @@ from upload.constants import (
     S3_REGION,
     S3_SECRET_ACCESS_KEY,
 )
+from shared.helpers import time_code_block
 
 clipapi = Flask(__name__)
 
@@ -98,7 +99,8 @@ def clip_embed():
         for obj in imageObjects:
             image_urls.append(obj["item"]["image"])
         try:
-            pil_images = download_images(urls=image_urls, max_workers=25)
+            with time_code_block(prefix=f"Downloaded {len(image_urls)} image(s)"):
+                pil_images = download_images(urls=image_urls, max_workers=25)
         except Exception as e:
             tb = traceback.format_exc()
             print(f"Failed to download images: {tb}\n")
@@ -123,9 +125,10 @@ def clip_embed():
         for obj in imageIdObjects:
             image_ids.append(obj["item"]["image_id"])
         try:
-            pil_images = download_images_from_s3(
-                keys=image_ids, bucket=bucket, max_workers=100
-            )
+            with time_code_block(prefix=f"Downloaded {len(image_ids)} image(s)"):
+                pil_images = download_images_from_s3(
+                    keys=image_ids, bucket=bucket, max_workers=100
+                )
         except Exception as e:
             tb = traceback.format_exc()
             print(f"Failed to download images: {tb}\n")
