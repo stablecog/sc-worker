@@ -1,4 +1,4 @@
-FROM stablecog/cuda-torch:12.1.0-2.1.0-cudnn8-devel-ubuntu22.04
+FROM nvcr.io/nvidia/pytorch:23.12-py3
 
 RUN mkdir -p /app/data
 WORKDIR /app
