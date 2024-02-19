@@ -6,7 +6,7 @@ metadata:
   labels:
     app: sc-worker-surge
 spec:
-  progressDeadlineSeconds: 5200
+  progressDeadlineSeconds: 100000
   replicas: 2
   strategy:
     type: RollingUpdate
