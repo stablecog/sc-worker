@@ -6,7 +6,7 @@ metadata:
   labels:
     app: sc-worker
 spec:
-  progressDeadlineSeconds: 1200
+  progressDeadlineSeconds: 5200
   replicas: 2
   strategy:
     type: RollingUpdate
@@ -22,21 +22,21 @@ spec:
         app: sc-worker
     spec:
       topologySpreadConstraints:
-      - maxSkew: 1
-        topologyKey: kubernetes.io/hostname
-        whenUnsatisfiable: DoNotSchedule
-        labelSelector:
-          matchLabels:
-            app: sc-worker
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: sc-worker
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-            - matchExpressions:
-              - key: agentpool
-                operator: In
-                values:
-                - a100
+              - matchExpressions:
+                  - key: agentpool
+                    operator: In
+                    values:
+                      - a100
       containers:
         - name: sc-worker
           image: replaceme
@@ -44,8 +44,8 @@ spec:
             limits:
               nvidia.com/gpu: 1
           volumeMounts:
-          - mountPath: "/app/data"
-            name: data-volume
+            - mountPath: "/app/data"
+              name: data-volume
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 13339
@@ -63,8 +63,8 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
           envFrom:
-          - secretRef:
-              name: sc-worker
+            - secretRef:
+                name: sc-worker
           env:
             - name: WORKER_NAME
               valueFrom:
@@ -78,7 +78,7 @@ spec:
                 labels:
                   type: data-volume
               spec:
-                accessModes: [ "ReadWriteOnce" ]
+                accessModes: ["ReadWriteOnce"]
                 storageClassName: managed-csi-premium
                 resources:
                   requests:
