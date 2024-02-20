@@ -88,6 +88,7 @@ def generate(
                 width=width,
                 height=height,
             )
+            extra_kwargs["strength"] = 0.99
             end_i = time.time()
             print(
                 f"-- Downloaded and cropped mask image in: {round((end_i - start_i) * 1000)} ms"
@@ -150,10 +151,7 @@ def generate(
             "num_inference_steps": num_inference_steps,
             "image": output_images,
         }
-        if mask_image_url is not None:
-            output_images = pipe.refiner_inpaint(**args).images
-        else:
-            output_images = pipe.refiner(**args).images
+        output_images = pipe.refiner(**args).images
 
     if nsfw_count > 0:
         print(f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs.")

@@ -89,20 +89,6 @@ if __name__ == "__main__":
     # Create queue for thread communication
     upload_queue: queue.Queue[Dict[str, Any]] = queue.Queue()
 
-    # Create redis worker thread
-    redis_worker_thread = Thread(
-        target=lambda: start_redis_queue_worker(
-            worker_type=WORKER_TYPE,
-            redis=redis.Redis(
-                connection_pool=redisConn, socket_keepalive=True, socket_timeout=1000
-            ),
-            input_queue=redisInputQueue,
-            s3_client=s3,
-            s3_bucket=S3_BUCKET_NAME_UPLOAD,
-            upload_queue=upload_queue,
-            models_pack=models_pack,
-        )
-    )
     # Create rabbitmq connection
     connection = RabbitMQConnection(amqpUrl)
 
@@ -111,8 +97,6 @@ if __name__ == "__main__":
         if not shutdown_event.is_set():
             print("Signal received, shutting down...")
             shutdown_event.set()
-            connection.stop_consuming()
-            connection.close()
             connection.connection.close()
 
     signal.signal(signal.SIGINT, signal_handler)
@@ -143,14 +127,12 @@ if __name__ == "__main__":
 
     try:
         mq_worker_thread.start()
-        redis_worker_thread.start()
         upload_thread.start()
         if WORKER_TYPE == "image":
             clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
             clipapi_thread.start()
             clipapi_thread.join()
         mq_worker_thread.join()
-        redis_worker_thread.join()
         upload_thread.join()
     except KeyboardInterrupt:
         pass  # Handle Ctrl+C gracefully. The signal handler already sets the shutdown_event.
