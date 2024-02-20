@@ -10,7 +10,6 @@ import boto3
 from boto3_type_annotations.s3 import ServiceResource
 from botocore.config import Config
 from dotenv import load_dotenv
-import pika
 import torch
 
 from predict.image.setup import setup as image_setup
