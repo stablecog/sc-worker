@@ -6,7 +6,7 @@ metadata:
   labels:
     app: sc-worker-surge
 spec:
-  progressDeadlineSeconds: 1200
+  progressDeadlineSeconds: 100000
   replicas: 2
   strategy:
     type: RollingUpdate
@@ -22,31 +22,31 @@ spec:
         app: sc-worker
     spec:
       tolerations:
-      - key: CriticalAddonsOnly
-        operator: Exists
-      - key: nvidia.com/gpu
-        operator: Exists
-        effect: NoSchedule
-      - key: "sku"
-        operator: "Equal"
-        value: "gpu"
-        effect: "NoSchedule"
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+        - key: "sku"
+          operator: "Equal"
+          value: "gpu"
+          effect: "NoSchedule"
       topologySpreadConstraints:
-      - maxSkew: 1
-        topologyKey: kubernetes.io/hostname
-        whenUnsatisfiable: DoNotSchedule
-        labelSelector:
-          matchLabels:
-            app: sc-worker-surge
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: sc-worker-surge
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-            - matchExpressions:
-              - key: agentpool
-                operator: In
-                values:
-                - a100surge
+              - matchExpressions:
+                  - key: agentpool
+                    operator: In
+                    values:
+                      - a100surge
       containers:
         - name: sc-worker-surge
           image: replaceme
@@ -54,8 +54,8 @@ spec:
             limits:
               nvidia.com/gpu: 1
           volumeMounts:
-          - mountPath: "/app/data"
-            name: data-volume
+            - mountPath: "/app/data"
+              name: data-volume
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 13339
@@ -63,7 +63,7 @@ spec:
             httpGet:
               path: /health
               port: 13339
-            initialDelaySeconds: 300
+            initialDelaySeconds: 1500
             periodSeconds: 10
             failureThreshold: 60
           livenessProbe:
@@ -73,8 +73,8 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
           envFrom:
-          - secretRef:
-              name: sc-worker
+            - secretRef:
+                name: sc-worker
           env:
             - name: WORKER_NAME
               valueFrom:
@@ -88,7 +88,7 @@ spec:
                 labels:
                   type: data-volume
               spec:
-                accessModes: [ "ReadWriteOnce" ]
+                accessModes: ["ReadWriteOnce"]
                 storageClassName: managed-csi-premium
                 resources:
                   requests:

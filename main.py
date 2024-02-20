@@ -27,6 +27,8 @@ from upload.constants import (
 )
 from upload.worker import start_upload_worker
 from clipapi.app import run_clipapi
+import subprocess
+import sys
 
 # Logging configuration
 logging.basicConfig(
@@ -42,6 +44,9 @@ if __name__ == "__main__":
     if torch.cuda.is_available() is False:
         os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     load_dotenv()
+
+    package_name = "flash-attn==2.2.2"
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
 
     WORKER_TYPE = os.environ.get("WORKER_TYPE", "image")
 
