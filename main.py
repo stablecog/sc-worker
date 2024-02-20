@@ -26,9 +26,10 @@ from upload.constants import (
 )
 from upload.worker import start_upload_worker
 from clipapi.app import run_clipapi
-import subprocess
-import sys
 
+""" import subprocess
+import sys
+ """
 # Logging configuration
 logging.basicConfig(
     level=logging.INFO,
@@ -44,8 +45,8 @@ if __name__ == "__main__":
         os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     load_dotenv()
 
-    package_name = "flash-attn==2.5.3"
-    subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+    """ package_name = "flash-attn==2.5.3"
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package_name]) """
 
     WORKER_TYPE = os.environ.get("WORKER_TYPE", "image")
 
