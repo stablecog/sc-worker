@@ -339,15 +339,6 @@ def crop_images(image_array, width, height):
 def print_tuple(a, b):
     print(tabulate([[a, b]], tablefmt="simple_grid"))
 
-
-def clean_prefix_or_suffix_space(text: str):
-    if text.startswith(" "):
-        text = text[1:]
-    if text.endswith(" "):
-        text = text[:-1]
-    return text
-
-
 def log_gpu_memory(device_id=0, message=None):
     try:
         device_properties = torch.cuda.get_device_properties(device_id)
