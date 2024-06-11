@@ -58,41 +58,71 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Calculate hash tag for base image
-        id: hash
-        run: echo "base_hash=$(cat requirements.txt Dockerfile.base | sha256sum requirements.txt | cut -d ' ' -f 1 | head -c 8)" >> "$GITHUB_OUTPUT"
+      - name: Calculate hash tag for the TORCH image
+        id: torch_hash
+        run: echo "hash=$(cat requirements-torch.txt Dockerfile.torch | sha256sum | cut -d ' ' -f 1 | head -c 8)" >> "$GITHUB_OUTPUT"
 
-      - name: Check if the base image already exists
-        id: check
+      - name: Check if the TORCH image already exists
+        id: torch_check
         run: |
-          if docker manifest inspect ${{secrets.DOCKERHUB_SC_WORKER_BASE_REPO}}:${{ steps.hash.outputs.base_hash }} > /dev/null 2>&1; then
+          if docker manifest inspect ${{secrets.DOCKERHUB_SC_TORCH_REPO}}:${{ steps.torch_hash.outputs.hash }} > /dev/null 2>&1; then
             echo "image_exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "image_exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build & Push the base image to Docker Hub
+      - name: Build & Push the TORCH image to Docker Hub
         uses: docker/build-push-action@v4
-        if: ${{ steps.check.outputs.image_exists == 'false' }}
+        if: ${{ steps.torch_check.outputs.image_exists == 'false' }}
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          file: ./Dockerfile.torch
+          tags: |
+            ${{secrets.DOCKERHUB_SC_TORCH_REPO}}:${{ steps.torch_hash.outputs.hash }}-${{ env.GITHUB_RUN_ID }}
+            ${{secrets.DOCKERHUB_SC_TORCH_REPO}}:${{ steps.torch_hash.outputs.hash }}
+            ${{secrets.DOCKERHUB_SC_TORCH_REPO}}:latest
+
+      - name: Calculate hash tag for BASE image
+        id: base_hash
+        run: |
+          echo -n ${{steps.torch_hash.outputs.hash}} > torch_hash.txt
+          echo "hash=$(cat torch_hash.txt requirements.txt Dockerfile.base | sha256sum | cut -d ' ' -f 1 | head -c 8)" >> "$GITHUB_OUTPUT"
+
+      - name: Check if the BASE image already exists
+        id: base_check
+        run: |
+          if docker manifest inspect ${{secrets.DOCKERHUB_SC_WORKER_BASE_REPO}}:${{ steps.base_hash.outputs.hash }} > /dev/null 2>&1; then
+            echo "image_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "image_exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build & Push the BASE image to Docker Hub
+        uses: docker/build-push-action@v4
+        if: ${{ steps.base_check.outputs.image_exists == 'false' }}
         with:
           context: .
           platforms: linux/amd64
           push: true
           file: ./Dockerfile.base
+          build-args: |
+            TORCH_IMAGE=${{secrets.DOCKERHUB_SC_TORCH_REPO}}:${{ steps.torch_hash.outputs.hash }}
           tags: |
-            ${{secrets.DOCKERHUB_SC_WORKER_BASE_REPO}}:${{ steps.hash.outputs.base_hash }}-${{ env.GITHUB_RUN_ID }}
-            ${{secrets.DOCKERHUB_SC_WORKER_BASE_REPO}}:${{ steps.hash.outputs.base_hash }}
+            ${{secrets.DOCKERHUB_SC_WORKER_BASE_REPO}}:${{ steps.base_hash.outputs.hash }}-${{ env.GITHUB_RUN_ID }}
+            ${{secrets.DOCKERHUB_SC_WORKER_BASE_REPO}}:${{ steps.base_hash.outputs.hash }}
             ${{secrets.DOCKERHUB_SC_WORKER_BASE_REPO}}:latest
 
 
-      - name: Build & Push the app image to Docker Hub
+      - name: Build & Push the APP image to Docker Hub
         uses: docker/build-push-action@v4
         with:
           push: true
           context: .
           file: ./Dockerfile
           build-args: |
-            BASE_IMAGE=${{secrets.DOCKERHUB_SC_WORKER_BASE_REPO}}:${{ steps.hash.outputs.base_hash }}
+            BASE_IMAGE=${{secrets.DOCKERHUB_SC_WORKER_BASE_REPO}}:${{ steps.base_hash.outputs.hash }}
           tags: |
             ${{secrets.DOCKERHUB_SC_WORKER_REPO}}:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
             ${{secrets.DOCKERHUB_SC_WORKER_REPO}}:${{ needs.setup_env.outputs.branch_name }}
@@ -127,7 +157,7 @@ jobs:
       - name: Deploy
         uses: ./.github/actions/k8s-deploy
         with:
-          image: stablecog/sc-worker:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
+          image: ${{secrets.DOCKERHUB_SC_WORKER_REPO}}:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
           kube_config: ${{ secrets.AKS_KUBE_CONFIG }}
 
       - name: Scale down a100surge
