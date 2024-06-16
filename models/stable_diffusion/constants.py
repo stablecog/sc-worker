@@ -22,14 +22,12 @@ load_dotenv()
 
 SD_ENV_KEY_TO_KEY = {
     "OJ": "Openjourney",
-    "RSD": "Redshift Diffusion",
     "GD": "Ghibli Diffusion",
     "WD": "Waifu Diffusion",
     "22D": "22h Diffusion",
     "LD": "Luna Diffusion",
     "SX": "SDXL",
     "WDX": "Waifu Diffusion XL",
-    "AD": "Arcane Diffusion",
     "SSD": "SSD-1B",
 }
 SD_MODEL_CACHE = "/app/data/diffusers-cache"
@@ -54,6 +52,7 @@ SD_MODELS_ALL = {
         "vae": "madebyollin/sdxl-vae-fp16-fix",
         "refiner_vae": "stabilityai/sdxl-vae",
         "base_model": "SDXL",
+        "keep_in_cpu_when_idle": True,
     },
     "Luna Diffusion": {
         "id": "proximasanfinetuning/luna-diffusion",
@@ -81,20 +80,6 @@ SD_MODELS_ALL = {
         "id": "22h/vintedois-diffusion-v0-1",
         "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
         "prompt_prefix": "estilovintedois",
-        "torch_dtype": torch.float16,
-        "keep_in_cpu_when_idle": True,
-    },
-    "Redshift Diffusion": {
-        "id": "nitrosocke/redshift-diffusion",
-        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
-        "prompt_prefix": "redshift style",
-        "torch_dtype": torch.float16,
-        "keep_in_cpu_when_idle": True,
-    },
-    "Arcane Diffusion": {
-        "id": "nitrosocke/Arcane-Diffusion",
-        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
-        "prompt_prefix": "arcane style",
         "torch_dtype": torch.float16,
         "keep_in_cpu_when_idle": True,
     },

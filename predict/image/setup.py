@@ -1,6 +1,25 @@
+import os
+import time
+from functools import partial
 from typing import Any
 
+import torch
+from diffusers import (
+    KandinskyV22Img2ImgPipeline,
+    KandinskyV22InpaintPipeline,
+    KandinskyV22Pipeline,
+    KandinskyV22PriorPipeline,
+    StableDiffusionImg2ImgPipeline,
+    StableDiffusionInpaintPipeline,
+    StableDiffusionPipeline,
+    StableDiffusionXLImg2ImgPipeline,
+    StableDiffusionXLPipeline,
+)
+from diffusers.models import AutoencoderKL
+from huggingface_hub import _login
 from lingua import LanguageDetectorBuilder
+from transformers import AutoModel, AutoProcessor, AutoTokenizer
+
 from models.aesthetics_scorer.constants import (
     AESTHETICS_SCORER_CACHE_DIR,
     AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_CONFIG,
@@ -9,56 +28,25 @@ from models.aesthetics_scorer.constants import (
     AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_WEIGHT_URL,
 )
 from models.aesthetics_scorer.model import load_model as load_aesthetics_scorer_model
+from models.constants import DEVICE
+from models.download.download_from_hf import download_swinir_models
 from models.kandinsky.constants import (
     KANDINSKY_2_2_DECODER_INPAINT_MODEL_ID,
     KANDINSKY_2_2_DECODER_MODEL_ID,
     KANDINSKY_2_2_PRIOR_MODEL_ID,
-    LOAD_KANDINSKY_2_1,
     LOAD_KANDINSKY_2_2,
 )
 from models.nllb.constants import TRANSLATOR_CACHE
-from shared.constants import (
-    SKIP_SAFETY_CHECKER,
-    WORKER_VERSION,
-)
+from models.open_clip.constants import OPEN_CLIP_MODEL_ID
 from models.stable_diffusion.constants import (
+    SD_MODEL_CACHE,
     SD_MODEL_FOR_SAFETY_CHECKER,
     SD_MODELS,
-    SD_MODEL_CACHE,
 )
-from diffusers import StableDiffusionPipeline, AutoPipelineForInpainting
-from models.swinir.helpers import get_args_swinir, define_model_swinir
-from models.swinir.constants import TASKS_SWINIR, MODELS_SWINIR, DEVICE_SWINIR
-from models.download.download_from_hf import (
-    download_swinir_models,
-)
-import time
-from models.constants import DEVICE
-from transformers import (
-    AutoProcessor,
-    AutoTokenizer,
-    AutoModel,
-)
-from models.open_clip.constants import OPEN_CLIP_MODEL_ID
-import os
-from huggingface_hub import _login
-from kandinsky2 import get_kandinsky2
-from functools import partial
 from models.stable_diffusion.filter import forward_inspect
-from diffusers import (
-    StableDiffusionXLPipeline,
-    StableDiffusionXLImg2ImgPipeline,
-    StableDiffusionPipeline,
-    StableDiffusionImg2ImgPipeline,
-    StableDiffusionInpaintPipeline,
-    KandinskyV22PriorPipeline,
-    KandinskyV22Pipeline,
-    KandinskyV22Img2ImgPipeline,
-    KandinskyV22InpaintPipeline,
-)
-from diffusers.models import AutoencoderKL
-import torch
-
+from models.swinir.constants import DEVICE_SWINIR, MODELS_SWINIR, TASKS_SWINIR
+from models.swinir.helpers import define_model_swinir, get_args_swinir
+from shared.constants import SKIP_SAFETY_CHECKER, WORKER_VERSION
 from shared.helpers import print_tuple
 
 
@@ -82,18 +70,6 @@ class SDPipeSet:
         self.inpaint_vae = inpaint_vae
 
 
-class KandinskyPipe:
-    def __init__(
-        self,
-        text2img: Any,
-        img2img: Any,
-        inpaint: Any,
-    ):
-        self.text2img = text2img
-        self.img2img = img2img
-        self.inpaint = inpaint
-
-
 class KandinskyPipe_2_2:
     def __init__(
         self,
@@ -115,7 +91,6 @@ class ModelsPack:
         upscaler: Any,
         translator: Any,
         open_clip: Any,
-        kandinsky: KandinskyPipe,
         kandinsky_2_2: KandinskyPipe_2_2,
         safety_checker: Any,
         aesthetics_scorer: Any,
@@ -124,7 +99,6 @@ class ModelsPack:
         self.upscaler = upscaler
         self.translator = translator
         self.open_clip = open_clip
-        self.kandinsky = kandinsky
         self.kandinsky_2_2 = kandinsky_2_2
         self.safety_checker = safety_checker
         self.aesthetics_scorer = aesthetics_scorer
@@ -327,34 +301,6 @@ def setup() -> ModelsPack:
         }
         print("✅ Loaded safety checker")
 
-    # Kandinsky 2.1
-    kandinsky = None
-    if LOAD_KANDINSKY_2_1:
-        s = time.time()
-        print("⏳ Loading Kandinsky 2.1")
-        text2img = get_kandinsky2(
-            "cuda",
-            task_type="text2img",
-            model_version="2.1",
-            use_flash_attention=True,
-            cache_dir="/app/data/kandinsky2",
-        )
-        inpaint = get_kandinsky2(
-            "cuda",
-            task_type="inpainting",
-            model_version="2.1",
-            use_flash_attention=True,
-            cache_dir="/app/data/kandinsky2",
-        )
-        kandinsky = KandinskyPipe(
-            text2img=text2img,
-            img2img=text2img,
-            inpaint=inpaint,
-        )
-        print(
-            f"✅ Loaded Kandinsky 2.1 | Duration: {round(time.time() - s, 1)} seconds"
-        )
-
     # Kandinsky 2.2
     kandinsky_2_2 = None
     if LOAD_KANDINSKY_2_2:
@@ -454,7 +400,6 @@ def setup() -> ModelsPack:
         upscaler=upscaler,
         translator=translator,
         open_clip=open_clip,
-        kandinsky=kandinsky,
         kandinsky_2_2=kandinsky_2_2,
         safety_checker=safety_checker,
         aesthetics_scorer=aesthetics_scorer,
