@@ -212,20 +212,14 @@ def setup() -> ModelsPack:
                     vae=refiner_vae,
                     add_watermarker=False,
                 )
+                refiner = refiner.to(DEVICE)
+
             if "keep_in_cpu_when_idle" in SD_MODELS[key]:
                 text2img = text2img.to("cpu", silence_dtype_warnings=True)
                 print_tuple("🐌 Keep in CPU when idle", key)
             else:
                 text2img = text2img.to(DEVICE)
                 print_tuple("🚀 Keep in GPU", key)
-
-            if refiner is not None:
-                if "keep_in_cpu_when_idle" in SD_MODELS[key]:
-                    refiner = refiner.to("cpu", silence_dtype_warnings=True)
-                    print_tuple("🐌 Keep in CPU when idle", key + " refiner")
-                else:
-                    refiner = refiner.to(DEVICE)
-                    print_tuple("🚀 Keep in GPU", key + " refiner")
 
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
 
