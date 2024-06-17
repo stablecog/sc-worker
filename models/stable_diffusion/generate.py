@@ -151,12 +151,20 @@ def generate(
             "num_inference_steps": num_inference_steps,
             "image": output_images,
         }
+
         if "keep_in_cpu_when_idle" in SD_MODELS[model]:
             s = time.time()
             pipe.refiner = pipe.refiner.to(DEVICE)
             e = time.time()
             print_tuple(f"🚀 Moved {model} to GPU", f"{round((e - s) * 1000)} ms")
+
+        s = time.time()
         output_images = pipe.refiner(**args).images
+        e = time.time()
+        print_tuple(
+            f"🖌️ Refined {len(output_images)} images", f"{round((e - s) * 1000)} ms"
+        )
+
         if "keep_in_cpu_when_idle" in SD_MODELS[model]:
             s = time.time()
             pipe.refiner = pipe.refiner.to("cpu", silence_dtype_warnings=True)
