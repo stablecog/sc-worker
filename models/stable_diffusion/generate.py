@@ -151,7 +151,21 @@ def generate(
             "num_inference_steps": num_inference_steps,
             "image": output_images,
         }
+        if "keep_in_cpu_when_idle" in SD_MODELS[model]:
+            s = time.time()
+            pipe.refiner = pipe.refiner.to(DEVICE)
+            e = time.time()
+            print_tuple(
+                f"🚀 Moved {model} refiner to GPU", f"{round((e - s) * 1000)} ms"
+            )
         output_images = pipe.refiner(**args).images
+        if "keep_in_cpu_when_idle" in SD_MODELS[model]:
+            s = time.time()
+            pipe.refiner = pipe.refiner.to("cpu", silence_dtype_warnings=True)
+            e = time.time()
+            print_tuple(
+                f"🐢 Moved {model} refiner to CPU", f"{round((e - s) * 1000)} ms"
+            )
 
     if nsfw_count > 0:
         print(f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs.")

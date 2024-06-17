@@ -42,6 +42,7 @@ SD_MODELS_ALL = {
         "vae": "stabilityai/sdxl-vae",
         "refiner_vae": "stabilityai/sdxl-vae",
         "base_model": "SDXL",
+        "keep_in_cpu_when_idle": True,
     },
     "SSD-1B": {
         "id": "segmind/SSD-1B",
