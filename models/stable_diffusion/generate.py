@@ -161,9 +161,7 @@ def generate(
         s = time.time()
         output_images = pipe.refiner(**args).images
         e = time.time()
-        print_tuple(
-            f"🖌️ Refined {len(output_images)} images", f"{round((e - s) * 1000)} ms"
-        )
+        print(f"🖌️ Refined {len(output_images)} images in: {round((e - s) * 1000)} ms")
 
         if "keep_in_cpu_when_idle" in SD_MODELS[model]:
             s = time.time()
