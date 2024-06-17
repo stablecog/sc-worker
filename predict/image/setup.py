@@ -76,7 +76,7 @@ class KandinskyPipe_2_2:
         prior: KandinskyV22PriorPipeline,
         text2img: KandinskyV22Pipeline,
         img2img: KandinskyV22Img2ImgPipeline,
-        inpaint: KandinskyV22InpaintPipeline,
+        inpaint: KandinskyV22InpaintPipeline | None,
     ):
         self.prior = prior
         self.text2img = text2img
@@ -329,11 +329,12 @@ def setup() -> ModelsPack:
             cache_dir=SD_MODEL_CACHE,
         ).to(DEVICE)
         img2img = KandinskyV22Pipeline(**text2img.components)
-        inpaint = KandinskyV22InpaintPipeline.from_pretrained(
+        inpaint = None
+        """ KandinskyV22InpaintPipeline.from_pretrained(
             KANDINSKY_2_2_DECODER_INPAINT_MODEL_ID,
             torch_dtype=torch.float16,
             cache_dir=SD_MODEL_CACHE,
-        ).to(DEVICE)
+        ).to(DEVICE) """
         kandinsky_2_2 = KandinskyPipe_2_2(
             prior=prior,
             text2img=text2img,

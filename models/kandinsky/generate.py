@@ -61,7 +61,11 @@ def generate_2_2(
 
     output_images = None
 
-    if init_image_url is not None and mask_image_url is not None:
+    if (
+        init_image_url is not None
+        and mask_image_url is not None
+        and pipe.inpaint is not None
+    ):
         pipe.inpaint.scheduler = get_scheduler(scheduler, pipe.inpaint)
         start = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
