@@ -214,7 +214,7 @@ def setup() -> ModelsPack:
                 )
                 if "keep_in_cpu_when_idle" in SD_MODELS[key]:
                     refiner = refiner.to("cpu", silence_dtype_warnings=True)
-                    print_tuple("🐌 Keep in CPU when idle", key + "refiner")
+                    print_tuple("🐌 Keep in CPU when idle", key + " refiner")
                 else:
                     refiner = refiner.to(DEVICE)
                     print_tuple("🚀 Keep in GPU", key + " refiner")
