@@ -74,8 +74,9 @@ def start_upload_worker(
                 logging.info(f"-- Upload: Deleting upload_prefix from message --")
                 del uploadMsg["upload_prefix"]
 
-            logging.info(f"-- Upload: Publishing to WEBHOOK --")
+            logging.info(f"-- 🟡 Upload: Publishing to WEBHOOK --")
             post_webhook(uploadMsg["webhook_url"], uploadMsg)
+            logging.info(f"-- 🟢 Upload: Published to WEBHOOK --")
         except queue.Empty:
             continue
         except Exception as e:
