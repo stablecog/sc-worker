@@ -156,7 +156,9 @@ def generate(
             s = time.time()
             pipe.refiner = pipe.refiner.to(DEVICE)
             e = time.time()
-            print_tuple(f"🚀 Moved {model} to GPU", f"{round((e - s) * 1000)} ms")
+            print_tuple(
+                f"🚀 Moved {model} refiner to GPU", f"{round((e - s) * 1000)} ms"
+            )
 
         s = time.time()
         output_images = pipe.refiner(**args).images
@@ -167,7 +169,9 @@ def generate(
             s = time.time()
             pipe.refiner = pipe.refiner.to("cpu", silence_dtype_warnings=True)
             e = time.time()
-            print_tuple(f"🐢 Moved {model} to CPU", f"{round((e - s) * 1000)} ms")
+            print_tuple(
+                f"🐢 Moved {model} refiner to CPU", f"{round((e - s) * 1000)} ms"
+            )
 
     if nsfw_count > 0:
         print(f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs.")
