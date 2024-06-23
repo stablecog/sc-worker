@@ -12,9 +12,9 @@ from botocore.config import Config
 from dotenv import load_dotenv
 import torch
 
+from models.nllb.app import run_nllbapi
 from predict.image.setup import setup as image_setup
 from predict.voiceover.setup import setup as voiceover_setup
-from rdqueue.worker import start_redis_queue_worker
 from rabbitmq_consumer.worker import start_amqp_queue_worker
 from rabbitmq_consumer.connection import RabbitMQConnection
 from upload.constants import (
@@ -129,9 +129,14 @@ if __name__ == "__main__":
         mq_worker_thread.start()
         upload_thread.start()
         if WORKER_TYPE == "image":
+            # CLIP
             clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
             clipapi_thread.start()
             clipapi_thread.join()
+            # NLLB
+            nllbapi_thread = Thread(target=lambda: run_nllbapi(models_pack=models_pack))
+            nllbapi_thread.start()
+            nllbapi_thread.join()
         mq_worker_thread.join()
         upload_thread.join()
     except KeyboardInterrupt:

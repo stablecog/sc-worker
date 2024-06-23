@@ -18,7 +18,7 @@ from diffusers import (
 from diffusers.models import AutoencoderKL
 from huggingface_hub import _login
 from lingua import LanguageDetectorBuilder
-from transformers import AutoModel, AutoProcessor, AutoTokenizer
+from transformers import AutoModel, AutoProcessor, AutoTokenizer, AutoModelForSeq2SeqLM
 
 from models.aesthetics_scorer.constants import (
     AESTHETICS_SCORER_CACHE_DIR,
@@ -31,12 +31,16 @@ from models.aesthetics_scorer.model import load_model as load_aesthetics_scorer_
 from models.constants import DEVICE
 from models.download.download_from_hf import download_swinir_models
 from models.kandinsky.constants import (
-    KANDINSKY_2_2_DECODER_INPAINT_MODEL_ID,
     KANDINSKY_2_2_DECODER_MODEL_ID,
     KANDINSKY_2_2_PRIOR_MODEL_ID,
     LOAD_KANDINSKY_2_2,
 )
-from models.nllb.constants import TRANSLATOR_CACHE
+from models.nllb.constants import (
+    TRANSLATOR_CACHE,
+    TRANSLATOR_MODEL_CACHE,
+    TRANSLATOR_MODEL_ID,
+    TRANSLATOR_TOKENIZER_CACHE,
+)
 from models.open_clip.constants import OPEN_CLIP_MODEL_ID
 from models.stable_diffusion.constants import (
     SD_MODEL_CACHE,
@@ -360,12 +364,19 @@ def setup() -> ModelsPack:
     print("✅ Loaded upscaler")
 
     # For translator
+    print("⏳ Loading translator")
     translator = {
         "detector": (
             LanguageDetectorBuilder.from_all_languages()
             .with_preloaded_language_models()
             .build()
         ),
+        "model": AutoModelForSeq2SeqLM.from_pretrained(
+            TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_MODEL_CACHE
+        ).to(DEVICE),
+        "tokenizer": AutoTokenizer.from_pretrained(
+            TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_TOKENIZER_CACHE
+        ).to(DEVICE),
     }
     print("✅ Loaded translator")
 

@@ -1,11 +1,8 @@
 from lingua import Language
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
 
 TRANSLATOR_MODEL_ID = "facebook/nllb-200-distilled-1.3B"
-TRANSLATOR_CACHE = "/app/data/translator-cache"
+TRANSLATOR_MODEL_CACHE = "/app/data/translator-model-cache"
+TRANSLATOR_TOKENIZER_CACHE = "/app/data/translator-tokenizer-cache"
 
 LANG_TO_FLORES = {
     "AFRIKAANS": "afr_Latn",
@@ -88,4 +85,3 @@ TARGET_LANG = Language.ENGLISH
 TARGET_LANG_FLORES = LANG_TO_FLORES[TARGET_LANG.name]
 TARGET_LANG_SCORE_MAX = 0.88
 DETECTED_CONFIDENCE_SCORE_MIN = 0.1
-TRANSLATOR_COG_URL = os.environ.get("TRANSLATOR_COG_URL", None)

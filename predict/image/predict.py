@@ -17,7 +17,6 @@ from models.stable_diffusion.constants import (
 )
 
 from models.stable_diffusion.generate import generate as generate_with_sd
-from models.nllb.translate import translate_text_set_via_api
 from models.nllb.constants import TRANSLATOR_COG_URL
 from models.swinir.upscale import upscale
 
@@ -178,24 +177,6 @@ def predict(
     saved_safety_checker = None
 
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
-        t_prompt = input.prompt
-        t_negative_prompt = input.negative_prompt
-        if input.translator_cog_url is not None and input.skip_translation is False:
-            [t_prompt, t_negative_prompt] = translate_text_set_via_api(
-                text_1=input.prompt,
-                flores_1=input.prompt_flores_200_code,
-                text_2=input.negative_prompt,
-                flores_2=input.negative_prompt_flores_200_code,
-                translator_url=input.translator_cog_url,
-                detector=models_pack.translator["detector"],
-                label="Prompt & Negative Prompt",
-            )
-        prompt_is_translated = input.prompt is not None and t_prompt != input.prompt
-        neg_prompt_is_translated = (
-            input.negative_prompt is not None
-            and t_negative_prompt != input.negative_prompt
-        )
-
         generator_pipe = None
         if input.model == KANDINKSY_2_2_MODEL_NAME:
             generator_pipe = models_pack.kandinsky_2_2
@@ -205,6 +186,9 @@ def predict(
         if input.skip_safety_checker and hasattr(generator_pipe, "safety_checker"):
             saved_safety_checker = generator_pipe.safety_checker
             generator_pipe.safety_checker = None
+
+        prompt_final = input.prompt
+        negative_prompt_final = input.negative_prompt
 
         log_table = [
             ["Model", input.model],
@@ -232,15 +216,9 @@ def predict(
                 ),
             ],
             ["Prompt Strength", input.prompt_strength],
+            ["Prompt", wrap_text(prompt_final)],
+            ["Negative Prompt", wrap_text(negative_prompt_final)],
         ]
-        if prompt_is_translated:
-            log_table.append(["Original Prompt", wrap_text(input.prompt)])
-        log_table.append(["Final Prompt", wrap_text(t_prompt)])
-        log_table.append(["Prompt Translated", prompt_is_translated])
-        if neg_prompt_is_translated:
-            log_table.append(["Original Neg. Prompt", wrap_text(input.negative_prompt)])
-        log_table.append(["Final Neg. Prompt", wrap_text(t_negative_prompt)])
-        log_table.append(["Neg. Prompt Translated", neg_prompt_is_translated])
         print(
             tabulate(
                 [["🖼️  Generation 🟡", "Started"]] + log_table, tablefmt="double_grid"
@@ -249,8 +227,8 @@ def predict(
 
         startTime = time.time()
         args = {
-            "prompt": t_prompt,
-            "negative_prompt": t_negative_prompt,
+            "prompt": prompt_final,
+            "negative_prompt": negative_prompt_final,
             "prompt_prefix": input.prompt_prefix,
             "negative_prompt_prefix": input.negative_prompt_prefix,
             "width": input.width,
@@ -290,7 +268,7 @@ def predict(
 
         start_open_clip_prompt = time.time()
         open_clip_embed_of_prompt = open_clip_get_embeds_of_texts(
-            [t_prompt],
+            [prompt_final],
             models_pack.open_clip["model"],
             models_pack.open_clip["tokenizer"],
         )[0]
