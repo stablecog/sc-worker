@@ -12,6 +12,7 @@ from botocore.config import Config
 from dotenv import load_dotenv
 import torch
 
+from models.nllb.constants import LAUNCH_NLLBAPI
 from nllbapi.app import run_nllbapi
 from predict.image.setup import setup as image_setup
 from predict.voiceover.setup import setup as voiceover_setup
@@ -133,12 +134,16 @@ if __name__ == "__main__":
             clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
             clipapi_thread.start()
             # NLLB
-            nllbapi_thread = Thread(target=lambda: run_nllbapi(models_pack=models_pack))
-            nllbapi_thread.start()
+            if LAUNCH_NLLBAPI:
+                nllbapi_thread = Thread(
+                    target=lambda: run_nllbapi(models_pack=models_pack)
+                )
+                nllbapi_thread.start()
 
             # Join threads
             clipapi_thread.join()
-            nllbapi_thread.join()
+            if LAUNCH_NLLBAPI:
+                nllbapi_thread.join()
         mq_worker_thread.join()
         upload_thread.join()
     except KeyboardInterrupt:

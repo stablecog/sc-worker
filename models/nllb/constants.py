@@ -1,4 +1,9 @@
+import os
 from lingua import Language
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 TRANSLATOR_MODEL_ID = "facebook/nllb-200-distilled-1.3B"
 TRANSLATOR_MODEL_CACHE = "/app/data/translator-model-cache"
@@ -85,3 +90,7 @@ TARGET_LANG = Language.ENGLISH
 TARGET_LANG_FLORES = LANG_TO_FLORES[TARGET_LANG.name]
 TARGET_LANG_SCORE_MAX = 0.88
 DETECTED_CONFIDENCE_SCORE_MIN = 0.1
+LAUNCH_NLLBAPI_RAW = os.environ.get("LAUNCH_NLLBAPI", False)
+LAUNCH_NLLBAPI = (
+    True if LAUNCH_NLLBAPI_RAW == "True" or LAUNCH_NLLBAPI_RAW == "1" else False
+)

@@ -36,6 +36,7 @@ from models.kandinsky.constants import (
     LOAD_KANDINSKY_2_2,
 )
 from models.nllb.constants import (
+    LAUNCH_NLLBAPI,
     TRANSLATOR_MODEL_CACHE,
     TRANSLATOR_MODEL_ID,
     TRANSLATOR_TOKENIZER_CACHE,
@@ -92,7 +93,7 @@ class ModelsPack:
         self,
         sd_pipes: dict[str, SDPipeSet],
         upscaler: Any,
-        translator: Any,
+        translator: Any | None,
         open_clip: Any,
         kandinsky_2_2: KandinskyPipe_2_2,
         safety_checker: Any,
@@ -364,20 +365,24 @@ def setup() -> ModelsPack:
 
     # For translator
     print("⏳ Loading translator")
-    translator = {
-        "detector": (
-            LanguageDetectorBuilder.from_all_languages()
-            .with_preloaded_language_models()
-            .build()
-        ),
-        "model": AutoModelForSeq2SeqLM.from_pretrained(
-            TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_MODEL_CACHE
-        ),
-        "tokenizer": AutoTokenizer.from_pretrained(
-            TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_TOKENIZER_CACHE
-        ),
-    }
-    print("✅ Loaded translator")
+    translator = None
+    if LAUNCH_NLLBAPI == True:
+        translator = {
+            "detector": (
+                LanguageDetectorBuilder.from_all_languages()
+                .with_preloaded_language_models()
+                .build()
+            ),
+            "model": AutoModelForSeq2SeqLM.from_pretrained(
+                TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_MODEL_CACHE
+            ),
+            "tokenizer": AutoTokenizer.from_pretrained(
+                TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_TOKENIZER_CACHE
+            ),
+        }
+        print("✅ Loaded translator")
+    else:
+        print("⚪️ Skipping translator")
 
     # For OpenCLIP
     print("⏳ Loading OpenCLIP")
