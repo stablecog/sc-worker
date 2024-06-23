@@ -101,7 +101,10 @@ def translate():
 
 def run_nllbapi(models_pack: ModelsPack):
     host = os.environ.get("NLLBAPI_HOST", "0.0.0.0")
-    port = os.environ.get("NLLBAPI_PORT", 13350)
+    port = os.environ.get("NLLBAPI_PORT", 13349)
     with nllbapi.app_context():
         current_app.models_pack = models_pack
+    print("//////////////////////////////////////////////////////////////////")
+    print(f"🖥️🟢 Starting NLLB API on {host}:{port}")
+    print("//////////////////////////////////////////////////////////////////")
     serve(nllbapi, host=host, port=port)

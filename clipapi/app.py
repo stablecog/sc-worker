@@ -180,5 +180,7 @@ def run_clipapi(models_pack: ModelsPack):
     port = os.environ.get("CLIPAPI_PORT", 13339)
     with clipapi.app_context():
         current_app.models_pack = models_pack
-    # clipapi.run(host=host, port=port)
+    print("//////////////////////////////////////////////////////////////////")
+    print(f"🖥️🟢 Starting CLIP API on {host}:{port}")
+    print("//////////////////////////////////////////////////////////////////")
     serve(clipapi, host=host, port=port)

@@ -12,7 +12,7 @@ from botocore.config import Config
 from dotenv import load_dotenv
 import torch
 
-from models.nllb.app import run_nllbapi
+from nllbapi.app import run_nllbapi
 from predict.image.setup import setup as image_setup
 from predict.voiceover.setup import setup as voiceover_setup
 from rabbitmq_consumer.worker import start_amqp_queue_worker
