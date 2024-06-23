@@ -132,10 +132,12 @@ if __name__ == "__main__":
             # CLIP
             clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
             clipapi_thread.start()
-            clipapi_thread.join()
             # NLLB
             nllbapi_thread = Thread(target=lambda: run_nllbapi(models_pack=models_pack))
             nllbapi_thread.start()
+
+            # Join threads
+            clipapi_thread.join()
             nllbapi_thread.join()
         mq_worker_thread.join()
         upload_thread.join()
