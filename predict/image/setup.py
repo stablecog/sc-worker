@@ -36,12 +36,11 @@ from models.kandinsky.constants import (
     LOAD_KANDINSKY_2_2,
 )
 from models.nllb.constants import (
-    TRANSLATOR_CACHE,
     TRANSLATOR_MODEL_CACHE,
     TRANSLATOR_MODEL_ID,
     TRANSLATOR_TOKENIZER_CACHE,
 )
-from models.open_clip.constants import OPEN_CLIP_MODEL_ID
+from models.open_clip.constants import OPEN_CLIP_MODEL_CACHE, OPEN_CLIP_MODEL_ID
 from models.stable_diffusion.constants import (
     SD_MODEL_CACHE,
     SD_MODEL_FOR_SAFETY_CHECKER,
@@ -384,13 +383,13 @@ def setup() -> ModelsPack:
     print("⏳ Loading OpenCLIP")
     open_clip = {
         "model": AutoModel.from_pretrained(
-            OPEN_CLIP_MODEL_ID, cache_dir=TRANSLATOR_CACHE
+            OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
         ).to(DEVICE),
         "processor": AutoProcessor.from_pretrained(
-            OPEN_CLIP_MODEL_ID, cache_dir=TRANSLATOR_CACHE
+            OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
         ),
         "tokenizer": AutoTokenizer.from_pretrained(
-            OPEN_CLIP_MODEL_ID, cache_dir=TRANSLATOR_CACHE
+            OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
         ),
     }
     print("✅ Loaded OpenCLIP")
