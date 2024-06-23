@@ -4,6 +4,11 @@ import traceback
 from flask import Flask, request, current_app, jsonify
 from waitress import serve
 
+from models.nllb.constants import (
+    DETECTED_CONFIDENCE_SCORE_MIN,
+    TARGET_LANG_FLORES,
+    TARGET_LANG_SCORE_MAX,
+)
 from models.nllb.translate import translate_text
 from predict.image.setup import ModelsPack
 import time
@@ -39,18 +44,25 @@ def translate():
         if req_body is None:
             return "Missing request body", 400
 
-    text_1 = req_body.get("text_1")
-    text_flores_1 = req_body.get("text_flores_1")
-    target_flores_1 = req_body.get("target_flores_1")
-    detected_confidence_score_min_1 = req_body.get("detected_confidence_score_min_1")
-    target_score_max_1 = req_body.get("target_score_max_1")
-    label_1 = req_body.get("label_1")
-    text_2 = req_body.get("text_2")
-    text_flores_2 = req_body.get("text_flores_2")
-    target_flores_2 = req_body.get("target_flores_2")
-    detected_confidence_score_min_2 = req_body.get("detected_confidence_score_min_2")
-    target_score_max_2 = req_body.get("target_score_max_2")
-    label_2 = req_body.get("label_2")
+    # Text 1
+    text_1 = req_body.get("text_1", "")
+    text_flores_1 = req_body.get("text_flores_1", None)
+    target_flores_1 = req_body.get("target_flores_1", TARGET_LANG_FLORES)
+    target_score_max_1 = req_body.get("target_score_max_1", TARGET_LANG_SCORE_MAX)
+    detected_confidence_score_min_1 = req_body.get(
+        "detected_confidence_score_min_1", DETECTED_CONFIDENCE_SCORE_MIN
+    )
+    label_1 = req_body.get("label_1", "Text")
+
+    # Text 2
+    text_2 = req_body.get("text_2", None)
+    text_flores_2 = req_body.get("text_flores_2", None)
+    target_flores_2 = req_body.get("target_flores_2", TARGET_LANG_FLORES)
+    target_score_max_2 = req_body.get("target_score_max_2", TARGET_LANG_SCORE_MAX)
+    detected_confidence_score_min_2 = req_body.get(
+        "detected_confidence_score_min_2", DETECTED_CONFIDENCE_SCORE_MIN
+    )
+    label_2 = req_body.get("label_2", "Text")
 
     extra_kwargs = {
         "model": models_pack.translator.model,

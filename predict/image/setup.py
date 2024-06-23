@@ -372,10 +372,10 @@ def setup() -> ModelsPack:
         ),
         "model": AutoModelForSeq2SeqLM.from_pretrained(
             TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_MODEL_CACHE
-        ).to(DEVICE),
+        ),
         "tokenizer": AutoTokenizer.from_pretrained(
             TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_TOKENIZER_CACHE
-        ).to(DEVICE),
+        ),
     }
     print("✅ Loaded translator")
 
