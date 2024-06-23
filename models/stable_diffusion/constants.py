@@ -86,7 +86,6 @@ SD_MODELS_ALL = {
     },
 }
 
-SD_MODEL_FOR_SAFETY_CHECKER = "Luna Diffusion"
 SD_MODELS = {}
 if MODELS_FROM_ENV == "all":
     SD_MODELS = SD_MODELS_ALL

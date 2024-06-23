@@ -107,9 +107,6 @@ class PredictInput(BaseModel):
         description="Height of output image.",
         default=512,
     )
-    skip_safety_checker: bool = Field(
-        description="Whether to skip the safety checker or not.", default=False
-    )
 
     @validator("model")
     def validate_model(cls, v):
@@ -165,7 +162,6 @@ def predict(
     nsfw_count = 0
     open_clip_embeds_of_images = None
     open_clip_embed_of_prompt = None
-    saved_safety_checker = None
 
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
         generator_pipe = None
@@ -174,8 +170,7 @@ def predict(
         else:
             generator_pipe = models_pack.sd_pipes[input.model]
 
-        if input.skip_safety_checker and hasattr(generator_pipe, "safety_checker"):
-            saved_safety_checker = generator_pipe.safety_checker
+        if hasattr(generator_pipe, "safety_checker"):
             generator_pipe.safety_checker = None
 
         prompt_final = input.prompt
@@ -238,10 +233,7 @@ def predict(
 
         if input.model == KANDINKSY_2_2_MODEL_NAME:
             generate_output_images, generate_nsfw_count = generate_with_kandinsky_2_2(
-                **args,
-                safety_checker=(
-                    None if input.skip_safety_checker else models_pack.safety_checker
-                ),
+                **args, safety_checker=None
             )
         else:
             generate_output_images, generate_nsfw_count = generate_with_sd(**args)
@@ -344,13 +336,6 @@ def predict(
         nsfw_count=nsfw_count,
     )
     process_end = time.time()
-
-    if (
-        saved_safety_checker is not None
-        and generator_pipe is not None
-        and hasattr(generator_pipe, "safety_checker")
-    ):
-        generator_pipe.safety_checker = saved_safety_checker
 
     print(
         f"✅ Process completed in: {round((process_end - process_start) * 1000)} ms ✅"

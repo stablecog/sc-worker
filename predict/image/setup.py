@@ -1,6 +1,5 @@
 import os
 import time
-from functools import partial
 from typing import Any
 
 import torch
@@ -44,13 +43,11 @@ from models.nllb.constants import (
 from models.open_clip.constants import OPEN_CLIP_MODEL_CACHE, OPEN_CLIP_MODEL_ID
 from models.stable_diffusion.constants import (
     SD_MODEL_CACHE,
-    SD_MODEL_FOR_SAFETY_CHECKER,
     SD_MODELS,
 )
-from models.stable_diffusion.filter import forward_inspect
 from models.swinir.constants import DEVICE_SWINIR, MODELS_SWINIR, TASKS_SWINIR
 from models.swinir.helpers import define_model_swinir, get_args_swinir
-from shared.constants import SKIP_SAFETY_CHECKER, WORKER_VERSION
+from shared.constants import WORKER_VERSION
 from shared.helpers import print_tuple
 
 
@@ -96,7 +93,6 @@ class ModelsPack:
         translator: Any | None,
         open_clip: Any,
         kandinsky_2_2: KandinskyPipe_2_2,
-        safety_checker: Any,
         aesthetics_scorer: Any,
     ):
         self.sd_pipes = sd_pipes
@@ -104,7 +100,6 @@ class ModelsPack:
         self.translator = translator
         self.open_clip = open_clip
         self.kandinsky_2_2 = kandinsky_2_2
-        self.safety_checker = safety_checker
         self.aesthetics_scorer = aesthetics_scorer
 
 
@@ -258,8 +253,7 @@ def setup() -> ModelsPack:
             )
         else:
             extra_args = {}
-            if SKIP_SAFETY_CHECKER == "1":
-                extra_args["safety_checker"] = None
+            extra_args["safety_checker"] = None
             text2img = StableDiffusionPipeline.from_pretrained(
                 SD_MODELS[key]["id"],
                 torch_dtype=SD_MODELS[key]["torch_dtype"],
@@ -294,27 +288,6 @@ def setup() -> ModelsPack:
         print(
             f"✅ Loaded SD model: {key} | Duration: {round(time.time() - s, 1)} seconds"
         )
-
-    # Safety checker for Kandinsky
-    safety_checker = None
-    if SKIP_SAFETY_CHECKER == "1":
-        safety_checker = None
-    else:
-        print("⏳ Loading safety checker")
-        safety_pipe = StableDiffusionPipeline.from_pretrained(
-            SD_MODELS[SD_MODEL_FOR_SAFETY_CHECKER]["id"],
-            torch_dtype=SD_MODELS[key]["torch_dtype"],
-            cache_dir=SD_MODEL_CACHE,
-        )
-        safety_pipe = safety_pipe.to(DEVICE)
-        safety_pipe.safety_checker.forward = partial(
-            forward_inspect, self=safety_pipe.safety_checker
-        )
-        safety_checker = {
-            "checker": safety_pipe.safety_checker,
-            "feature_extractor": safety_pipe.feature_extractor,
-        }
-        print("✅ Loaded safety checker")
 
     # Kandinsky 2.2
     kandinsky_2_2 = None
@@ -428,6 +401,5 @@ def setup() -> ModelsPack:
         translator=translator,
         open_clip=open_clip,
         kandinsky_2_2=kandinsky_2_2,
-        safety_checker=safety_checker,
         aesthetics_scorer=aesthetics_scorer,
     )
