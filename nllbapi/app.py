@@ -65,9 +65,9 @@ def translate():
     label_2 = req_body.get("label_2", "Text")
 
     extra_kwargs = {
-        "model": models_pack.translator.model,
-        "tokenizer": models_pack.translator.tokenizer,
-        "detector": models_pack.translator.detect_language,
+        "model": models_pack.translator["model"],
+        "tokenizer": models_pack.translator["tokenizer"],
+        "detector": models_pack.translator["detector"],
     }
 
     output_strings = []

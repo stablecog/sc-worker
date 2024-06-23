@@ -12,10 +12,10 @@ def translate_text(
     target_flores,
     target_score_max,
     detected_confidence_score_min,
+    label,
     model,
     tokenizer,
     detector,
-    label,
 ):
     if text == "":
         print(f"-- {label} - No text to translate, skipping --")
