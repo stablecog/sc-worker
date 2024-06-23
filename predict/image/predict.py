@@ -17,7 +17,6 @@ from models.stable_diffusion.constants import (
 )
 
 from models.stable_diffusion.generate import generate as generate_with_sd
-from models.nllb.constants import TRANSLATOR_COG_URL
 from models.swinir.upscale import upscale
 
 from typing import List
@@ -107,14 +106,6 @@ class PredictInput(BaseModel):
     height: int = Field(
         description="Height of output image.",
         default=512,
-    )
-    translator_cog_url: str = Field(
-        description="URL of the translator cog. If it's blank, TRANSLATOR_COG_URL environment variable will be used (if it exists).",
-        default=TRANSLATOR_COG_URL,
-    )
-    skip_translation: bool = Field(
-        description="Whether to skip translating the prompt and the negative prompt or not.",
-        default=False,
     )
     skip_safety_checker: bool = Field(
         description="Whether to skip the safety checker or not.", default=False
