@@ -8,6 +8,7 @@ import time
 from shared.helpers import (
     download_and_fit_image,
     log_gpu_memory,
+    move_pipe_to_device,
     print_tuple,
 )
 
@@ -103,10 +104,9 @@ def generate(
         extra_kwargs["height"] = height
 
     if "keep_in_cpu_when_idle" in SD_MODELS[model]:
-        s = time.time()
-        pipe_selected = pipe_selected.to(DEVICE)
-        e = time.time()
-        print_tuple(f"🚀 Moved {model} to GPU", f"{round((e - s) * 1000)} ms")
+        pipe_selected = move_pipe_to_device(
+            pipe=pipe_selected, model=model, device=DEVICE
+        )
 
     pipe_selected.scheduler = get_scheduler(scheduler, pipe_selected.scheduler.config)
     output = pipe_selected(
@@ -121,10 +121,9 @@ def generate(
     log_gpu_memory(message="GPU status after inference")
 
     if "keep_in_cpu_when_idle" in SD_MODELS[model]:
-        s = time.time()
-        pipe_selected = pipe_selected.to("cpu", silence_dtype_warnings=True)
-        e = time.time()
-        print_tuple(f"🐢 Moved {model} to CPU", f"{round((e - s) * 1000)} ms")
+        pipe_selected = move_pipe_to_device(
+            pipe=pipe_selected, model=model, device="cpu"
+        )
 
     output_images = []
     nsfw_count = 0
@@ -153,11 +152,8 @@ def generate(
         }
 
         if "keep_in_cpu_when_idle" in SD_MODELS[model]:
-            s = time.time()
-            pipe.refiner = pipe.refiner.to(DEVICE)
-            e = time.time()
-            print_tuple(
-                f"🚀 Moved {model} refiner to GPU", f"{round((e - s) * 1000)} ms"
+            pipe.refiner = move_pipe_to_device(
+                pipe=pipe.refiner, model=model, device=DEVICE
             )
 
         s = time.time()
@@ -166,11 +162,8 @@ def generate(
         print(f"🖌️ Refined {len(output_images)} images in: {round((e - s) * 1000)} ms")
 
         if "keep_in_cpu_when_idle" in SD_MODELS[model]:
-            s = time.time()
-            pipe.refiner = pipe.refiner.to("cpu", silence_dtype_warnings=True)
-            e = time.time()
-            print_tuple(
-                f"🐢 Moved {model} refiner to CPU", f"{round((e - s) * 1000)} ms"
+            pipe.refiner = move_pipe_to_device(
+                pipe=pipe.refiner, model=model, device="cpu"
             )
 
     if nsfw_count > 0:
