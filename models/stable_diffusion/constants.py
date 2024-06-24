@@ -70,13 +70,6 @@ SD_MODELS_ALL = {
         "branch": "fp16",
         "keep_in_cpu_when_idle": True,
     },
-    "Openjourney": {
-        "id": "prompthero/openjourney",
-        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
-        "prompt_prefix": "mdjrny-v4 style",
-        "torch_dtype": torch.float16,
-        "keep_in_cpu_when_idle": True,
-    },
     "22h Diffusion": {
         "id": "22h/vintedois-diffusion-v0-1",
         "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
