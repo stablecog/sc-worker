@@ -12,7 +12,6 @@ from shared.helpers import (
     move_pipe_to_device,
     pad_image_mask_nd,
     pad_image_pil,
-    print_tuple,
 )
 import torch
 from torch.cuda.amp import autocast
@@ -70,7 +69,7 @@ def generate_2_2(
 
     if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
         pipe.prior = move_pipe_to_device(
-            pipe=pipe.prior, name=kandinsky_2_2_model_name, device=DEVICE
+            pipe=pipe.prior, model_name=kandinsky_2_2_model_name, device=DEVICE
         )
 
     if (
@@ -139,7 +138,7 @@ def generate_2_2(
         weights = [prompt_strength, 1 - prompt_strength]
         if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
             pipe.text2img = move_pipe_to_device(
-                pipe=pipe.text2img, name=kandinsky_2_2_model_name, device=DEVICE
+                pipe=pipe.text2img, model_name=kandinsky_2_2_model_name, device=DEVICE
             )
         prior_out = pipe.prior.interpolate(
             images_and_texts,
@@ -162,7 +161,7 @@ def generate_2_2(
         pipe.text2img.scheduler = get_scheduler(scheduler, pipe.text2img)
         if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
             pipe.text2img = move_pipe_to_device(
-                pipe=pipe.text2img, name=kandinsky_2_2_model_name, device=DEVICE
+                pipe=pipe.text2img, model_name=kandinsky_2_2_model_name, device=DEVICE
             )
         img_emb = pipe.prior(
             prompt=prompt,
@@ -219,7 +218,7 @@ def generate_2_2(
 
     if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
         pipe.prior = move_pipe_to_device(
-            pipe=pipe.prior, name=kandinsky_2_2_model_name, device="cpu"
+            pipe=pipe.prior, model_name=kandinsky_2_2_model_name, device="cpu"
         )
         if (
             init_image_url is not None
@@ -227,11 +226,11 @@ def generate_2_2(
             and pipe.inpaint is not None
         ):
             pipe.inpaint = move_pipe_to_device(
-                pipe=pipe.inpaint, name=kandinsky_2_2_model_name, device="cpu"
+                pipe=pipe.inpaint, model_name=kandinsky_2_2_model_name, device="cpu"
             )
         else:
             pipe.text2img = move_pipe_to_device(
-                pipe=pipe.text2img, name=kandinsky_2_2_model_name, device="cpu"
+                pipe=pipe.text2img, model_name=kandinsky_2_2_model_name, device="cpu"
             )
 
     return filtered_output_images, nsfw_count

@@ -374,10 +374,12 @@ def log_gpu_memory(device_id=0, message=None):
         print(f"Failed to log GPU memory")
 
 
-def move_pipe_to_device(pipe, name, device):
+def move_pipe_to_device(pipe, model_name, device):
     s = time.time()
     pipe = pipe.to(device, silence_dtype_warnings=True)
     e = time.time()
     emoji = "🚀" if device == "cuda" else "🐌"
-    print_tuple(f"{emoji} Moved {name} to {device}", f"{round((e - s) * 1000)} ms")
+    print_tuple(
+        f"{emoji} Moved {model_name} to {device}", f"{round((e - s) * 1000)} ms"
+    )
     return pipe

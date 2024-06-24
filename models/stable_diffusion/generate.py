@@ -9,7 +9,6 @@ from shared.helpers import (
     download_and_fit_image,
     log_gpu_memory,
     move_pipe_to_device,
-    print_tuple,
 )
 
 
@@ -105,7 +104,7 @@ def generate(
 
     if "keep_in_cpu_when_idle" in SD_MODELS[model]:
         pipe_selected = move_pipe_to_device(
-            pipe=pipe_selected, model=model, device=DEVICE
+            pipe=pipe_selected, model_name=model, device=DEVICE
         )
 
     pipe_selected.scheduler = get_scheduler(scheduler, pipe_selected.scheduler.config)
@@ -122,7 +121,7 @@ def generate(
 
     if "keep_in_cpu_when_idle" in SD_MODELS[model]:
         pipe_selected = move_pipe_to_device(
-            pipe=pipe_selected, model=model, device="cpu"
+            pipe=pipe_selected, model_name=model, device="cpu"
         )
 
     output_images = []
@@ -153,7 +152,7 @@ def generate(
 
         if "keep_in_cpu_when_idle" in SD_MODELS[model]:
             pipe.refiner = move_pipe_to_device(
-                pipe=pipe.refiner, model=model, device=DEVICE
+                pipe=pipe.refiner, model_name=model, device=DEVICE
             )
 
         s = time.time()
@@ -163,7 +162,7 @@ def generate(
 
         if "keep_in_cpu_when_idle" in SD_MODELS[model]:
             pipe.refiner = move_pipe_to_device(
-                pipe=pipe.refiner, model=model, device="cpu"
+                pipe=pipe.refiner, model_name=model, device="cpu"
             )
 
     if nsfw_count > 0:
