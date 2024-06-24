@@ -1,13 +1,18 @@
 import os
 import time
+
+from models.constants import DEVICE
+from models.kandinsky.constants import KANDINSKY_2_2_IN_CPU_WHEN_IDLE
 from .helpers import get_scheduler
 from predict.image.setup import KandinskyPipe_2_2
 from shared.helpers import (
     crop_images,
     download_and_fit_image,
     download_and_fit_image_mask,
+    move_pipe_to_device,
     pad_image_mask_nd,
     pad_image_pil,
+    print_tuple,
 )
 import torch
 from torch.cuda.amp import autocast
@@ -17,6 +22,8 @@ PRIOR_GUIDANCE_SCALE = 4.0
 
 
 kandinsky_2_2_negative_prompt_prefix = "overexposed"
+
+kandinsky_2_2_model_name = "Kandinsky 2.2"
 
 
 def generate_2_2(
@@ -61,6 +68,11 @@ def generate_2_2(
 
     output_images = None
 
+    if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
+        pipe.prior = move_pipe_to_device(
+            pipe=pipe.prior, name=kandinsky_2_2_model_name, device=DEVICE
+        )
+
     if (
         init_image_url is not None
         and mask_image_url is not None
@@ -85,6 +97,10 @@ def generate_2_2(
         print(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
         )
+        if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
+            pipe.inpaint = move_pipe_to_device(
+                pipe=pipe.inpaint, name=kandinsky_2_2_model_name, device=DEVICE
+            )
         img_emb = pipe.prior(
             prompt=prompt,
             num_inference_steps=PRIOR_STEPS,
@@ -121,6 +137,10 @@ def generate_2_2(
         start = time.time()
         images_and_texts = [prompt, init_image]
         weights = [prompt_strength, 1 - prompt_strength]
+        if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
+            pipe.text2img = move_pipe_to_device(
+                pipe=pipe.text2img, name=kandinsky_2_2_model_name, device=DEVICE
+            )
         prior_out = pipe.prior.interpolate(
             images_and_texts,
             weights,
@@ -140,6 +160,10 @@ def generate_2_2(
         ).images
     else:
         pipe.text2img.scheduler = get_scheduler(scheduler, pipe.text2img)
+        if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
+            pipe.text2img = move_pipe_to_device(
+                pipe=pipe.text2img, name=kandinsky_2_2_model_name, device=DEVICE
+            )
         img_emb = pipe.prior(
             prompt=prompt,
             num_inference_steps=PRIOR_STEPS,
@@ -192,5 +216,22 @@ def generate_2_2(
             nsfw_count += 1
         else:
             filtered_output_images.append(output_images[i])
+
+    if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
+        pipe.prior = move_pipe_to_device(
+            pipe=pipe.prior, name=kandinsky_2_2_model_name, device="cpu"
+        )
+        if (
+            init_image_url is not None
+            and mask_image_url is not None
+            and pipe.inpaint is not None
+        ):
+            pipe.inpaint = move_pipe_to_device(
+                pipe=pipe.inpaint, name=kandinsky_2_2_model_name, device="cpu"
+            )
+        else:
+            pipe.text2img = move_pipe_to_device(
+                pipe=pipe.text2img, name=kandinsky_2_2_model_name, device="cpu"
+            )
 
     return filtered_output_images, nsfw_count

@@ -31,6 +31,7 @@ from models.constants import DEVICE
 from models.download.download_from_hf import download_swinir_models
 from models.kandinsky.constants import (
     KANDINSKY_2_2_DECODER_MODEL_ID,
+    KANDINSKY_2_2_IN_CPU_WHEN_IDLE,
     KANDINSKY_2_2_PRIOR_MODEL_ID,
     LOAD_KANDINSKY_2_2,
 )
@@ -294,16 +295,22 @@ def setup() -> ModelsPack:
     if LOAD_KANDINSKY_2_2:
         s = time.time()
         print("⏳ Loading Kandinsky 2.2")
+        kandinsky_device = DEVICE
+        if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
+            kandinsky_device = "cpu"
+            print_tuple("🐌 Keep in CPU when idle", "Kandinsky 2.2")
+        else:
+            print_tuple("🚀 Keep in GPU", "Kandinsky 2.2")
         prior = KandinskyV22PriorPipeline.from_pretrained(
             KANDINSKY_2_2_PRIOR_MODEL_ID,
             torch_dtype=torch.float16,
             cache_dir=SD_MODEL_CACHE,
-        ).to(DEVICE)
+        ).to(kandinsky_device)
         text2img = KandinskyV22Pipeline.from_pretrained(
             KANDINSKY_2_2_DECODER_MODEL_ID,
             torch_dtype=torch.float16,
             cache_dir=SD_MODEL_CACHE,
-        ).to(DEVICE)
+        ).to(kandinsky_device)
         img2img = KandinskyV22Pipeline(**text2img.components)
         inpaint = None
         """ KandinskyV22InpaintPipeline.from_pretrained(

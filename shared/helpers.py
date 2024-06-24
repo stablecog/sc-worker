@@ -372,3 +372,12 @@ def log_gpu_memory(device_id=0, message=None):
         )
     except Exception as e:
         print(f"Failed to log GPU memory")
+
+
+def move_pipe_to_device(pipe, name, device):
+    s = time.time()
+    pipe = pipe.to(device)
+    e = time.time()
+    emoji = "🚀" if device == "cuda" else "🐢"
+    print_tuple(f"{emoji} Moved {name} to {device}", f"{round((e - s) * 1000)} ms")
+    return pipe
