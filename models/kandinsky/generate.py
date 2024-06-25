@@ -69,7 +69,9 @@ def generate_2_2(
 
     if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
         pipe.prior = move_pipe_to_device(
-            pipe=pipe.prior, model_name=kandinsky_2_2_model_name, device=DEVICE
+            pipe=pipe.prior,
+            model_name=f"{kandinsky_2_2_model_name} Prior",
+            device=DEVICE,
         )
 
     if (
@@ -98,7 +100,9 @@ def generate_2_2(
         )
         if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
             pipe.inpaint = move_pipe_to_device(
-                pipe=pipe.inpaint, name=kandinsky_2_2_model_name, device=DEVICE
+                pipe=pipe.inpaint,
+                name=f"{kandinsky_2_2_model_name} Inpaint",
+                device=DEVICE,
             )
         img_emb = pipe.prior(
             prompt=prompt,
@@ -218,7 +222,9 @@ def generate_2_2(
 
     if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
         pipe.prior = move_pipe_to_device(
-            pipe=pipe.prior, model_name=kandinsky_2_2_model_name, device="cpu"
+            pipe=pipe.prior,
+            model_name=f"{kandinsky_2_2_model_name} Prior",
+            device="cpu",
         )
         if (
             init_image_url is not None
@@ -226,7 +232,9 @@ def generate_2_2(
             and pipe.inpaint is not None
         ):
             pipe.inpaint = move_pipe_to_device(
-                pipe=pipe.inpaint, model_name=kandinsky_2_2_model_name, device="cpu"
+                pipe=pipe.inpaint,
+                model_name=f"{kandinsky_2_2_model_name} Inpaint",
+                device="cpu",
             )
         else:
             pipe.text2img = move_pipe_to_device(
