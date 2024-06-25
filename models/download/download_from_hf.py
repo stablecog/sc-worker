@@ -13,9 +13,10 @@ import time
 
 def download_models_from_hf(downloadAll=True):
     # Login to HuggingFace if there is a token
-    if os.environ.get("HF_TOKEN"):
+    token = os.environ.get("HF_TOKEN", None)
+    if token is not None:
         print(f"⏳ Logging in to HuggingFace")
-        login()
+        login(token=token)
         print(f"✅ Logged in to HuggingFace")
     download_sd_models_from_hf(downloadAll=downloadAll)
     download_swinir_models()

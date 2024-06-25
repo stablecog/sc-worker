@@ -110,7 +110,7 @@ def setup() -> ModelsPack:
 
     hf_token = os.environ.get("HF_TOKEN", None)
     if hf_token is not None:
-        login()
+        login(token=hf_token)
         print(f"✅ Logged in to HuggingFace")
 
     download_swinir_models()
