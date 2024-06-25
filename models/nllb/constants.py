@@ -92,5 +92,9 @@ TARGET_LANG_SCORE_MAX = 0.88
 DETECTED_CONFIDENCE_SCORE_MIN = 0.1
 LAUNCH_NLLBAPI_RAW = os.environ.get("LAUNCH_NLLBAPI", False)
 LAUNCH_NLLBAPI = (
-    True if LAUNCH_NLLBAPI_RAW == "True" or LAUNCH_NLLBAPI_RAW == "1" else False
+    True
+    if LAUNCH_NLLBAPI_RAW == "True"
+    or LAUNCH_NLLBAPI_RAW == True
+    or LAUNCH_NLLBAPI_RAW == "1"
+    else False
 )
