@@ -7,15 +7,15 @@ from diffusers import (
 import concurrent.futures
 import os
 from models.swinir.constants import MODEL_DIR_SWINIR, MODEL_NAME_SWINIR
-from huggingface_hub import _login
+from huggingface_hub import login
 import time
 
 
 def download_models_from_hf(downloadAll=True):
     # Login to HuggingFace if there is a token
-    if os.environ.get("HUGGINGFACE_TOKEN"):
+    if os.environ.get("HF_TOKEN"):
         print(f"⏳ Logging in to HuggingFace")
-        _login.login(token=os.environ.get("HUGGINGFACE_TOKEN"))
+        login()
         print(f"✅ Logged in to HuggingFace")
     download_sd_models_from_hf(downloadAll=downloadAll)
     download_swinir_models()

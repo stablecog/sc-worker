@@ -15,7 +15,7 @@ from diffusers import (
     StableDiffusionXLPipeline,
 )
 from diffusers.models import AutoencoderKL
-from huggingface_hub import _login
+from huggingface_hub import login
 from lingua import LanguageDetectorBuilder
 from transformers import AutoModel, AutoProcessor, AutoTokenizer, AutoModelForSeq2SeqLM
 
@@ -108,9 +108,9 @@ def setup() -> ModelsPack:
     start = time.time()
     print(f"⏳ Setup has started - Version: {WORKER_VERSION}")
 
-    hf_token = os.environ.get("HUGGINGFACE_TOKEN", None)
+    hf_token = os.environ.get("HF_TOKEN", None)
     if hf_token is not None:
-        _login.login(token=hf_token)
+        login()
         print(f"✅ Logged in to HuggingFace")
 
     download_swinir_models()
