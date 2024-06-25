@@ -2,17 +2,19 @@ import datetime
 import json
 import queue
 import hashlib
-import os
 import time
 import traceback
-from typing import Any, Dict, Iterable, Tuple, Callable
+from typing import Any, Dict, Iterable, Tuple
 from threading import Event
 import logging
 
-from boto3_type_annotations.s3 import ServiceResource
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
-from pika.exceptions import ConnectionClosedByBroker, AMQPConnectionError, AMQPChannelError
+from pika.exceptions import (
+    ConnectionClosedByBroker,
+    AMQPConnectionError,
+    AMQPChannelError,
+)
 
 from rabbitmq_consumer.events import Status, Event
 from rabbitmq_consumer.connection import RabbitMQConnection
@@ -57,14 +59,6 @@ def generate_queue_name_from_capabilities(
 callback_in_progress = False
 
 
-# def should_process(redisConn: redis.Redis, message_id):
-#     """See if a message is being processed by another worker"""
-#     # Check and set the message_id in Redis atomically
-#     result = redisConn.set(message_id, 1, nx=True, ex=300)
-#     logging.info(f"Redis set result for message {message_id}: {result}")
-#     return bool(result)
-
-
 def create_amqp_callback(
     queue_name: str,
     worker_type: str,
@@ -79,10 +73,6 @@ def create_amqp_callback(
         properties: BasicProperties,
         body: bytes,
     ) -> None:
-        # if not should_process(redisConn, properties.message_id):
-        #     logging.info(f"Message {properties.message_id} is already being processed")
-        #     channel.basic_ack(delivery_tag=method.delivery_tag)
-        #     return
 
         global callback_in_progress
         try:
@@ -126,9 +116,11 @@ def create_amqp_callback(
             for response_event, response in run_prediction(message, **args):
                 if "upload_output" in response and isinstance(
                     response["upload_output"],
-                    PredictResultForVoiceover
-                    if worker_type == "voiceover"
-                    else PredictResultForImage,
+                    (
+                        PredictResultForVoiceover
+                        if worker_type == "voiceover"
+                        else PredictResultForImage
+                    ),
                 ):
                     logging.info(f"-- Upload: Putting to queue")
                     upload_queue.put(response)
@@ -183,7 +175,9 @@ def start_amqp_queue_worker(
     while not shutdown_event.is_set() or callback_in_progress:
         try:
             connection.channel.basic_qos(prefetch_count=1)
-            connection.channel.basic_consume(queue=queue_name, on_message_callback=msg_callback)
+            connection.channel.basic_consume(
+                queue=queue_name, on_message_callback=msg_callback
+            )
             connection.channel.start_consuming()
         except ConnectionClosedByBroker as err:
             logging.error(f"ConnectionClosedByBroker {err}")
