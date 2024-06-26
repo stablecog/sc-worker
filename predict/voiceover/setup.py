@@ -6,7 +6,7 @@ from bark.generation import (
 import nltk
 from typing import Any
 from denoiser import pretrained
-from shared.log import custom_log
+from shared.log import custom_logger
 
 
 class ModelsPack:
@@ -19,7 +19,7 @@ class ModelsPack:
 
 def setup() -> ModelsPack:
     start = time.time()
-    custom_log(f"⏳ Setup has started - Version: {WORKER_VERSION}")
+    custom_logger.info(f"⏳ Setup has started - Version: {WORKER_VERSION}")
 
     nltk.download("punkt")
     preload_models()
@@ -31,8 +31,12 @@ def setup() -> ModelsPack:
     )
 
     end = time.time()
-    custom_log("//////////////////////////////////////////////////////////////////")
-    custom_log(f"✅ Predict setup is done in: {round(end - start)} sec.")
-    custom_log("//////////////////////////////////////////////////////////////////")
+    custom_logger.info(
+        "//////////////////////////////////////////////////////////////////"
+    )
+    custom_logger.info(f"✅ Predict setup is done in: {round(end - start)} sec.")
+    custom_logger.info(
+        "//////////////////////////////////////////////////////////////////"
+    )
 
     return pack

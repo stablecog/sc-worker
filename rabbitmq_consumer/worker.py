@@ -33,6 +33,7 @@ from predict.image.setup import ModelsPack as ModelsPackForImage
 from predict.voiceover.setup import ModelsPack as ModelsPackForVoiceover
 from shared.webhook import post_webhook
 from tabulate import tabulate
+from shared.log import custom_logger
 
 
 def generate_queue_name_from_capabilities(
@@ -86,7 +87,7 @@ def create_amqp_callback(
                 ["Message ID", properties.message_id],
                 ["Priority", properties.priority],
             ]
-            logging.info("\n" + tabulate(log_table, tablefmt="double_grid"))
+            custom_logger.info("\n" + tabulate(log_table, tablefmt="double_grid"))
 
             if "webhook_events_filter" in message:
                 valid_events = {ev.value for ev in Event}
@@ -122,15 +123,15 @@ def create_amqp_callback(
                         else PredictResultForImage
                     ),
                 ):
-                    logging.info(f"-- Upload: Putting to queue")
+                    custom_logger.info(f"-- Upload: Putting to queue")
                     upload_queue.put(response)
-                    logging.info(f"-- Upload: Put to queue")
+                    custom_logger.info(f"-- Upload: Put to queue")
                 elif response_event in events_filter:
                     status_code = post_webhook(webhook_url, response)
-                    logging.info(f"-- Webhook: {status_code}")
+                    custom_logger.info(f"-- Webhook: {status_code}")
         except Exception as e:
             tb = traceback.format_exc()
-            logging.error(f"Failed to handle message: {tb}\n")
+            custom_logger.error(f"Failed to handle message: {tb}\n")
         finally:
             channel.basic_ack(delivery_tag=method.delivery_tag)
             callback_in_progress = False
@@ -146,7 +147,7 @@ def start_amqp_queue_worker(
     models_pack: ModelsPackForImage | ModelsPackForVoiceover,
     shutdown_event: Event,
 ) -> None:
-    logging.info(f"Listening for messages on {queue_name}\n")
+    custom_logger.info(f"Listening for messages on {queue_name}\n")
 
     # ! Removed things that may be useful later, when using routing keys per model
     # Declare a queue with priority support
@@ -180,18 +181,18 @@ def start_amqp_queue_worker(
             )
             connection.channel.start_consuming()
         except ConnectionClosedByBroker as err:
-            logging.error(f"ConnectionClosedByBroker {err}")
+            custom_logger.error(f"ConnectionClosedByBroker {err}")
             connection.reconnect()
             continue
         except AMQPChannelError as err:
-            logging.error(f"AMQPChannelError {err}")
+            custom_logger.error(f"AMQPChannelError {err}")
             break
         except AMQPConnectionError as err:
-            logging.error(f"AMQPConnectionError {err}")
+            custom_logger.error(f"AMQPConnectionError {err}")
             connection.reconnect()
             continue
     if callback_in_progress:
-        logging.info(f"Waiting for callback to finish")
+        custom_logger.info(f"Waiting for callback to finish")
         # Give it a max of 30s to finish
         for i in range(60):
             if not callback_in_progress:
@@ -200,16 +201,16 @@ def start_amqp_queue_worker(
             time.sleep(0.5)
             pass
     try:
-        logging.info(f"Stopping rabbitmq queue channel")
+        custom_logger.info(f"Stopping rabbitmq queue channel")
         connection.channel.close()
-        logging.info(f"Closing rabbitmq connection")
+        custom_logger.info(f"Closing rabbitmq connection")
         connection.channel.connection.close()
-        logging.info("rabbitmq worker terminated")
+        custom_logger.info("rabbitmq worker terminated")
     except:
         pass
     # Shouldn't have gotten here, exit the whole program
     if not shutdown_event.is_set():
-        logging.info("rabbitmq worker terminated unexpectedly")
+        custom_logger.info("rabbitmq worker terminated unexpectedly")
         shutdown_event.set()
 
 
@@ -232,7 +233,7 @@ def run_prediction_for_image(
         input_obj: Dict[str, Any] = response["input"]
     except Exception as e:
         tb = traceback.format_exc()
-        logging.error(f"Failed to start prediction: {tb}\n")
+        custom_logger.error(f"Failed to start prediction: {tb}\n")
         response["status"] = Status.FAILED
         response["error"] = str(e)
         yield (Event.COMPLETED, response)
@@ -266,7 +267,7 @@ def run_prediction_for_image(
         }
     except Exception as e:
         tb = traceback.format_exc()
-        logging.error(f"Failed to run prediction: {tb}\n")
+        custom_logger.error(f"Failed to run prediction: {tb}\n")
         completed_at = datetime.datetime.now()
         response["completed_at"] = format_datetime(completed_at)
         response["status"] = Status.FAILED
@@ -294,7 +295,7 @@ def run_prediction_for_voiceover(
         input_obj: Dict[str, Any] = response["input"]
     except Exception as e:
         tb = traceback.format_exc()
-        logging.error(f"Failed to start prediction: {tb}\n")
+        custom_logger.error(f"Failed to start prediction: {tb}\n")
         response["status"] = Status.FAILED
         response["error"] = str(e)
         yield (Event.COMPLETED, response)
@@ -327,7 +328,7 @@ def run_prediction_for_voiceover(
         }
     except Exception as e:
         tb = traceback.format_exc()
-        logging.error(f"Failed to run prediction: {tb}\n")
+        custom_logger.error(f"Failed to run prediction: {tb}\n")
         completed_at = datetime.datetime.now()
         response["completed_at"] = format_datetime(completed_at)
         response["status"] = Status.FAILED

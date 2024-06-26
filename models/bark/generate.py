@@ -10,7 +10,7 @@ from shared.helpers import do_normalize_audio_loudness, numpy_to_wav_bytes
 from io import BytesIO
 from typing import List, Any
 import os
-from shared.log import custom_log
+from shared.log import custom_logger
 
 
 class GenerateVoiceoverOutputBark:
@@ -33,8 +33,10 @@ def generate_voiceover(
     normalize_audio_loudness: bool,
 ) -> List[GenerateVoiceoverOutputBark]:
     start = time.time()
-    custom_log("//////////////////////////////////////////////////////////////////")
-    custom_log("⏳ Generating voiceover ⏳")
+    custom_logger.info(
+        "//////////////////////////////////////////////////////////////////"
+    )
+    custom_logger.info("⏳ Generating voiceover ⏳")
 
     script = prompt.replace("\n", " ").strip()
     sentences = nltk.sent_tokenize(script)
@@ -47,7 +49,7 @@ def generate_voiceover(
     pieces = []
     stc_len = len(sentences)
     for i, sentence in enumerate(sentences):
-        custom_log(f"-- Generating: {i+1}/{stc_len} --")
+        custom_logger.info(f"-- Generating: {i+1}/{stc_len} --")
         with pytorch_seed.SavedRNG(seed):
             semantic_tokens = generate_text_semantic(
                 sentence,
@@ -62,8 +64,10 @@ def generate_voiceover(
         pieces += [audio_array]
 
     end = time.time()
-    custom_log(f"🎤 Generated voiceover in: {round(end - start, 2)} sec. 🎤")
-    custom_log("//////////////////////////////////////////////////////////////////")
+    custom_logger.info(f"🎤 Generated voiceover in: {round(end - start, 2)} sec. 🎤")
+    custom_logger.info(
+        "//////////////////////////////////////////////////////////////////"
+    )
 
     np_array = np.concatenate(pieces)
     sample_rate = SAMPLE_RATE

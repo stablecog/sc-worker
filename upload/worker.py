@@ -11,6 +11,7 @@ from predict.voiceover.predict import PredictResult as PredictResultForVoiceover
 from rabbitmq_consumer.events import Status
 from shared.webhook import post_webhook
 from upload.upload import upload_files_for_image
+from shared.log import custom_logger
 
 
 def start_upload_worker(
@@ -19,18 +20,18 @@ def start_upload_worker(
     shutdown_event: Event,
 ):
     """Starts a loop to read from the queue and upload files to S3, send responses to webhook"""
-    logging.info("Starting upload thread...")
+    custom_logger.info("Starting upload thread...")
     while not shutdown_event.is_set() or not q.empty():
         try:
-            # logging.info(f"-- Upload: Waiting for queue --\n")
+            # custom_logger.info(f"-- Upload: Waiting for queue --\n")
             uploadMsg: List[Dict[str, Any]] = q.get(timeout=1)
-            # logging.info(f"-- Upload: Got from queue --\n")
+            # custom_logger.info(f"-- Upload: Got from queue --\n")
             if "upload_output" in uploadMsg:
                 predict_result: PredictResultForImage | PredictResultForVoiceover = (
                     uploadMsg["upload_output"]
                 )
                 if len(predict_result.outputs) > 0:
-                    logging.info(
+                    custom_logger.info(
                         f"-- Upload: Uploading {len(predict_result.outputs)} files --"
                     )
                     try:
@@ -46,25 +47,25 @@ def start_upload_worker(
                         }
                     except Exception as e:
                         tb = traceback.format_exc()
-                        logging.error(f"Error uploading files {tb}\n")
+                        custom_logger.error(f"Error uploading files {tb}\n")
                         uploadMsg["status"] = Status.FAILED
                         uploadMsg["error"] = str(e)
-                    logging.info(f"-- Upload: Finished uploading files --")
+                    custom_logger.info(f"-- Upload: Finished uploading files --")
 
             if "upload_output" in uploadMsg:
-                logging.info(f"-- Upload: Deleting upload_output from message --")
+                custom_logger.info(f"-- Upload: Deleting upload_output from message --")
                 del uploadMsg["upload_output"]
             if "upload_prefix" in uploadMsg:
-                logging.info(f"-- Upload: Deleting upload_prefix from message --")
+                custom_logger.info(f"-- Upload: Deleting upload_prefix from message --")
                 del uploadMsg["upload_prefix"]
 
-            logging.info(f"-- 🟡 Upload: Publishing to WEBHOOK --")
+            custom_logger.info(f"-- 🟡 Upload: Publishing to WEBHOOK --")
             post_webhook(uploadMsg["webhook_url"], uploadMsg)
-            logging.info(f"-- 🟢 Upload: Published to WEBHOOK --")
+            custom_logger.info(f"-- 🟢 Upload: Published to WEBHOOK --")
         except queue.Empty:
             continue
         except Exception as e:
             tb = traceback.format_exc()
-            logging.error(f"Exception in upload process {tb}\n")
-            logging.error(f"Message was: {uploadMsg}\n")
-    logging.info("Upload thread exiting")
+            custom_logger.error(f"Exception in upload process {tb}\n")
+            custom_logger.error(f"Message was: {uploadMsg}\n")
+    custom_logger.info("Upload thread exiting")

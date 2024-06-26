@@ -12,7 +12,7 @@ from predict.image.setup import ModelsPack
 from shared.helpers import download_images
 import time
 from shared.helpers import time_code_block
-from shared.log import custom_log
+from shared.log import custom_logger
 
 clipapi = Flask(__name__)
 
@@ -36,7 +36,7 @@ def clip_embed():
         req_body = request.get_json()
     except Exception as e:
         tb = traceback.format_exc()
-        custom_log(f"Error parsing request body: {tb}\n")
+        custom_logger.info(f"Error parsing request body: {tb}\n")
         return str(e), 400
     finally:
         if req_body is None:
@@ -79,7 +79,7 @@ def clip_embed():
                 pil_images = download_images(urls=image_urls, max_workers=25)
         except Exception as e:
             tb = traceback.format_exc()
-            custom_log(f"Failed to download images: {tb}\n")
+            custom_logger.info(f"Failed to download images: {tb}\n")
             return str(e), 500
         image_embeds = open_clip_get_embeds_of_images(
             pil_images,
@@ -96,7 +96,7 @@ def clip_embed():
             embeds[index] = obj
 
     e = time.time()
-    custom_log(f"🖥️  Embedded {len(req_body)} items in: {e-s:.2f} seconds  🖥️\n")
+    custom_logger.info(f"🖥️  Embedded {len(req_body)} items in: {e-s:.2f} seconds  🖥️\n")
     return jsonify({"embeddings": embeds})
 
 
@@ -105,7 +105,11 @@ def run_clipapi(models_pack: ModelsPack):
     port = os.environ.get("CLIPAPI_PORT", 13339)
     with clipapi.app_context():
         current_app.models_pack = models_pack
-    custom_log("//////////////////////////////////////////////////////////////////")
-    custom_log(f"🖥️🟢 Starting CLIP API on {host}:{port}")
-    custom_log("//////////////////////////////////////////////////////////////////")
+    custom_logger.info(
+        "//////////////////////////////////////////////////////////////////"
+    )
+    custom_logger.info(f"🖥️🟢 Starting CLIP API on {host}:{port}")
+    custom_logger.info(
+        "//////////////////////////////////////////////////////////////////"
+    )
     serve(clipapi, host=host, port=port)

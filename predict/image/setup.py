@@ -49,7 +49,7 @@ from models.stable_diffusion.constants import (
 from models.swinir.constants import DEVICE_SWINIR, MODELS_SWINIR, TASKS_SWINIR
 from models.swinir.helpers import define_model_swinir, get_args_swinir
 from shared.constants import WORKER_VERSION
-from shared.log import custom_log, custom_log_tuple
+from shared.log import custom_logger
 
 
 class SDPipeSet:
@@ -106,12 +106,12 @@ class ModelsPack:
 
 def setup() -> ModelsPack:
     start = time.time()
-    custom_log(f"⏳ Setup has started - Version: {WORKER_VERSION}")
+    custom_logger.info(f"⏳ Setup has started - Version: {WORKER_VERSION}")
 
     hf_token = os.environ.get("HF_TOKEN", None)
     if hf_token is not None:
         login(token=hf_token)
-        custom_log(f"✅ Logged in to HuggingFace")
+        custom_logger.info(f"✅ Logged in to HuggingFace")
 
     download_swinir_models()
 
@@ -133,7 +133,7 @@ def setup() -> ModelsPack:
 
     for key in SD_MODELS:
         s = time.time()
-        custom_log(f"⏳ Loading SD model: {key}")
+        custom_logger.info(f"⏳ Loading SD model: {key}")
 
         base_model = SD_MODELS[key].get("base_model", None)
 
@@ -186,7 +186,7 @@ def setup() -> ModelsPack:
                     SD_MODELS[key]["id"],
                     weight_name=lora,
                 )
-                custom_log(f"✅ Loaded LoRA weights: {lora}")
+                custom_logger.info(f"✅ Loaded LoRA weights: {lora}")
 
             refiner = None
             if (
@@ -214,17 +214,19 @@ def setup() -> ModelsPack:
                 )
                 if "keep_in_cpu_when_idle" in SD_MODELS[key]:
                     refiner = refiner.to("cpu", silence_dtype_warnings=True)
-                    custom_log_tuple("🐌 Keep in CPU when idle", key + " refiner")
+                    custom_logger.info_tuple(
+                        "🐌 Keep in CPU when idle", key + " refiner"
+                    )
                 else:
                     refiner = refiner.to(DEVICE)
-                    custom_log_tuple("🚀 Keep in GPU", key + " refiner")
+                    custom_logger.info_tuple("🚀 Keep in GPU", key + " refiner")
 
             if "keep_in_cpu_when_idle" in SD_MODELS[key]:
                 text2img = text2img.to("cpu", silence_dtype_warnings=True)
-                custom_log_tuple("🐌 Keep in CPU when idle", key)
+                custom_logger.info_tuple("🐌 Keep in CPU when idle", key)
             else:
                 text2img = text2img.to(DEVICE)
-                custom_log_tuple("🚀 Keep in GPU", key)
+                custom_logger.info_tuple("🚀 Keep in GPU", key)
 
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
 
@@ -263,10 +265,10 @@ def setup() -> ModelsPack:
             )
             if "keep_in_cpu_when_idle" in SD_MODELS[key]:
                 text2img = text2img.to("cpu", silence_dtype_warnings=True)
-                custom_log_tuple("🐌 Keep in CPU when idle", key)
+                custom_logger.info_tuple("🐌 Keep in CPU when idle", key)
             else:
                 text2img = text2img.to(DEVICE)
-                custom_log_tuple("🚀 Keep in GPU", key)
+                custom_logger.info_tuple("🚀 Keep in GPU", key)
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
             inpaint = None
 
@@ -286,7 +288,7 @@ def setup() -> ModelsPack:
             )
 
         sd_pipes[key] = pipe
-        custom_log(
+        custom_logger.info(
             f"✅ Loaded SD model: {key} | Duration: {round(time.time() - s, 1)} seconds"
         )
 
@@ -294,13 +296,13 @@ def setup() -> ModelsPack:
     kandinsky_2_2 = None
     if LOAD_KANDINSKY_2_2:
         s = time.time()
-        custom_log("⏳ Loading Kandinsky 2.2")
+        custom_logger.info("⏳ Loading Kandinsky 2.2")
         kandinsky_device = DEVICE
         if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
             kandinsky_device = "cpu"
-            custom_log_tuple("🐌 Keep in CPU when idle", "Kandinsky 2.2")
+            custom_logger.info_tuple("🐌 Keep in CPU when idle", "Kandinsky 2.2")
         else:
-            custom_log_tuple("🚀 Keep in GPU", "Kandinsky 2.2")
+            custom_logger.info_tuple("🚀 Keep in GPU", "Kandinsky 2.2")
         prior = KandinskyV22PriorPipeline.from_pretrained(
             KANDINSKY_2_2_PRIOR_MODEL_ID,
             torch_dtype=torch.float16,
@@ -324,7 +326,7 @@ def setup() -> ModelsPack:
             img2img=img2img,
             inpaint=inpaint,
         )
-        custom_log(
+        custom_logger.info(
             f"✅ Loaded Kandinsky 2.2 | Duration: {round(time.time() - s, 1)} seconds"
         )
 
@@ -341,10 +343,10 @@ def setup() -> ModelsPack:
         "pipe": upscaler_pipe,
         "args": upscaler_args,
     }
-    custom_log("✅ Loaded upscaler")
+    custom_logger.info("✅ Loaded upscaler")
 
     # For translator
-    custom_log("⏳ Loading translator")
+    custom_logger.info("⏳ Loading translator")
     translator = None
     if LAUNCH_NLLBAPI == True:
         translator = {
@@ -360,12 +362,12 @@ def setup() -> ModelsPack:
                 TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_TOKENIZER_CACHE
             ),
         }
-        custom_log("✅ Loaded translator")
+        custom_logger.info("✅ Loaded translator")
     else:
-        custom_log("⚪️ Skipping translator")
+        custom_logger.info("⚪️ Skipping translator")
 
     # For OpenCLIP
-    custom_log("⏳ Loading OpenCLIP")
+    custom_logger.info("⏳ Loading OpenCLIP")
     open_clip = {
         "model": AutoModel.from_pretrained(
             OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
@@ -377,10 +379,10 @@ def setup() -> ModelsPack:
             OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
         ),
     }
-    custom_log("✅ Loaded OpenCLIP")
+    custom_logger.info("✅ Loaded OpenCLIP")
 
     # For asthetics scorer
-    custom_log("⏳ Loading Aesthetics Scorer")
+    custom_logger.info("⏳ Loading Aesthetics Scorer")
     rating_model = load_aesthetics_scorer_model(
         weight_url=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_WEIGHT_URL,
         cache_dir=AESTHETICS_SCORER_CACHE_DIR,
@@ -395,12 +397,16 @@ def setup() -> ModelsPack:
         "rating_model": rating_model,
         "artifact_model": artifact_model,
     }
-    custom_log("✅ Loaded Aesthetics Scorer")
+    custom_logger.info("✅ Loaded Aesthetics Scorer")
 
     end = time.time()
-    custom_log("//////////////////////////////////////////////////////////////////")
-    custom_log(f"✅ Predict setup is done in: {round((end - start))} sec.")
-    custom_log("//////////////////////////////////////////////////////////////////")
+    custom_logger.info(
+        "//////////////////////////////////////////////////////////////////"
+    )
+    custom_logger.info(f"✅ Predict setup is done in: {round((end - start))} sec.")
+    custom_logger.info(
+        "//////////////////////////////////////////////////////////////////"
+    )
 
     return ModelsPack(
         sd_pipes=sd_pipes,

@@ -1,6 +1,8 @@
 import pika
 import logging
 import time
+from shared.log import custom_logger
+
 
 class RabbitMQConnection:
     def __init__(self, amqp_url):
@@ -18,7 +20,7 @@ class RabbitMQConnection:
             self.connection = pika.BlockingConnection(params)
             self.channel = self.connection.channel()
         except pika.exceptions.AMQPConnectionError as e:
-            logging.error(f"Failed to connect to RabbitMQ: {e}")
+            custom_logger.error(f"Failed to connect to RabbitMQ: {e}")
             raise
 
     def reconnect(self, retry_interval=5):
@@ -30,5 +32,7 @@ class RabbitMQConnection:
                 self.connect()
                 return
             except pika.exceptions.AMQPConnectionError:
-                logging.error(f"Connection to RabbitMQ failed. Retrying in {retry_interval} seconds.")
+                custom_logger.error(
+                    f"Connection to RabbitMQ failed. Retrying in {retry_interval} seconds."
+                )
                 time.sleep(retry_interval)
