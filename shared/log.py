@@ -6,4 +6,4 @@ def custom_log(msg):
 
 
 def custom_log_tuple(a, b):
-    print(tabulate([[a, b]], tablefmt="simple_grid"))
+    custom_log(tabulate([[a, b]], tablefmt="simple_grid"))
