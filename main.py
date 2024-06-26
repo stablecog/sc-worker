@@ -16,6 +16,7 @@ from rabbitmq_consumer.worker import start_amqp_queue_worker
 from rabbitmq_consumer.connection import RabbitMQConnection
 from upload.worker import start_upload_worker
 from clipapi.app import run_clipapi
+from shared.log import custom_log
 
 """ import subprocess
 import sys
@@ -61,7 +62,7 @@ if __name__ == "__main__":
     # Setup signal handler for exit
     def signal_handler(signum, frame):
         if not shutdown_event.is_set():
-            print("Signal received, shutting down...")
+            custom_log("Signal received, shutting down...")
             shutdown_event.set()
             connection.connection.close()
 
@@ -113,4 +114,4 @@ if __name__ == "__main__":
         pass  # Handle Ctrl+C gracefully. The signal handler already sets the shutdown_event.
     finally:
         # Any other cleanup in the main thread you want to perform.
-        print("Main thread cleanup done!")
+        custom_log("Main thread cleanup done!")

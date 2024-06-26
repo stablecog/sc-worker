@@ -4,6 +4,7 @@ import torch
 from denoiser.dsp import convert_audio
 import time
 from typing import Tuple
+from shared.log import custom_log
 
 
 def denoise_audio(
@@ -23,5 +24,5 @@ def denoise_audio(
     arr = denoised_audio.data.cpu().numpy()
     arr = arr.reshape(-1)
     e = time.time()
-    print(f"🔊 Denoised audio in: {round((e - s) * 1000)} ms 🔊")
+    custom_log(f"🔊 Denoised audio in: {round((e - s) * 1000)} ms 🔊")
     return arr, model.sample_rate

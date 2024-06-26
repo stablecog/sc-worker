@@ -4,6 +4,7 @@ from transformers import pipeline
 from .constants import LANG_TO_FLORES, FLORES_TO_LANG, TARGET_LANG
 import torch
 from tabulate import tabulate
+from shared.log import custom_log
 
 
 def translate_text(
@@ -18,7 +19,7 @@ def translate_text(
     detector,
 ):
     if text == "":
-        print(f"-- {label} - No text to translate, skipping --")
+        custom_log(f"-- {label} - No text to translate, skipping --")
         return ""
     startTimeTranslation = time.time()
     translated_text = ""
@@ -44,16 +45,16 @@ def translate_text(
         )
         translate_output = translate(text, max_length=1000)
         translated_text = translate_output[0]["translation_text"]
-        print(f'-- {label} - Original text is: "{text}" --')
-        print(f'-- {label} - Translated text is: "{translated_text}" --')
+        custom_log(f'-- {label} - Original text is: "{text}" --')
+        custom_log(f'-- {label} - Translated text is: "{translated_text}" --')
     else:
         translated_text = text
-        print(
+        custom_log(
             f"-- {label} - Text is already in the correct language, no translation needed --"
         )
 
     endTimeTranslation = time.time()
-    print(
+    custom_log(
         f"-- {label} - Completed in: {round((endTimeTranslation - startTimeTranslation), 2)} sec. --"
     )
 
@@ -70,10 +71,10 @@ def get_flores(
     label,
 ):
     if text == "":
-        print(f"-- {label} - No text to give FLORES-200 for, skipping --")
+        custom_log(f"-- {label} - No text to give FLORES-200 for, skipping --")
         return target_flores
     if text_flores is not None and text_flores != "":
-        print(
+        custom_log(
             f'-- {label} - FLORES-200 code is given, skipping language auto-detection: "{text_flores}" --'
         )
         return text_flores
@@ -89,8 +90,8 @@ def get_flores(
     if FLORES_TO_LANG.get(target_flores) is not None:
         target_lang = FLORES_TO_LANG[target_flores]
 
-    print(f"-- Confidence values --")
-    print(tabulate(confidence_values[:5]))
+    custom_log(f"-- Confidence values --")
+    custom_log(tabulate(confidence_values[:5]))
 
     for index in range(len(confidence_values)):
         curr = confidence_values[index]
@@ -110,7 +111,7 @@ def get_flores(
         text_lang_flores = LANG_TO_FLORES[detected_lang.name]
 
     if detected_lang is not None:
-        print(
+        custom_log(
             f'-- {label} - Guessed text language: "{detected_lang.name}". Score: {detected_lang_score} --'
         )
     if (
@@ -118,7 +119,9 @@ def get_flores(
         and target_lang_score is not None
         and detected_lang != target_lang
     ):
-        print(f"-- {label} - Target language score: {target_lang_score} --")
+        custom_log(f"-- {label} - Target language score: {target_lang_score} --")
 
-    print(f'-- {label} - Selected text language FLORES-200: "{text_lang_flores}" --')
+    custom_log(
+        f'-- {label} - Selected text language FLORES-200: "{text_lang_flores}" --'
+    )
     return text_lang_flores

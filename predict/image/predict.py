@@ -31,6 +31,7 @@ from models.open_clip.main import (
 from pydantic import BaseModel, Field, validator
 from shared.helpers import log_gpu_memory, return_value_if_in_list, wrap_text
 from tabulate import tabulate
+from shared.log import custom_log
 
 
 class PredictInput(BaseModel):
@@ -158,8 +159,8 @@ def predict(
     models_pack: ModelsPack,
 ) -> PredictResult:
     process_start = time.time()
-    print("//////////////////////////////////////////////////////////////////")
-    print(f"⏳ Process started: {input.process_type} ⏳")
+    custom_log("//////////////////////////////////////////////////////////////////")
+    custom_log(f"⏳ Process started: {input.process_type} ⏳")
     log_gpu_memory(message="GPU status before inference")
     output_images = []
     nsfw_count = 0
@@ -217,7 +218,7 @@ def predict(
             ["Prompt", wrap_text(prompt_final)],
             ["Negative Prompt", wrap_text(negative_prompt_final)],
         ]
-        print(
+        custom_log(
             tabulate(
                 [["🖼️  Generation 🟡", "Started"]] + log_table, tablefmt="double_grid"
             )
@@ -253,7 +254,7 @@ def predict(
         nsfw_count = generate_nsfw_count
 
         endTime = time.time()
-        print(
+        custom_log(
             tabulate(
                 [["🖼️  Generation 🟢", f"{round((endTime - startTime) * 1000)} ms"]]
                 + log_table,
@@ -268,7 +269,7 @@ def predict(
             models_pack.open_clip["tokenizer"],
         )[0]
         end_open_clip_prompt = time.time()
-        print(
+        custom_log(
             f"📜 Open CLIP prompt embedding in: {round((end_open_clip_prompt - start_open_clip_prompt) * 1000)} ms 📜"
         )
 
@@ -280,12 +281,12 @@ def predict(
                 models_pack.open_clip["processor"],
             )
             end_open_clip_image = time.time()
-            print(
+            custom_log(
                 f"🖼️ Open CLIP image embeddings in: {round((end_open_clip_image - start_open_clip_image) * 1000)} ms - {len(output_images)} images 🖼️"
             )
         else:
             open_clip_embeds_of_images = []
-            print(
+            custom_log(
                 "🖼️ No non-NSFW images generated. Skipping Open CLIP image embeddings. 🖼️"
             )
 
@@ -301,7 +302,7 @@ def predict(
                 upscale_output_images.append(upscale_output_image)
             output_images = upscale_output_images
         endTime = time.time()
-        print(f"⭐️ Upscaled in: {round((endTime - startTime) * 1000)} ms ⭐️")
+        custom_log(f"⭐️ Upscaled in: {round((endTime - startTime) * 1000)} ms ⭐️")
 
     # Aesthetic Score
     s_aes = time.time()
@@ -315,11 +316,11 @@ def predict(
             vision_model=models_pack.open_clip["model"].vision_model,
         )
         aesthetic_scores.append(aesthetic_score_result)
-        print(
+        custom_log(
             f"🎨 Image {i+1} | Rating Score: {aesthetic_score_result.rating_score} | Artifact Score: {aesthetic_score_result.artifact_score}"
         )
     e_aes = time.time()
-    print(f"🎨 Calculated aesthetic scores in: {round((e_aes - s_aes) * 1000)} ms")
+    custom_log(f"🎨 Calculated aesthetic scores in: {round((e_aes - s_aes) * 1000)} ms")
 
     # Prepare output objects
     output_objects: List[PredictOutput] = []
@@ -350,9 +351,9 @@ def predict(
     )
     process_end = time.time()
 
-    print(
+    custom_log(
         f"✅ Process completed in: {round((process_end - process_start) * 1000)} ms ✅"
     )
-    print("//////////////////////////////////////////////////////////////////")
+    custom_log("//////////////////////////////////////////////////////////////////")
 
     return result

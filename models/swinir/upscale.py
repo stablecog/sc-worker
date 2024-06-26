@@ -16,6 +16,7 @@ from PIL import Image
 from typing import Any
 import requests
 from io import BytesIO
+from shared.log import custom_log
 
 
 @torch.inference_mode()
@@ -72,7 +73,7 @@ def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image
         output = output[..., : h_old * args.scale, : w_old * args.scale]
 
     inf_end_time = time.time()
-    print(
+    custom_log(
         f"-- Upscale - Inference in: {round((inf_end_time - inf_start_time) * 1000)} ms --"
     )
 
@@ -85,7 +86,7 @@ def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image
     output = (output * 255.0).round().astype(np.uint8)
     output_image = output
     save_end_time = time.time()
-    print(
+    custom_log(
         f"-- Upscale - Image save in: {round((save_end_time - save_start_time) * 1000)} ms --"
     )
 
@@ -93,7 +94,9 @@ def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image
     imageRGB = cv2.cvtColor(output_image, cv2.COLOR_BGR2RGBA)
     pil_image = Image.fromarray(imageRGB)
     end = time.time()
-    print(f"-- Upscale - Array to PIL Image in: {round((end - start) * 1000)} ms --")
+    custom_log(
+        f"-- Upscale - Array to PIL Image in: {round((end - start) * 1000)} ms --"
+    )
     return pil_image
 
 
@@ -107,7 +110,7 @@ def download_image(url: str) -> np.array:
     if response.status_code != 200:
         raise ValueError(f"Failed to download image from: {url}")
     end = time.time()
-    print(f"-- Upscale - Download image in: {round((end - start) * 1000)} ms --")
+    custom_log(f"-- Upscale - Download image in: {round((end - start) * 1000)} ms --")
 
     # Convert the image from PIL format to numpy array
     image_rgb = np.array(Image.open(BytesIO(response.content)))

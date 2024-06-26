@@ -10,6 +10,7 @@ from shared.helpers import (
     log_gpu_memory,
     move_pipe_to_device,
 )
+from shared.log import custom_log
 
 
 def generate(
@@ -32,7 +33,7 @@ def generate(
 ):
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
-    print(f"Using seed: {seed}")
+    custom_log(f"Using seed: {seed}")
     generator = torch.Generator(device="cuda").manual_seed(seed)
 
     if prompt_prefix is not None:
@@ -57,8 +58,8 @@ def generate(
             else:
                 negative_prompt = f"{default_negative_prompt_prefix} {negative_prompt}"
 
-    print(f"-- Prompt: {prompt} --")
-    print(f"-- Negative Prompt: {negative_prompt} --")
+    custom_log(f"-- Prompt: {prompt} --")
+    custom_log(f"-- Negative Prompt: {negative_prompt} --")
 
     extra_kwargs = {}
     pipe_selected = None
@@ -75,7 +76,7 @@ def generate(
         )
         extra_kwargs["strength"] = prompt_strength
         end_i = time.time()
-        print(
+        custom_log(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
         )
 
@@ -90,7 +91,7 @@ def generate(
             )
             extra_kwargs["strength"] = 0.99
             end_i = time.time()
-            print(
+            custom_log(
                 f"-- Downloaded and cropped mask image in: {round((end_i - start_i) * 1000)} ms"
             )
         else:
@@ -158,7 +159,9 @@ def generate(
         s = time.time()
         output_images = pipe.refiner(**args).images
         e = time.time()
-        print(f"🖌️ Refined {len(output_images)} images in: {round((e - s) * 1000)} ms")
+        custom_log(
+            f"🖌️ Refined {len(output_images)} images in: {round((e - s) * 1000)} ms"
+        )
 
         if "keep_in_cpu_when_idle" in SD_MODELS[model]:
             pipe.refiner = move_pipe_to_device(
@@ -166,6 +169,8 @@ def generate(
             )
 
     if nsfw_count > 0:
-        print(f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs.")
+        custom_log(
+            f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs."
+        )
 
     return output_images, nsfw_count
