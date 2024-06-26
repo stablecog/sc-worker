@@ -11,10 +11,8 @@ import time
 from io import BytesIO
 from concurrent.futures import Future, ThreadPoolExecutor
 from urllib.parse import urlparse
-
-from upload.helpers.audio_array_from_wav import audio_array_from_wav
-from upload.helpers.convert_audio_to_video import convert_audio_to_video
-from upload.helpers.get_audio_duration import get_audio_duration
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
 
 
 def extract_key_from_signed_url(signed_url: str) -> str:
@@ -50,9 +48,28 @@ def convert_and_upload_image_to_signed_url(
         f"Converted image in: {round((end_conv - start_conv) * 1000)} ms - {img_format} - {target_quality}"
     )
 
+    # Define the retry strategy
+    retry_strategy = Retry(
+        total=3,  # Total number of retries
+        status_forcelist=[429, 500, 502, 503, 504]
+        + list(range(400, 429))
+        + list(range(431, 500))
+        + list(range(501, 600)),  # List of status codes to retry on
+        allowed_methods=["PUT"],  # HTTP methods to retry
+        backoff_factor=0.5,  # A backoff factor to apply between attempts
+    )
+
+    # Create an HTTPAdapter with the retry strategy
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+
+    # Create a session and mount the adapter
+    session = requests.Session()
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+
     start_upload = time.time()
     print(f"-- Upload: Uploading to signed URL")
-    response = requests.put(
+    response = session.put(
         signed_url,
         data=file_bytes,
         headers={"Content-Type": parse_content_type(target_extension)},
