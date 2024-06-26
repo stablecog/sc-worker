@@ -25,7 +25,9 @@ class PredictResult:
     def __init__(
         self,
         outputs: list[PredictOutput],
+        signed_urls: list[str] | None,
         nsfw_count: int,
     ):
         self.outputs = outputs
         self.nsfw_count = nsfw_count
+        self.signed_urls = signed_urls

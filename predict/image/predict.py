@@ -107,6 +107,9 @@ class PredictInput(BaseModel):
         description="Height of output image.",
         default=512,
     )
+    signed_urls: List[str] = Field(
+        description="List of signed URLs for images to be uploaded to.", default=None
+    )
 
     @validator("model")
     def validate_model(cls, v):
@@ -334,6 +337,7 @@ def predict(
     result = PredictResult(
         outputs=output_objects,
         nsfw_count=nsfw_count,
+        signed_urls=input.signed_urls,
     )
     process_end = time.time()
 
