@@ -66,7 +66,10 @@ def convert_and_upload_image_to_s3(
     end_upload = time.time()
     print(f"Uploaded image in: {round((end_upload - start_upload) *1000)} ms")
 
-    return f"s3://{s3_bucket}/{key}"
+    final_key = f"s3://{s3_bucket}/{key}"
+    print(f"Final key for image is: {final_key}")
+
+    return final_key
 
 
 def upload_files_for_image(
