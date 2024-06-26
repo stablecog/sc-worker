@@ -29,5 +29,5 @@ class PredictResult:
         nsfw_count: int,
     ):
         self.outputs = outputs
-        self.nsfw_count = nsfw_count
         self.signed_urls = signed_urls
+        self.nsfw_count = nsfw_count

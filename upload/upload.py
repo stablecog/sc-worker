@@ -30,12 +30,17 @@ def convert_and_upload_image_to_s3(
     s3: ServiceResource,
     s3_bucket: str,
     pil_image: Image.Image,
+    signed_url: str | None,
     target_quality: int,
     target_extension: str,
     upload_path_prefix: str,
 ) -> str:
     """Convert an individual image to a target format and upload to S3."""
     start_conv = time.time()
+
+    print(
+        f"Signed url for image is: {signed_url}. Target extension: {target_extension}. Target quality: {target_quality}. Upload path prefix: {upload_path_prefix}"
+    )
 
     _pil_image = pil_image
     if target_extension == "jpeg":
@@ -65,7 +70,8 @@ def convert_and_upload_image_to_s3(
 
 
 def upload_files_for_image(
-    uploadObjects: List[PredictOutputForImage],
+    upload_objects: List[PredictOutputForImage],
+    signed_urls: List[str] | None,
     s3: ServiceResource,
     s3_bucket: str,
     upload_path_prefix: str,
@@ -76,15 +82,19 @@ def upload_files_for_image(
 
     # Run all uploads at same time in threadpool
     tasks: List[Future] = []
-    with ThreadPoolExecutor(max_workers=len(uploadObjects)) as executor:
+    with ThreadPoolExecutor(max_workers=len(upload_objects)) as executor:
         print(f"-- Upload: Submitting to thread")
-        for uo in uploadObjects:
+        for i, uo in enumerate(upload_objects):
+            signed_url = None
+            if signed_urls is not None and i < len(signed_urls):
+                signed_url = signed_urls[i]
             tasks.append(
                 executor.submit(
                     convert_and_upload_image_to_s3,
                     s3,
                     s3_bucket,
                     uo.pil_image,
+                    signed_url,
                     uo.target_quality,
                     uo.target_extension,
                     upload_path_prefix,
@@ -95,7 +105,7 @@ def upload_files_for_image(
     results = []
     for i, task in enumerate(tasks):
         print(f"-- Upload: Got result")
-        uploadObject = uploadObjects[i]
+        uploadObject = upload_objects[i]
         results.append(
             {
                 "image": task.result(),
@@ -117,6 +127,7 @@ def convert_and_upload_audio_file_to_s3(
     s3: ServiceResource,
     s3_bucket: str,
     audio_bytes: BytesIO,
+    signed_url: str | None,
     remove_silence_params: RemoveSilenceParams,
     sample_rate: int,
     target_extension: str,
@@ -124,6 +135,9 @@ def convert_and_upload_audio_file_to_s3(
     speaker: str,
     prompt: str,
 ) -> tuple[str, int]:
+    print(
+        f"Signed url for image is: {signed_url}. Target extension: {target_extension}. Upload path prefix: {upload_path_prefix}"
+    )
     if remove_silence_params.should_remove:
         s = time.time()
         audio_bytes = remove_silence_from_wav(audio_bytes, remove_silence_params)
@@ -191,7 +205,8 @@ def convert_and_upload_audio_file_to_s3(
 
 
 def upload_files_for_voiceover(
-    uploadObjects: List[PredictOutputForVoiceover],
+    upload_objects: List[PredictOutputForVoiceover],
+    signed_urls: List[str] | None,
     s3: ServiceResource,
     s3_bucket: str,
     upload_path_prefix: str,
@@ -202,15 +217,19 @@ def upload_files_for_voiceover(
 
     # Run all uploads at same time in threadpool
     tasks: List[Future] = []
-    with ThreadPoolExecutor(max_workers=len(uploadObjects)) as executor:
+    with ThreadPoolExecutor(max_workers=len(upload_objects)) as executor:
         print(f"-- Upload: Submitting to thread")
-        for uo in uploadObjects:
+        for i, uo in enumerate(upload_objects):
+            signed_url = None
+            if signed_urls is not None and i < len(signed_urls):
+                signed_url = signed_urls[i]
             tasks.append(
                 executor.submit(
                     convert_and_upload_audio_file_to_s3,
                     s3,
                     s3_bucket,
                     uo.audio_bytes,
+                    signed_url,
                     uo.remove_silence_params,
                     uo.sample_rate,
                     uo.target_extension,

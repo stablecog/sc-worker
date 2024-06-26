@@ -42,6 +42,7 @@ def start_upload_worker(
                             uploadMsg["output"] = {
                                 "audio_files": upload_files_for_voiceover(
                                     predict_result.outputs,
+                                    predict_result.signed_urls,
                                     s3,
                                     s3_bucket,
                                     uploadMsg["upload_prefix"],
@@ -55,6 +56,7 @@ def start_upload_worker(
                                 ].open_clip_prompt_embed,
                                 "images": upload_files_for_image(
                                     predict_result.outputs,
+                                    predict_result.signed_urls,
                                     s3,
                                     s3_bucket,
                                     uploadMsg["upload_prefix"],
