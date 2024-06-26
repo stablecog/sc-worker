@@ -7,13 +7,13 @@ import os
 import base64
 
 
-class CustomLog:
+class CustomLogger:
     _instance = None
     _worker_uuid = str(uuid.uuid4())
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super(CustomLog, cls).__new__(cls)
+            cls._instance = super(CustomLogger, cls).__new__(cls)
         return cls._instance
 
     def __init__(self, loki_url, loki_username, loki_password):
@@ -71,4 +71,4 @@ if not loki_username:
 if not loki_password:
     raise ValueError("LOKI_PASSWORD environment variable is not set")
 
-custom_logger = CustomLog(loki_url, loki_username, loki_password)
+custom_logger = CustomLogger(loki_url, loki_username, loki_password)
