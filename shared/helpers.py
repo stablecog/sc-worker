@@ -21,6 +21,7 @@ from pydub import AudioSegment
 from pyloudnorm import Meter, normalize
 from io import BytesIO
 from shared.logger import logger
+from tabulate import tabulate
 
 
 from predict.voiceover.classes import RemoveSilenceParams
@@ -359,6 +360,6 @@ def move_pipe_to_device(pipe, model_name, device):
     e = time.time()
     emoji = "🚀" if device == "cuda" else "🐌"
     logger.info(
-        f"{emoji} Moved {model_name} to {device}", f"{round((e - s) * 1000)} ms"
+        f"{emoji} Moved {model_name} to {device} in: {round((e - s) * 1000)} ms"
     )
     return pipe
