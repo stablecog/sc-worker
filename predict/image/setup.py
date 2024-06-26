@@ -214,17 +214,17 @@ def setup() -> ModelsPack:
                 )
                 if "keep_in_cpu_when_idle" in SD_MODELS[key]:
                     refiner = refiner.to("cpu", silence_dtype_warnings=True)
-                    logger.info_tuple("🐌 Keep in CPU when idle", key + " refiner")
+                    logger.info("🐌 Keep in CPU when idle", key + " refiner")
                 else:
                     refiner = refiner.to(DEVICE)
-                    logger.info_tuple("🚀 Keep in GPU", key + " refiner")
+                    logger.info("🚀 Keep in GPU", key + " refiner")
 
             if "keep_in_cpu_when_idle" in SD_MODELS[key]:
                 text2img = text2img.to("cpu", silence_dtype_warnings=True)
-                logger.info_tuple("🐌 Keep in CPU when idle", key)
+                logger.info("🐌 Keep in CPU when idle", key)
             else:
                 text2img = text2img.to(DEVICE)
-                logger.info_tuple("🚀 Keep in GPU", key)
+                logger.info("🚀 Keep in GPU", key)
 
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
 
@@ -263,10 +263,10 @@ def setup() -> ModelsPack:
             )
             if "keep_in_cpu_when_idle" in SD_MODELS[key]:
                 text2img = text2img.to("cpu", silence_dtype_warnings=True)
-                logger.info_tuple("🐌 Keep in CPU when idle", key)
+                logger.info("🐌 Keep in CPU when idle", key)
             else:
                 text2img = text2img.to(DEVICE)
-                logger.info_tuple("🚀 Keep in GPU", key)
+                logger.info("🚀 Keep in GPU", key)
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
             inpaint = None
 
@@ -298,9 +298,9 @@ def setup() -> ModelsPack:
         kandinsky_device = DEVICE
         if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
             kandinsky_device = "cpu"
-            logger.info_tuple("🐌 Keep in CPU when idle", "Kandinsky 2.2")
+            logger.info("🐌 Keep in CPU when idle", "Kandinsky 2.2")
         else:
-            logger.info_tuple("🚀 Keep in GPU", "Kandinsky 2.2")
+            logger.info("🚀 Keep in GPU", "Kandinsky 2.2")
         prior = KandinskyV22PriorPipeline.from_pretrained(
             KANDINSKY_2_2_PRIOR_MODEL_ID,
             torch_dtype=torch.float16,

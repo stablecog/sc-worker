@@ -358,7 +358,7 @@ def move_pipe_to_device(pipe, model_name, device):
     pipe = pipe.to(device, silence_dtype_warnings=True)
     e = time.time()
     emoji = "🚀" if device == "cuda" else "🐌"
-    logger.info_tuple(
+    logger.info(
         f"{emoji} Moved {model_name} to {device}", f"{round((e - s) * 1000)} ms"
     )
     return pipe
