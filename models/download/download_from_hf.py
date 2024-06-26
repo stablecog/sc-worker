@@ -9,16 +9,16 @@ import os
 from models.swinir.constants import MODEL_DIR_SWINIR, MODEL_NAME_SWINIR
 from huggingface_hub import login
 import time
-from shared.log import custom_logger
+from shared.logger import logger
 
 
 def download_models_from_hf(downloadAll=True):
     # Login to HuggingFace if there is a token
     token = os.environ.get("HF_TOKEN", None)
     if token is not None:
-        custom_logger.info(f"⏳ Logging in to HuggingFace")
+        logger.info(f"⏳ Logging in to HuggingFace")
         login(token=token)
-        custom_logger.info(f"✅ Logged in to HuggingFace")
+        logger.info(f"✅ Logged in to HuggingFace")
     download_sd_models_from_hf(downloadAll=downloadAll)
     download_swinir_models()
 
@@ -26,7 +26,7 @@ def download_models_from_hf(downloadAll=True):
 def download_sd_model_from_hf(key):
     model_id = SD_MODELS_ALL[key]["id"]
     s = time.time()
-    custom_logger.info(f"⏳ Downloading model: {model_id}")
+    logger.info(f"⏳ Downloading model: {model_id}")
     if key == "SDXL" or key == "Waifu Diffusion XL":
         pipe = StableDiffusionXLPipeline.from_pretrained(
             SD_MODELS[key]["id"],
@@ -48,7 +48,7 @@ def download_sd_model_from_hf(key):
             torch_dtype=SD_MODELS_ALL[key]["torch_dtype"],
             cache_dir=SD_MODEL_CACHE,
         )
-    custom_logger.info(
+    logger.info(
         f"✅ Downloaded model: {key} | Duration: {round(time.time() - s, 1)} seconds"
     )
     return {"key": key}
@@ -74,16 +74,16 @@ def download_sd_models_concurrently_from_hf():
 
 
 def download_swinir_models():
-    custom_logger.info("⏳ Downloading SwinIR models...")
+    logger.info("⏳ Downloading SwinIR models...")
     if os.path.exists(os.path.join(MODEL_DIR_SWINIR, MODEL_NAME_SWINIR)):
-        custom_logger.info("✅ SwinIR models already downloaded")
+        logger.info("✅ SwinIR models already downloaded")
     else:
         os.system(
             f"wget -q https://github.com/JingyunLiang/SwinIR/releases/download/v0.0/{MODEL_NAME_SWINIR} -P {MODEL_DIR_SWINIR}"
         )
-        custom_logger.info("✅ Downloaded SwinIR models")
+        logger.info("✅ Downloaded SwinIR models")
 
 
 if __name__ == "__main__":
     download_models_from_hf()
-    custom_logger.info("✅ Downloaded all models successfully")
+    logger.info("✅ Downloaded all models successfully")

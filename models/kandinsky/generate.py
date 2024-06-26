@@ -15,7 +15,7 @@ from shared.helpers import (
 )
 import torch
 from torch.cuda.amp import autocast
-from shared.log import custom_logger
+from shared.logger import logger
 
 PRIOR_STEPS = 25
 PRIOR_GUIDANCE_SCALE = 4.0
@@ -48,7 +48,7 @@ def generate_2_2(
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
     generator = torch.Generator(device="cuda").manual_seed(seed)
-    custom_logger.info(f"Using seed: {seed}")
+    logger.info(f"Using seed: {seed}")
 
     if prompt_prefix is not None:
         prompt = f"{prompt_prefix} {prompt}"
@@ -64,7 +64,7 @@ def generate_2_2(
     else:
         negative_prompt = f"{kandinsky_2_2_negative_prompt_prefix}, {negative_prompt}"
 
-    custom_logger.info(f"Negative prompt for Kandinsky 2.2: {negative_prompt}")
+    logger.info(f"Negative prompt for Kandinsky 2.2: {negative_prompt}")
 
     output_images = None
 
@@ -85,7 +85,7 @@ def generate_2_2(
         init_image = download_and_fit_image(init_image_url, width, height)
         init_image = pad_image_pil(init_image, 64)
         end = time.time()
-        custom_logger.info(
+        logger.info(
             f"-- Downloaded and cropped init image in: {round((end - start) * 1000)} ms"
         )
         start = time.time()
@@ -96,7 +96,7 @@ def generate_2_2(
         )
         mask_image = pad_image_mask_nd(mask_image, 64, 0)
         end = time.time()
-        custom_logger.info(
+        logger.info(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
         )
         if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
@@ -135,7 +135,7 @@ def generate_2_2(
         start = time.time()
         init_image = download_and_fit_image(init_image_url, width, height)
         end = time.time()
-        custom_logger.info(
+        logger.info(
             f"-- Downloaded and cropped init image in: {round((end - start) * 1000)} ms"
         )
         start = time.time()

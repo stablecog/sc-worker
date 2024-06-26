@@ -6,7 +6,7 @@ from qdrant_client.http import models
 import time
 import json
 from typing import List
-from shared.log import custom_logger
+from shared.logger import logger
 
 
 def main():
@@ -47,9 +47,9 @@ def main():
     try:
         with open(last_created_at_txt, "r") as f:
             last_created_at = f.read()
-            custom_logger.info(f"Found last created at in txt: {last_created_at}")
+            logger.info(f"Found last created at in txt: {last_created_at}")
     except Exception as e:
-        custom_logger.info(f"Last created at file not found, will create one.")
+        logger.info(f"Last created at file not found, will create one.")
     loaded = 0
     while has_more_generation_outputs:
         try:
@@ -96,15 +96,15 @@ def main():
                         )
                     )
                 except Exception as e:
-                    custom_logger.info(f"Couldn't create PointStruce, error: {e}")
-                    custom_logger.info(f"Skipping this row")
+                    logger.info(f"Couldn't create PointStruce, error: {e}")
+                    logger.info(f"Skipping this row")
             try:
                 qdrant.upsert(
                     collection_name=collection_name,
                     points=points,
                 )
             except Exception as e:
-                custom_logger.info(f"Qdrant Error: {e}")
+                logger.info(f"Qdrant Error: {e}")
                 raise e
 
             last_created_at = points[-1].payload["created_at"]
@@ -112,11 +112,11 @@ def main():
             with open(last_created_at_txt, "w") as f:
                 f.write(last_created_at)
             loaded += len(points)
-            custom_logger.info(f"Total loaded: {loaded}")
-            custom_logger.info(f"Last loaded item: {last_created_at}")
+            logger.info(f"Total loaded: {loaded}")
+            logger.info(f"Last loaded item: {last_created_at}")
         except Exception as e:
-            custom_logger.info(f"Error: {e}")
-            custom_logger.info("Sleeping for 2 seconds and trying again...")
+            logger.info(f"Error: {e}")
+            logger.info("Sleeping for 2 seconds and trying again...")
             time.sleep(2)
 
 

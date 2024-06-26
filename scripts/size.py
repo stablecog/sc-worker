@@ -1,6 +1,6 @@
 import requests
 from tabulate import tabulate
-from shared.log import custom_logger
+from shared.logger import logger
 
 
 def get_release_info(package, version):
@@ -33,16 +33,16 @@ with open("requirements.txt") as f:
             total_in_mb += size_in_mb
             table.append([package, version, round(size_in_mb, 2)])
         except ValueError:
-            custom_logger.info(f"Skipping {line}")
+            logger.info(f"Skipping {line}")
     table = sorted(table, key=lambda x: x[2], reverse=True)
-    custom_logger.info(
+    logger.info(
         "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n"
     )
-    custom_logger.info(tabulate(table, headers=["Package", "Version", "Size (MB)"]))
-    custom_logger.info(
+    logger.info(tabulate(table, headers=["Package", "Version", "Size (MB)"]))
+    logger.info(
         "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n"
     )
-    custom_logger.info(f"Total size: {total_in_mb:.2f} MB")
-    custom_logger.info(
+    logger.info(f"Total size: {total_in_mb:.2f} MB")
+    logger.info(
         "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n"
     )

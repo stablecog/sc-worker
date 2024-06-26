@@ -4,7 +4,7 @@ from transformers import pipeline
 from .constants import LANG_TO_FLORES, FLORES_TO_LANG, TARGET_LANG
 import torch
 from tabulate import tabulate
-from shared.log import custom_logger
+from shared.logger import logger
 
 
 def translate_text(
@@ -19,7 +19,7 @@ def translate_text(
     detector,
 ):
     if text == "":
-        custom_logger.info(f"-- {label} - No text to translate, skipping --")
+        logger.info(f"-- {label} - No text to translate, skipping --")
         return ""
     startTimeTranslation = time.time()
     translated_text = ""
@@ -45,16 +45,16 @@ def translate_text(
         )
         translate_output = translate(text, max_length=1000)
         translated_text = translate_output[0]["translation_text"]
-        custom_logger.info(f'-- {label} - Original text is: "{text}" --')
-        custom_logger.info(f'-- {label} - Translated text is: "{translated_text}" --')
+        logger.info(f'-- {label} - Original text is: "{text}" --')
+        logger.info(f'-- {label} - Translated text is: "{translated_text}" --')
     else:
         translated_text = text
-        custom_logger.info(
+        logger.info(
             f"-- {label} - Text is already in the correct language, no translation needed --"
         )
 
     endTimeTranslation = time.time()
-    custom_logger.info(
+    logger.info(
         f"-- {label} - Completed in: {round((endTimeTranslation - startTimeTranslation), 2)} sec. --"
     )
 
@@ -71,10 +71,10 @@ def get_flores(
     label,
 ):
     if text == "":
-        custom_logger.info(f"-- {label} - No text to give FLORES-200 for, skipping --")
+        logger.info(f"-- {label} - No text to give FLORES-200 for, skipping --")
         return target_flores
     if text_flores is not None and text_flores != "":
-        custom_logger.info(
+        logger.info(
             f'-- {label} - FLORES-200 code is given, skipping language auto-detection: "{text_flores}" --'
         )
         return text_flores
@@ -90,8 +90,8 @@ def get_flores(
     if FLORES_TO_LANG.get(target_flores) is not None:
         target_lang = FLORES_TO_LANG[target_flores]
 
-    custom_logger.info(f"-- Confidence values --")
-    custom_logger.info(tabulate(confidence_values[:5]))
+    logger.info(f"-- Confidence values --")
+    logger.info(tabulate(confidence_values[:5]))
 
     for index in range(len(confidence_values)):
         curr = confidence_values[index]
@@ -111,7 +111,7 @@ def get_flores(
         text_lang_flores = LANG_TO_FLORES[detected_lang.name]
 
     if detected_lang is not None:
-        custom_logger.info(
+        logger.info(
             f'-- {label} - Guessed text language: "{detected_lang.name}". Score: {detected_lang_score} --'
         )
     if (
@@ -119,11 +119,9 @@ def get_flores(
         and target_lang_score is not None
         and detected_lang != target_lang
     ):
-        custom_logger.info(
-            f"-- {label} - Target language score: {target_lang_score} --"
-        )
+        logger.info(f"-- {label} - Target language score: {target_lang_score} --")
 
-    custom_logger.info(
+    logger.info(
         f'-- {label} - Selected text language FLORES-200: "{text_lang_flores}" --'
     )
     return text_lang_flores
