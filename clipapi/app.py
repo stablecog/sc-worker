@@ -9,33 +9,11 @@ from models.open_clip.main import (
     open_clip_get_embeds_of_images,
 )
 from predict.image.setup import ModelsPack
-from shared.helpers import download_images, download_images_from_s3
+from shared.helpers import download_images
 import time
-import boto3
-from boto3_type_annotations.s3 import ServiceResource
-from botocore.config import Config
-from upload.constants import (
-    S3_ACCESS_KEY_ID,
-    S3_BUCKET_NAME_UPLOAD,
-    S3_ENDPOINT_URL,
-    S3_REGION,
-    S3_SECRET_ACCESS_KEY,
-)
 from shared.helpers import time_code_block
 
 clipapi = Flask(__name__)
-
-s3: ServiceResource = boto3.resource(
-    "s3",
-    region_name=S3_REGION,
-    endpoint_url=S3_ENDPOINT_URL,
-    aws_access_key_id=S3_ACCESS_KEY_ID,
-    aws_secret_access_key=S3_SECRET_ACCESS_KEY,
-    config=Config(
-        retries={"max_attempts": 3, "mode": "standard"}, max_pool_connections=300
-    ),
-)
-bucket = s3.Bucket(S3_BUCKET_NAME_UPLOAD)
 
 
 @clipapi.route("/health", methods=["GET"])
@@ -68,14 +46,11 @@ def clip_embed():
     embeds = [None for _ in range(len(req_body))]
     textObjects = []
     imageObjects = []
-    imageIdObjects = []
     for index, item in enumerate(req_body):
         if "text" in item:
             textObjects.append({"item": item, "index": index})
         if "image" in item:
             imageObjects.append({"item": item, "index": index})
-        if "image_id" in item:
-            imageIdObjects.append({"item": item, "index": index})
 
     if len(textObjects) > 0:
         texts = [obj["item"]["text"] for obj in textObjects]
@@ -118,57 +93,6 @@ def clip_embed():
             if id is not None:
                 obj["id"] = id
             embeds[index] = obj
-
-    if len(imageIdObjects) > 0:
-        image_ids = []
-        pil_images = []
-        for obj in imageIdObjects:
-            image_ids.append(obj["item"]["image_id"])
-        try:
-            with time_code_block(prefix=f"Downloaded {len(image_ids)} image(s)"):
-                pil_images = download_images_from_s3(
-                    keys=image_ids, bucket=bucket, max_workers=100
-                )
-        except Exception as e:
-            tb = traceback.format_exc()
-            print(f"Failed to download images: {tb}\n")
-            return str(e), 500
-
-        filtered_pil_image_objects = []
-        filtered_pil_images = []
-        for i, pil_image in enumerate(pil_images):
-            if pil_image is not None:
-                filtered_pil_image_objects.append({"image": pil_image, "index": i})
-                filtered_pil_images.append(pil_image)
-
-        image_embeds = open_clip_get_embeds_of_images(
-            filtered_pil_images,
-            models_pack.open_clip["model"],
-            models_pack.open_clip["processor"],
-        )
-
-        for i, embed in enumerate(image_embeds):
-            index_f = filtered_pil_image_objects[i]["index"]
-            item = imageIdObjects[index_f]["item"]
-            index = imageIdObjects[index_f]["index"]
-            id = item.get("id", None)
-            obj = {"image_id": image_ids[index_f], "embedding": embed}
-            if id is not None:
-                obj["id"] = id
-            embeds[index] = obj
-
-        for i, pil_image in enumerate(pil_images):
-            item = imageIdObjects[i]["item"]
-            index = imageIdObjects[i]["index"]
-            id = item.get("id", None)
-            if pil_image is None:
-                index = imageIdObjects[i]["index"]
-                embeds[index] = {
-                    "image_id": image_ids[i],
-                    "error": "Image not found in S3",
-                }
-                if id is not None:
-                    embeds[index]["id"] = id
 
     e = time.time()
     print(f"🖥️  Embedded {len(req_body)} items in: {e-s:.2f} seconds  🖥️\n")

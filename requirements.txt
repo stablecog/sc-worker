@@ -13,8 +13,6 @@ timm==0.9.12
 ipython==8.18.1
 lingua-language-detector==2.0.2
 huggingface-hub==0.19.4
-boto3>=1.26.63,<2
-boto3-type-annotations>=0.3.1,<1
 responses==0.24.1
 httpx==0.25.2
 hypothesis==6.92.0

@@ -40,7 +40,7 @@ class PredictResult:
     def __init__(
         self,
         outputs: list[PredictOutput],
-        signed_urls: list[str] | None,
+        signed_urls: list[str],
     ):
         self.outputs = (outputs,)
         self.signed_urls = signed_urls

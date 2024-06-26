@@ -167,6 +167,15 @@ def predict(
     open_clip_embed_of_prompt = None
 
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
+        if input.signed_urls is None or len(input.signed_urls) < input.num_outputs:
+            raise ValueError(
+                f"🔴 Signed URLs are required for {input.num_outputs} outputs. Got {len(input.signed_urls) if input.signed_urls is not None else 0}."
+            )
+    elif input.process_type == "upscale":
+        if input.signed_urls is None or len(input.signed_urls) < 1:
+            raise ValueError("🔴 A signed URL is required for the image to upscale.")
+
+    if input.process_type == "generate" or input.process_type == "generate_and_upscale":
         generator_pipe = None
         if input.model == KANDINKSY_2_2_MODEL_NAME:
             generator_pipe = models_pack.kandinsky_2_2

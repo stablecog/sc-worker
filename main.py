@@ -5,9 +5,6 @@ import os
 import signal
 import queue
 
-import boto3
-from boto3_type_annotations.s3 import ServiceResource
-from botocore.config import Config
 from dotenv import load_dotenv
 import torch
 
@@ -17,13 +14,6 @@ from predict.image.setup import setup as image_setup
 from predict.voiceover.setup import setup as voiceover_setup
 from rabbitmq_consumer.worker import start_amqp_queue_worker
 from rabbitmq_consumer.connection import RabbitMQConnection
-from upload.constants import (
-    S3_ACCESS_KEY_ID,
-    S3_BUCKET_NAME_UPLOAD,
-    S3_ENDPOINT_URL,
-    S3_REGION,
-    S3_SECRET_ACCESS_KEY,
-)
 from upload.worker import start_upload_worker
 from clipapi.app import run_clipapi
 
@@ -56,20 +46,6 @@ if __name__ == "__main__":
     amqpQueueName = os.environ.get("RABBITMQ_QUEUE_NAME", None)
     if amqpQueueName is None:
         raise ValueError("Missing RABBITMQ_QUEUE_NAME environment variable.")
-
-    # S3 client
-    s3: ServiceResource = boto3.resource(
-        "s3",
-        region_name=S3_REGION,
-        endpoint_url=S3_ENDPOINT_URL,
-        aws_access_key_id=S3_ACCESS_KEY_ID,
-        aws_secret_access_key=S3_SECRET_ACCESS_KEY,
-        config=Config(
-            retries={"max_attempts": 3, "mode": "standard"},
-            connect_timeout=5,
-            read_timeout=5,
-        ),
-    )
 
     if WORKER_TYPE == "voiceover":
         models_pack = voiceover_setup()
@@ -109,8 +85,6 @@ if __name__ == "__main__":
         target=lambda: start_upload_worker(
             worker_type=WORKER_TYPE,
             q=upload_queue,
-            s3=s3,
-            s3_bucket=S3_BUCKET_NAME_UPLOAD,
             shutdown_event=shutdown_event,
         )
     )
