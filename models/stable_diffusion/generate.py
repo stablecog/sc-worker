@@ -103,7 +103,7 @@ def generate(
         extra_kwargs["width"] = width
         extra_kwargs["height"] = height
 
-    if "keep_in_cpu_when_idle" in SD_MODELS[model]:
+    if SD_MODELS[model].get("keep_in_cpu_when_idle"):
         pipe_selected = move_pipe_to_device(
             pipe=pipe_selected, model_name=model, device=DEVICE
         )
@@ -120,7 +120,7 @@ def generate(
     )
     log_gpu_memory(message="GPU status after inference")
 
-    if "keep_in_cpu_when_idle" in SD_MODELS[model]:
+    if SD_MODELS[model].get("keep_in_cpu_when_idle"):
         pipe_selected = move_pipe_to_device(
             pipe=pipe_selected, model_name=model, device="cpu"
         )
@@ -151,7 +151,7 @@ def generate(
             "image": output_images,
         }
 
-        if "keep_in_cpu_when_idle" in SD_MODELS[model]:
+        if SD_MODELS[model].get("keep_in_cpu_when_idle"):
             pipe.refiner = move_pipe_to_device(
                 pipe=pipe.refiner, model_name=f"{model} refiner", device=DEVICE
             )
@@ -163,7 +163,7 @@ def generate(
             f"🖌️ Refined {len(output_images)} images in: {round((e - s) * 1000)} ms"
         )
 
-        if "keep_in_cpu_when_idle" in SD_MODELS[model]:
+        if SD_MODELS[model].get("keep_in_cpu_when_idle"):
             pipe.refiner = move_pipe_to_device(
                 pipe=pipe.refiner, model_name=f"{model} refiner", device="cpu"
             )

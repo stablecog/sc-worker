@@ -16,7 +16,6 @@ from dotenv import load_dotenv
 
 from shared.constants import MODELS_FROM_ENV, MODELS_FROM_ENV_LIST
 from shared.vram import device_vram_gb
-from shared.logger import logger
 
 
 load_dotenv()
@@ -33,8 +32,6 @@ SD_ENV_KEY_TO_KEY = {
     "SSD": "SSD-1B",
 }
 SD_MODEL_CACHE = "/app/data/diffusers-cache"
-
-logger.info(f"🔵 Device VRAM: {device_vram_gb} GB")
 
 SD_MODELS_ALL = {
     "SDXL": {
@@ -100,7 +97,6 @@ def get_sd_models():
 
 
 SD_MODELS = get_sd_models()
-logger.info(SD_MODELS)
 
 SD_MODEL_CHOICES = list(SD_MODELS.keys())
 SD_MODEL_DEFAULT_KEY = SD_MODEL_CHOICES[0]

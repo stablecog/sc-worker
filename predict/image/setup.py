@@ -189,10 +189,7 @@ def setup() -> ModelsPack:
                 logger.info(f"✅ Loaded LoRA weights: {lora}")
 
             refiner = None
-            if (
-                "refiner_id" in SD_MODELS[key]
-                and SD_MODELS[key]["refiner_id"] is not None
-            ):
+            if SD_MODELS[key].get("refiner_id") is not None:
                 refiner_args = {
                     "pretrained_model_name_or_path": SD_MODELS[key]["refiner_id"],
                     "torch_dtype": SD_MODELS[key]["torch_dtype"],
@@ -212,14 +209,14 @@ def setup() -> ModelsPack:
                     vae=refiner_vae,
                     add_watermarker=False,
                 )
-                if "keep_in_cpu_when_idle" in SD_MODELS[key]:
+                if SD_MODELS[key].get("keep_in_cpu_when_idle"):
                     refiner = refiner.to("cpu", silence_dtype_warnings=True)
                     logger.info(f"🐌 Keep in CPU when idle: {key} refiner")
                 else:
                     refiner = refiner.to(DEVICE)
                     logger.info(f"🚀 Keep in GPU: {key} refiner")
 
-            if "keep_in_cpu_when_idle" in SD_MODELS[key]:
+            if SD_MODELS[key].get("keep_in_cpu_when_idle"):
                 text2img = text2img.to("cpu", silence_dtype_warnings=True)
                 logger.info(f"🐌 Keep in CPU when idle: {key}")
             else:
@@ -261,7 +258,7 @@ def setup() -> ModelsPack:
                 cache_dir=SD_MODEL_CACHE,
                 **extra_args,
             )
-            if "keep_in_cpu_when_idle" in SD_MODELS[key]:
+            if SD_MODELS[key].get("keep_in_cpu_when_idle"):
                 text2img = text2img.to("cpu", silence_dtype_warnings=True)
                 logger.info(f"🐌 Keep in CPU when idle: {key}")
             else:
