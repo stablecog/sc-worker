@@ -1,14 +1,7 @@
-import glob
-import os
-import shutil
-import tempfile
 import torch
-import shutil
 import numpy as np
 from collections import OrderedDict
 import cv2
-import tempfile
-from shared.helpers import clean_folder
 from .constants import DEVICE_SWINIR
 from .helpers import get_image_pair, setup
 import time
