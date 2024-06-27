@@ -84,8 +84,6 @@ SD_MODELS_ALL = {
     },
 }
 
-logger.info(SD_MODELS_ALL)
-
 
 def get_sd_models():
     SD_MODELS = {}
@@ -102,6 +100,7 @@ def get_sd_models():
 
 
 SD_MODELS = get_sd_models()
+logger.info(SD_MODELS)
 
 SD_MODEL_CHOICES = list(SD_MODELS.keys())
 SD_MODEL_DEFAULT_KEY = SD_MODEL_CHOICES[0]
