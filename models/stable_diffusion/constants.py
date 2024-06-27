@@ -15,6 +15,7 @@ from diffusers import (
 from dotenv import load_dotenv
 
 from shared.constants import MODELS_FROM_ENV, MODELS_FROM_ENV_LIST
+from shared.vram import device_vram_gb
 
 
 load_dotenv()
@@ -42,7 +43,7 @@ SD_MODELS_ALL = {
         "vae": "stabilityai/sdxl-vae",
         "refiner_vae": "stabilityai/sdxl-vae",
         "base_model": "SDXL",
-        "keep_in_cpu_when_idle": True,
+        "keep_in_cpu_when_idle": device_vram_gb < 75,
     },
     "SSD-1B": {
         "id": "segmind/SSD-1B",
@@ -53,7 +54,7 @@ SD_MODELS_ALL = {
         "vae": "madebyollin/sdxl-vae-fp16-fix",
         "refiner_vae": "stabilityai/sdxl-vae",
         "base_model": "SDXL",
-        "keep_in_cpu_when_idle": True,
+        "keep_in_cpu_when_idle": device_vram_gb < 75,
     },
     "Luna Diffusion": {
         "id": "proximasanfinetuning/luna-diffusion",

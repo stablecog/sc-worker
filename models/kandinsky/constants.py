@@ -5,6 +5,7 @@ from diffusers import (
 )
 
 from shared.constants import MODELS_FROM_ENV, MODELS_FROM_ENV_LIST
+from shared.vram import device_vram_gb
 
 
 KANDINSKY_2_2_DECODER_MODEL_ID = "kandinsky-community/kandinsky-2-2-decoder"
@@ -14,7 +15,7 @@ KANDINSKY_2_2_DECODER_INPAINT_MODEL_ID = (
 )
 
 KANDINKSY_2_2_MODEL_NAME = "Kandinsky 2.2"
-KANDINSKY_2_2_IN_CPU_WHEN_IDLE = False
+KANDINSKY_2_2_IN_CPU_WHEN_IDLE = device_vram_gb < 45
 
 
 KANDINSKY_2_2_SCHEDULERS = {
