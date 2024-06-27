@@ -50,6 +50,7 @@ from models.swinir.constants import DEVICE_SWINIR, MODELS_SWINIR, TASKS_SWINIR
 from models.swinir.helpers import define_model_swinir, get_args_swinir
 from shared.constants import WORKER_VERSION
 from shared.logger import logger
+from tabulate import tabulate
 
 
 class SDPipeSet:
@@ -106,7 +107,10 @@ class ModelsPack:
 
 def setup() -> ModelsPack:
     start = time.time()
-    logger.info(f"⏳ Setup has started - Version: {WORKER_VERSION}")
+    version_str = f"Version: {WORKER_VERSION}"
+    logger.info(
+        tabulate([["⏳ Setup has started", version_str]], tablefmt="double_grid")
+    )
 
     hf_token = os.environ.get("HF_TOKEN", None)
     if hf_token is not None:

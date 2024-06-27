@@ -7,6 +7,7 @@ import nltk
 from typing import Any
 from denoiser import pretrained
 from shared.logger import logger
+from tabulate import tabulate
 
 
 class ModelsPack:
@@ -19,7 +20,10 @@ class ModelsPack:
 
 def setup() -> ModelsPack:
     start = time.time()
-    logger.info(f"⏳ Setup has started - Version: {WORKER_VERSION}")
+    version_str = f"Version: {WORKER_VERSION}"
+    logger.info(
+        tabulate([["⏳ Setup has started", version_str]], tablefmt="double_grid")
+    )
 
     nltk.download("punkt")
     preload_models()
