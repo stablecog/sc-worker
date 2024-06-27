@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 
 from shared.constants import MODELS_FROM_ENV, MODELS_FROM_ENV_LIST
 from shared.vram import device_vram_gb
+from shared.logger import logger
 
 
 load_dotenv()
@@ -32,6 +33,9 @@ SD_ENV_KEY_TO_KEY = {
     "SSD": "SSD-1B",
 }
 SD_MODEL_CACHE = "/app/data/diffusers-cache"
+
+logger.info(f"🔵 Device VRAM: {device_vram_gb} GB")
+
 SD_MODELS_ALL = {
     "SDXL": {
         "id": "stabilityai/stable-diffusion-xl-base-1.0",
@@ -80,16 +84,24 @@ SD_MODELS_ALL = {
     },
 }
 
-SD_MODELS = {}
-if MODELS_FROM_ENV == "all":
-    SD_MODELS = SD_MODELS_ALL
-else:
-    for model_env in MODELS_FROM_ENV_LIST:
-        if model_env in SD_MODELS_ALL:
-            SD_MODELS[model_env] = SD_MODELS_ALL[model_env]
-        elif model_env in SD_ENV_KEY_TO_KEY:
-            key = SD_ENV_KEY_TO_KEY[model_env]
-            SD_MODELS[key] = SD_MODELS_ALL[key]
+logger.info(SD_MODELS_ALL)
+
+
+def get_sd_models():
+    SD_MODELS = {}
+    if MODELS_FROM_ENV == "all":
+        SD_MODELS = SD_MODELS_ALL
+    else:
+        for model_env in MODELS_FROM_ENV_LIST:
+            if model_env in SD_MODELS_ALL:
+                SD_MODELS[model_env] = SD_MODELS_ALL[model_env]
+            elif model_env in SD_ENV_KEY_TO_KEY:
+                key = SD_ENV_KEY_TO_KEY[model_env]
+                SD_MODELS[key] = SD_MODELS_ALL[key]
+    return SD_MODELS
+
+
+SD_MODELS = get_sd_models()
 
 SD_MODEL_CHOICES = list(SD_MODELS.keys())
 SD_MODEL_DEFAULT_KEY = SD_MODEL_CHOICES[0]
