@@ -153,7 +153,7 @@ def generate(
 
         if "keep_in_cpu_when_idle" in SD_MODELS[model]:
             pipe.refiner = move_pipe_to_device(
-                pipe=pipe.refiner, model_name=model, device=DEVICE
+                pipe=pipe.refiner, model_name=f"{model} refiner", device=DEVICE
             )
 
         s = time.time()
@@ -165,7 +165,7 @@ def generate(
 
         if "keep_in_cpu_when_idle" in SD_MODELS[model]:
             pipe.refiner = move_pipe_to_device(
-                pipe=pipe.refiner, model_name=model, device="cpu"
+                pipe=pipe.refiner, model_name=f"{model} refiner", device="cpu"
             )
 
     if nsfw_count > 0:
