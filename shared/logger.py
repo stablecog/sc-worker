@@ -6,16 +6,8 @@ import os
 import uuid
 import sys
 
-# Singleton instance for logger and listener
-_logger = None
-_listener = None
-
 
 def setup_logger():
-    global _logger, _listener
-    if _logger and _listener:
-        return
-
     # Fetch environment variables
     loki_url = os.getenv("LOKI_URL")
     loki_username = os.getenv("LOKI_USERNAME")
@@ -43,10 +35,10 @@ def setup_logger():
     )
 
     # Set up the listener to handle log entries from the queue
-    _listener = logging.handlers.QueueListener(queue, handler_loki)
+    listener = logging.handlers.QueueListener(queue, handler_loki)
 
     # Start the listener
-    _listener.start()
+    listener.start()
 
     # Set up the stdout handler for console logging
     stdout_handler = logging.StreamHandler(sys.stdout)
@@ -57,29 +49,23 @@ def setup_logger():
     stdout_handler.setFormatter(formatter)
 
     # Set up the logger
-    _logger = logging.getLogger("sc-worker-logger")
-    _logger.addHandler(handler)
-    _logger.addHandler(stdout_handler)
-    _logger.setLevel(logging.INFO)
+    logger = logging.getLogger("sc-worker-logger")
+    logger.addHandler(handler)
+    logger.addHandler(stdout_handler)
+    logger.setLevel(logging.INFO)
 
-    return _logger, _listener
+    return logger, listener
+
+
+logger, listener = setup_logger()
 
 
 def stop_listener():
-    global _listener
-    if _listener:
-        _listener.stop()
+    listener.stop()
 
-
-# Automatically set up the logger when the module is imported
-setup_logger()
-
-# Make the logger accessible directly
-logger = _logger
 
 if __name__ == "__main__":
     try:
         logger.info("Starting worker...")
-        # Your main worker code goes here
     finally:
         stop_listener()
