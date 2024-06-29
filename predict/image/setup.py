@@ -102,9 +102,9 @@ class OpenCLIP:
 
 
 class AestheticsScorer:
-    def __init__(self, rating_model, artifact_model):
+    def __init__(self, rating_model, artifacts_model):
         self.rating_model = rating_model
-        self.artifact_model = artifact_model
+        self.artifacts_model = artifacts_model
 
 
 class ModelsPack:
@@ -408,7 +408,7 @@ def setup() -> ModelsPack:
             cache_dir=AESTHETICS_SCORER_CACHE_DIR,
             config=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_CONFIG,
         ).to(DEVICE),
-        artifact_model=load_aesthetics_scorer_model(
+        artifacts_model=load_aesthetics_scorer_model(
             weight_url=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_WEIGHT_URL,
             cache_dir=AESTHETICS_SCORER_CACHE_DIR,
             config=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_CONFIG,
