@@ -57,8 +57,8 @@ def clip_embed():
         texts = [obj["item"]["text"] for obj in textObjects]
         text_embeds = open_clip_get_embeds_of_texts(
             texts,
-            models_pack.open_clip["model"],
-            models_pack.open_clip["tokenizer"],
+            models_pack.open_clip.model,
+            models_pack.open_clip.tokenizer,
         )
         for i, embed in enumerate(text_embeds):
             item = textObjects[i]["item"]
@@ -83,8 +83,8 @@ def clip_embed():
             return str(e), 500
         image_embeds = open_clip_get_embeds_of_images(
             pil_images,
-            models_pack.open_clip["model"],
-            models_pack.open_clip["processor"],
+            models_pack.open_clip.model,
+            models_pack.open_clip.processor,
         )
         for i, embed in enumerate(image_embeds):
             item = imageObjects[i]["item"]

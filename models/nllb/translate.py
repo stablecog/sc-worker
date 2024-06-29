@@ -1,6 +1,8 @@
 from lingua import Language
 import time
 from transformers import pipeline
+
+from predict.image.setup import Translator
 from .constants import LANG_TO_FLORES, FLORES_TO_LANG, TARGET_LANG
 import torch
 from tabulate import tabulate
@@ -14,9 +16,7 @@ def translate_text(
     target_score_max,
     detected_confidence_score_min,
     label,
-    model,
-    tokenizer,
-    detector,
+    translator: Translator,
 ):
     if text == "":
         logger.info(f"-- {label} - No text to translate, skipping --")
@@ -29,15 +29,15 @@ def translate_text(
         target_flores=target_flores,
         target_score_max=target_score_max,
         detected_confidence_score_min=detected_confidence_score_min,
-        detector=detector,
+        detector=translator.detector,
         label=label,
     )
 
     if decided_text_flores != target_flores:
         translate = pipeline(
             "translation",
-            model=model,
-            tokenizer=tokenizer,
+            model=translator.model,
+            tokenizer=translator.tokenizer,
             torch_dtype=torch.float16,
             src_lang=decided_text_flores,
             tgt_lang=target_flores,

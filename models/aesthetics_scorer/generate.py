@@ -1,4 +1,6 @@
 import torch
+
+from predict.image.setup import AestheticsScorer, OpenCLIP
 from .model import preprocess
 from models.constants import DEVICE
 
@@ -28,9 +30,14 @@ class AestheticScoreResult:
 
 
 def generate_aesthetic_scores(
-    img, rating_model, artifacts_model, vision_model, clip_processor
+    image, aesthetics_scorer: AestheticsScorer, clip: OpenCLIP
 ) -> AestheticScoreResult:
-    inputs = clip_processor(images=img, return_tensors="pt").to(DEVICE)
+    clip_processor = clip.processor
+    vision_model = clip.model.vision_model
+    rating_model = aesthetics_scorer.rating_model
+    artifacts_model = aesthetics_scorer.artifacts_model
+
+    inputs = clip_processor(images=image, return_tensors="pt").to(DEVICE)
     with torch.no_grad():
         vision_output = vision_model(**inputs)
     pooled_output = vision_output.pooler_output

@@ -87,15 +87,35 @@ class KandinskyPipe_2_2:
         self.inpaint = inpaint
 
 
+class Translator:
+    def __init__(self, model, tokenizer, detector):
+        self.model = model
+        self.tokenizer = tokenizer
+        self.detector = detector
+
+
+class OpenCLIP:
+    def __init__(self, model, processor, tokenizer):
+        self.model = model
+        self.processor = processor
+        self.tokenizer = tokenizer
+
+
+class AestheticsScorer:
+    def __init__(self, rating_model, artifact_model):
+        self.rating_model = rating_model
+        self.artifact_model = artifact_model
+
+
 class ModelsPack:
     def __init__(
         self,
         sd_pipes: dict[str, SDPipeSet],
         upscaler: Any,
-        translator: Any | None,
-        open_clip: Any,
+        translator: Translator,
+        open_clip: OpenCLIP,
         kandinsky_2_2: KandinskyPipe_2_2,
-        aesthetics_scorer: Any,
+        aesthetics_scorer: AestheticsScorer,
     ):
         self.sd_pipes = sd_pipes
         self.upscaler = upscaler
@@ -348,54 +368,52 @@ def setup() -> ModelsPack:
     logger.info("⏳ Loading translator")
     translator = None
     if LAUNCH_NLLBAPI == True:
-        translator = {
-            "detector": (
+        translator = Translator(
+            model=AutoModelForSeq2SeqLM.from_pretrained(
+                TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_MODEL_CACHE
+            ),
+            tokenizer=AutoTokenizer.from_pretrained(
+                TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_TOKENIZER_CACHE
+            ),
+            detector=(
                 LanguageDetectorBuilder.from_all_languages()
                 .with_preloaded_language_models()
                 .build()
             ),
-            "model": AutoModelForSeq2SeqLM.from_pretrained(
-                TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_MODEL_CACHE
-            ),
-            "tokenizer": AutoTokenizer.from_pretrained(
-                TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_TOKENIZER_CACHE
-            ),
-        }
+        )
         logger.info("✅ Loaded translator")
     else:
         logger.info("⚪️ Skipping translator")
 
     # For OpenCLIP
     logger.info("⏳ Loading OpenCLIP")
-    open_clip = {
-        "model": AutoModel.from_pretrained(
+    open_clip = OpenCLIP(
+        model=AutoModel.from_pretrained(
             OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
         ).to(DEVICE),
-        "processor": AutoProcessor.from_pretrained(
+        processor=AutoProcessor.from_pretrained(
             OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
         ),
-        "tokenizer": AutoTokenizer.from_pretrained(
+        tokenizer=AutoTokenizer.from_pretrained(
             OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
         ),
-    }
+    )
     logger.info("✅ Loaded OpenCLIP")
 
     # For asthetics scorer
     logger.info("⏳ Loading Aesthetics Scorer")
-    rating_model = load_aesthetics_scorer_model(
-        weight_url=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_WEIGHT_URL,
-        cache_dir=AESTHETICS_SCORER_CACHE_DIR,
-        config=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_CONFIG,
-    ).to(DEVICE)
-    artifact_model = load_aesthetics_scorer_model(
-        weight_url=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_WEIGHT_URL,
-        cache_dir=AESTHETICS_SCORER_CACHE_DIR,
-        config=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_CONFIG,
-    ).to(DEVICE)
-    aesthetics_scorer = {
-        "rating_model": rating_model,
-        "artifact_model": artifact_model,
-    }
+    aesthetics_scorer = AestheticsScorer(
+        rating_model=load_aesthetics_scorer_model(
+            weight_url=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_WEIGHT_URL,
+            cache_dir=AESTHETICS_SCORER_CACHE_DIR,
+            config=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_CONFIG,
+        ).to(DEVICE),
+        artifact_model=load_aesthetics_scorer_model(
+            weight_url=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_WEIGHT_URL,
+            cache_dir=AESTHETICS_SCORER_CACHE_DIR,
+            config=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_CONFIG,
+        ).to(DEVICE),
+    )
     logger.info("✅ Loaded Aesthetics Scorer")
 
     end = time.time()

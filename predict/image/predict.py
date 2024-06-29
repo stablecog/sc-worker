@@ -265,8 +265,8 @@ def predict(
         start_open_clip_prompt = time.time()
         open_clip_embed_of_prompt = open_clip_get_embeds_of_texts(
             [prompt_final],
-            models_pack.open_clip["model"],
-            models_pack.open_clip["tokenizer"],
+            models_pack.open_clip.model,
+            models_pack.open_clip.tokenizer,
         )[0]
         end_open_clip_prompt = time.time()
         logger.info(
@@ -277,8 +277,8 @@ def predict(
             start_open_clip_image = time.time()
             open_clip_embeds_of_images = open_clip_get_embeds_of_images(
                 output_images,
-                models_pack.open_clip["model"],
-                models_pack.open_clip["processor"],
+                models_pack.open_clip.model,
+                models_pack.open_clip.processor,
             )
             end_open_clip_image = time.time()
             logger.info(
@@ -309,11 +309,9 @@ def predict(
     aesthetic_scores: List[AestheticScoreResult] = []
     for i, image in enumerate(output_images):
         aesthetic_score_result = generate_aesthetic_scores(
-            img=image,
-            rating_model=models_pack.aesthetics_scorer["rating_model"],
-            artifacts_model=models_pack.aesthetics_scorer["artifact_model"],
-            clip_processor=models_pack.open_clip["processor"],
-            vision_model=models_pack.open_clip["model"].vision_model,
+            image=image,
+            aesthetics_scorer=models_pack.aesthetics_scorer,
+            clip=models_pack.open_clip,
         )
         aesthetic_scores.append(aesthetic_score_result)
         logger.info(
