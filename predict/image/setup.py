@@ -49,7 +49,7 @@ from models.stable_diffusion.constants import (
 from models.swinir.constants import DEVICE_SWINIR, MODELS_SWINIR, TASKS_SWINIR
 from models.swinir.helpers import define_model_swinir, get_args_swinir
 from shared.constants import WORKER_VERSION
-from shared.logger import logger
+import logging
 from tabulate import tabulate
 
 
@@ -128,14 +128,14 @@ class ModelsPack:
 def setup() -> ModelsPack:
     start = time.time()
     version_str = f"Version: {WORKER_VERSION}"
-    logger.info(
+    logging.info(
         tabulate([["⏳ Setup has started", version_str]], tablefmt="double_grid")
     )
 
     hf_token = os.environ.get("HF_TOKEN", None)
     if hf_token is not None:
         login(token=hf_token)
-        logger.info(f"✅ Logged in to HuggingFace")
+        logging.info(f"✅ Logged in to HuggingFace")
 
     download_swinir_models()
 
@@ -157,7 +157,7 @@ def setup() -> ModelsPack:
 
     for key in SD_MODELS:
         s = time.time()
-        logger.info(f"⏳ Loading SD model: {key}")
+        logging.info(f"⏳ Loading SD model: {key}")
 
         base_model = SD_MODELS[key].get("base_model", None)
 
@@ -210,7 +210,7 @@ def setup() -> ModelsPack:
                     SD_MODELS[key]["id"],
                     weight_name=lora,
                 )
-                logger.info(f"✅ Loaded LoRA weights: {lora}")
+                logging.info(f"✅ Loaded LoRA weights: {lora}")
 
             refiner = None
             if SD_MODELS[key].get("refiner_id") is not None:
@@ -235,17 +235,17 @@ def setup() -> ModelsPack:
                 )
                 if SD_MODELS[key].get("keep_in_cpu_when_idle"):
                     refiner = refiner.to("cpu", silence_dtype_warnings=True)
-                    logger.info(f"🐌 Keep in CPU when idle: {key} refiner")
+                    logging.info(f"🐌 Keep in CPU when idle: {key} refiner")
                 else:
                     refiner = refiner.to(DEVICE)
-                    logger.info(f"🚀 Keep in GPU: {key} refiner")
+                    logging.info(f"🚀 Keep in GPU: {key} refiner")
 
             if SD_MODELS[key].get("keep_in_cpu_when_idle"):
                 text2img = text2img.to("cpu", silence_dtype_warnings=True)
-                logger.info(f"🐌 Keep in CPU when idle: {key}")
+                logging.info(f"🐌 Keep in CPU when idle: {key}")
             else:
                 text2img = text2img.to(DEVICE)
-                logger.info(f"🚀 Keep in GPU: {key}")
+                logging.info(f"🚀 Keep in GPU: {key}")
 
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
 
@@ -284,10 +284,10 @@ def setup() -> ModelsPack:
             )
             if SD_MODELS[key].get("keep_in_cpu_when_idle"):
                 text2img = text2img.to("cpu", silence_dtype_warnings=True)
-                logger.info(f"🐌 Keep in CPU when idle: {key}")
+                logging.info(f"🐌 Keep in CPU when idle: {key}")
             else:
                 text2img = text2img.to(DEVICE)
-                logger.info(f"🚀 Keep in GPU: {key}")
+                logging.info(f"🚀 Keep in GPU: {key}")
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
             inpaint = None
 
@@ -307,7 +307,7 @@ def setup() -> ModelsPack:
             )
 
         sd_pipes[key] = pipe
-        logger.info(
+        logging.info(
             f"✅ Loaded SD model: {key} | Duration: {round(time.time() - s, 1)} seconds"
         )
 
@@ -315,13 +315,13 @@ def setup() -> ModelsPack:
     kandinsky_2_2 = None
     if LOAD_KANDINSKY_2_2:
         s = time.time()
-        logger.info("⏳ Loading Kandinsky 2.2")
+        logging.info("⏳ Loading Kandinsky 2.2")
         kandinsky_device = DEVICE
         if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
             kandinsky_device = "cpu"
-            logger.info(f"🐌 Keep in CPU when idle: Kandinsky 2.2")
+            logging.info(f"🐌 Keep in CPU when idle: Kandinsky 2.2")
         else:
-            logger.info("🚀 Keep in GPU: Kandinsky 2.2")
+            logging.info("🚀 Keep in GPU: Kandinsky 2.2")
         prior = KandinskyV22PriorPipeline.from_pretrained(
             KANDINSKY_2_2_PRIOR_MODEL_ID,
             torch_dtype=torch.float16,
@@ -345,7 +345,7 @@ def setup() -> ModelsPack:
             img2img=img2img,
             inpaint=inpaint,
         )
-        logger.info(
+        logging.info(
             f"✅ Loaded Kandinsky 2.2 | Duration: {round(time.time() - s, 1)} seconds"
         )
 
@@ -362,10 +362,10 @@ def setup() -> ModelsPack:
         "pipe": upscaler_pipe,
         "args": upscaler_args,
     }
-    logger.info("✅ Loaded upscaler")
+    logging.info("✅ Loaded upscaler")
 
     # For translator
-    logger.info("⏳ Loading translator")
+    logging.info("⏳ Loading translator")
     translator = None
     if LAUNCH_NLLBAPI == True:
         translator = Translator(
@@ -381,12 +381,12 @@ def setup() -> ModelsPack:
                 .build()
             ),
         )
-        logger.info("✅ Loaded translator")
+        logging.info("✅ Loaded translator")
     else:
-        logger.info("⚪️ Skipping translator")
+        logging.info("⚪️ Skipping translator")
 
     # For OpenCLIP
-    logger.info("⏳ Loading OpenCLIP")
+    logging.info("⏳ Loading OpenCLIP")
     open_clip = OpenCLIP(
         model=AutoModel.from_pretrained(
             OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
@@ -398,10 +398,10 @@ def setup() -> ModelsPack:
             OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
         ),
     )
-    logger.info("✅ Loaded OpenCLIP")
+    logging.info("✅ Loaded OpenCLIP")
 
     # For asthetics scorer
-    logger.info("⏳ Loading Aesthetics Scorer")
+    logging.info("⏳ Loading Aesthetics Scorer")
     aesthetics_scorer = AestheticsScorer(
         rating_model=load_aesthetics_scorer_model(
             weight_url=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_WEIGHT_URL,
@@ -414,12 +414,12 @@ def setup() -> ModelsPack:
             config=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_CONFIG,
         ).to(DEVICE),
     )
-    logger.info("✅ Loaded Aesthetics Scorer")
+    logging.info("✅ Loaded Aesthetics Scorer")
 
     end = time.time()
-    logger.info("//////////////////////////////////////////////////////////////////")
-    logger.info(f"✅ Predict setup is done in: {round((end - start))} sec.")
-    logger.info("//////////////////////////////////////////////////////////////////")
+    logging.info("//////////////////////////////////////////////////////////////////")
+    logging.info(f"✅ Predict setup is done in: {round((end - start))} sec.")
+    logging.info("//////////////////////////////////////////////////////////////////")
 
     return ModelsPack(
         sd_pipes=sd_pipes,

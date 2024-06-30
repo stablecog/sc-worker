@@ -5,6 +5,9 @@ from multiprocessing import Queue
 import os
 import uuid
 import sys
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def setup_logger():
@@ -48,16 +51,16 @@ def setup_logger():
     )
     stdout_handler.setFormatter(formatter)
 
-    # Set up the logger
-    logger = logging.getLogger("sc-worker-logger")
-    logger.addHandler(handler)
-    logger.addHandler(stdout_handler)
-    logger.setLevel(logging.INFO)
+    # Set up the root logger
+    root_logger = logging.getLogger()
+    root_logger.addHandler(handler)
+    root_logger.addHandler(stdout_handler)
+    root_logger.setLevel(logging.INFO)
 
-    return logger, listener
+    return listener
 
 
-logger, listener = setup_logger()
+listener = setup_logger()
 
 
 def stop_listener():
@@ -66,6 +69,6 @@ def stop_listener():
 
 if __name__ == "__main__":
     try:
-        logger.info("Starting worker...")
+        logging.info("Starting worker...")
     finally:
         stop_listener()

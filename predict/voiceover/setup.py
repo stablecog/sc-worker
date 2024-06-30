@@ -6,7 +6,7 @@ from bark.generation import (
 import nltk
 from typing import Any
 from denoiser import pretrained
-from shared.logger import logger
+import logging
 from tabulate import tabulate
 
 
@@ -21,7 +21,7 @@ class ModelsPack:
 def setup() -> ModelsPack:
     start = time.time()
     version_str = f"Version: {WORKER_VERSION}"
-    logger.info(
+    logging.info(
         tabulate([["⏳ Setup has started", version_str]], tablefmt="double_grid")
     )
 
@@ -35,8 +35,8 @@ def setup() -> ModelsPack:
     )
 
     end = time.time()
-    logger.info("//////////////////////////////////////////////////////////////////")
-    logger.info(f"✅ Predict setup is done in: {round(end - start)} sec.")
-    logger.info("//////////////////////////////////////////////////////////////////")
+    logging.info("//////////////////////////////////////////////////////////////////")
+    logging.info(f"✅ Predict setup is done in: {round(end - start)} sec.")
+    logging.info("//////////////////////////////////////////////////////////////////")
 
     return pack

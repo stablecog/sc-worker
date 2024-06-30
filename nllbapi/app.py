@@ -12,7 +12,7 @@ from models.nllb.constants import (
 from models.nllb.translate import translate_text
 from predict.image.setup import ModelsPack
 import time
-from shared.logger import logger
+import logging
 
 nllbapi = Flask(__name__)
 
@@ -25,27 +25,27 @@ def health():
 @nllbapi.route("/predictions", methods=["POST"])
 def translate():
     start = time.time()
-    logger.info("//////////////////////////////////////////////////////////////////")
-    logger.info(f"⏳💬 Translation started 💬⏳")
+    logging.info("//////////////////////////////////////////////////////////////////")
+    logging.info(f"⏳💬 Translation started 💬⏳")
 
     with current_app.app_context():
         models_pack: ModelsPack = current_app.models_pack
     authheader = request.headers.get("Authorization")
     if authheader is None:
-        logger.info("🔴 Unauthorized: Missing authorization header")
+        logging.info("🔴 Unauthorized: Missing authorization header")
         return "Unauthorized", 401
     if authheader != os.environ["NLLBAPI_AUTH_TOKEN"]:
-        logger.info("🔴 Unauthorized: Invalid authorization header")
+        logging.info("🔴 Unauthorized: Invalid authorization header")
         return "Unauthorized", 401
     try:
         req_body = request.get_json()
     except Exception as e:
         tb = traceback.format_exc()
-        logger.info(f"🔴 Error parsing request body: {tb}\n")
+        logging.info(f"🔴 Error parsing request body: {tb}\n")
         return str(e), 400
     finally:
         if req_body is None:
-            logger.info("🔴 Missing request body")
+            logging.info("🔴 Missing request body")
             return "Missing request body", 400
 
     # Text 1
@@ -92,8 +92,10 @@ def translate():
         output_strings.append(translated_text_2)
 
     end = time.time()
-    logger.info(f"✅💬 Translation completed in: {round((end - start) * 1000)} ms 💬✅")
-    logger.info("//////////////////////////////////////////////////////////////////")
+    logging.info(
+        f"✅💬 Translation completed in: {round((end - start) * 1000)} ms 💬✅"
+    )
+    logging.info("//////////////////////////////////////////////////////////////////")
     return jsonify({"output": output_strings})
 
 
@@ -102,7 +104,7 @@ def run_nllbapi(models_pack: ModelsPack):
     port = os.environ.get("NLLBAPI_PORT", 13349)
     with nllbapi.app_context():
         current_app.models_pack = models_pack
-    logger.info("//////////////////////////////////////////////////////////////////")
-    logger.info(f"🖥️🟢 Starting NLLB API on {host}:{port}")
-    logger.info("//////////////////////////////////////////////////////////////////")
+    logging.info("//////////////////////////////////////////////////////////////////")
+    logging.info(f"🖥️🟢 Starting NLLB API on {host}:{port}")
+    logging.info("//////////////////////////////////////////////////////////////////")
     serve(nllbapi, host=host, port=port)

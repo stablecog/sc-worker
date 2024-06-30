@@ -12,7 +12,7 @@ from models.bark.generate import (
 )
 import os
 from tabulate import tabulate
-from shared.logger import logger
+import logging
 
 
 class PredictInput(BaseModel):
@@ -70,8 +70,8 @@ def predict(
     models_pack: ModelsPack,
 ) -> PredictResult:
     process_start = time.time()
-    logger.info("//////////////////////////////////////////////////////////////////")
-    logger.info(f"⏳ Voiceover - Process started ⏳")
+    logging.info("//////////////////////////////////////////////////////////////////")
+    logging.info(f"⏳ Voiceover - Process started ⏳")
 
     if input.seed is None:
         input.seed = int.from_bytes(os.urandom(2), "big")
@@ -91,7 +91,7 @@ def predict(
         ["RS keep silence len", input.remove_silence_keep_silence_len],
     ]
 
-    logger.info(
+    logging.info(
         tabulate([["🎤 Generation 🟡", "Started"]] + log_table, tablefmt="double_grid")
     )
 
@@ -107,7 +107,7 @@ def predict(
     )
     voiceover_end = time.time()
 
-    logger.info(
+    logging.info(
         tabulate(
             [
                 [
@@ -143,9 +143,9 @@ def predict(
     )
 
     process_end = time.time()
-    logger.info(
+    logging.info(
         f"✅ Voiceover - Process completed in: {round(process_end - process_start, 2)} sec. ✅"
     )
-    logger.info("//////////////////////////////////////////////////////////////////")
+    logging.info("//////////////////////////////////////////////////////////////////")
 
     return result

@@ -10,7 +10,7 @@ from shared.helpers import (
     log_gpu_memory,
     move_pipe_to_device,
 )
-from shared.logger import logger
+import logging
 
 
 def generate(
@@ -33,7 +33,7 @@ def generate(
 ):
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
-    logger.info(f"Using seed: {seed}")
+    logging.info(f"Using seed: {seed}")
     generator = torch.Generator(device="cuda").manual_seed(seed)
 
     if prompt_prefix is not None:
@@ -58,8 +58,8 @@ def generate(
             else:
                 negative_prompt = f"{default_negative_prompt_prefix} {negative_prompt}"
 
-    logger.info(f"-- Prompt: {prompt} --")
-    logger.info(f"-- Negative Prompt: {negative_prompt} --")
+    logging.info(f"-- Prompt: {prompt} --")
+    logging.info(f"-- Negative Prompt: {negative_prompt} --")
 
     extra_kwargs = {}
     pipe_selected = None
@@ -76,7 +76,7 @@ def generate(
         )
         extra_kwargs["strength"] = prompt_strength
         end_i = time.time()
-        logger.info(
+        logging.info(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
         )
 
@@ -91,7 +91,7 @@ def generate(
             )
             extra_kwargs["strength"] = 0.99
             end_i = time.time()
-            logger.info(
+            logging.info(
                 f"-- Downloaded and cropped mask image in: {round((end_i - start_i) * 1000)} ms"
             )
         else:
@@ -159,7 +159,7 @@ def generate(
         s = time.time()
         output_images = pipe.refiner(**args).images
         e = time.time()
-        logger.info(
+        logging.info(
             f"🖌️ Refined {len(output_images)} images in: {round((e - s) * 1000)} ms"
         )
 
@@ -169,7 +169,7 @@ def generate(
             )
 
     if nsfw_count > 0:
-        logger.info(
+        logging.info(
             f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs."
         )
 

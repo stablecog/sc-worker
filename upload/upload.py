@@ -13,7 +13,7 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from urllib.parse import urlparse
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
-from shared.logger import logger
+import logging
 
 
 def extract_key_from_signed_url(signed_url: str) -> str:
@@ -38,14 +38,14 @@ def convert_and_upload_image_to_signed_url(
 
     _pil_image = pil_image
     if target_extension == "jpeg":
-        logger.info(f"-- Upload: Converting to JPEG")
+        logging.info(f"-- Upload: Converting to JPEG")
         _pil_image = _pil_image.convert("RGB")
     img_format = target_extension.upper()
     img_bytes = BytesIO()
     _pil_image.save(img_bytes, format=img_format, quality=target_quality)
     file_bytes = img_bytes.getvalue()
     end_conv = time.time()
-    logger.info(
+    logging.info(
         f"Converted image in: {round((end_conv - start_conv) * 1000)} ms - {img_format} - {target_quality}"
     )
 
@@ -69,7 +69,7 @@ def convert_and_upload_image_to_signed_url(
     session.mount("http://", adapter)
 
     start_upload = time.time()
-    logger.info(f"-- Upload: Uploading to signed URL")
+    logging.info(f"-- Upload: Uploading to signed URL")
     response = session.put(
         signed_url,
         data=file_bytes,
@@ -78,14 +78,14 @@ def convert_and_upload_image_to_signed_url(
     end_upload = time.time()
 
     if response.status_code == 200:
-        logger.info(
+        logging.info(
             f"Uploaded image in: {round((end_upload - start_upload) * 1000)} ms"
         )
         final_key = extract_key_from_signed_url(signed_url)
-        logger.info(f"Final key for image is: {final_key}")
+        logging.info(f"Final key for image is: {final_key}")
         return final_key
     else:
-        logger.info(f"Failed to upload image. Status code: {response.status_code}")
+        logging.info(f"Failed to upload image. Status code: {response.status_code}")
         response.raise_for_status()
 
 
@@ -95,13 +95,13 @@ def upload_files_for_image(
     upload_path_prefix: str,
 ) -> Iterable[Dict[str, Any]]:
     """Send all files to S3 in parallel and return the S3 URLs"""
-    logger.info("Started - Upload all files to S3 in parallel and return the S3 URLs")
+    logging.info("Started - Upload all files to S3 in parallel and return the S3 URLs")
     start = time.time()
 
     # Run all uploads at same time in threadpool
     tasks: List[Future] = []
     with ThreadPoolExecutor(max_workers=len(upload_objects)) as executor:
-        logger.info(f"-- Upload: Submitting to thread")
+        logging.info(f"-- Upload: Submitting to thread")
         for i, uo in enumerate(upload_objects):
             signed_url = signed_urls[i]
             tasks.append(
@@ -118,7 +118,7 @@ def upload_files_for_image(
     # Get results
     results = []
     for i, task in enumerate(tasks):
-        logger.info(f"-- Upload: Got result")
+        logging.info(f"-- Upload: Got result")
         uploadObject = upload_objects[i]
         results.append(
             {
@@ -130,7 +130,7 @@ def upload_files_for_image(
         )
 
     end = time.time()
-    logger.info(
+    logging.info(
         f"📤 All converted and uploaded to S3 in: {round((end - start) *1000)} ms 📤"
     )
 

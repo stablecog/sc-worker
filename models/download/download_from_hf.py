@@ -9,16 +9,16 @@ import os
 from models.swinir.constants import MODEL_DIR_SWINIR, MODEL_NAME_SWINIR
 from huggingface_hub import login
 import time
-from shared.logger import logger
+import logging
 
 
 def download_models_from_hf(downloadAll=True):
     # Login to HuggingFace if there is a token
     token = os.environ.get("HF_TOKEN", None)
     if token is not None:
-        logger.info(f"⏳ Logging in to HuggingFace")
+        logging.info(f"⏳ Logging in to HuggingFace")
         login(token=token)
-        logger.info(f"✅ Logged in to HuggingFace")
+        logging.info(f"✅ Logged in to HuggingFace")
     download_sd_models_from_hf(downloadAll=downloadAll)
     download_swinir_models()
 
@@ -26,7 +26,7 @@ def download_models_from_hf(downloadAll=True):
 def download_sd_model_from_hf(key):
     model_id = SD_MODELS_ALL[key]["id"]
     s = time.time()
-    logger.info(f"⏳ Downloading model: {model_id}")
+    logging.info(f"⏳ Downloading model: {model_id}")
     if key == "SDXL" or key == "Waifu Diffusion XL":
         pipe = StableDiffusionXLPipeline.from_pretrained(
             SD_MODELS[key]["id"],
@@ -48,7 +48,7 @@ def download_sd_model_from_hf(key):
             torch_dtype=SD_MODELS_ALL[key]["torch_dtype"],
             cache_dir=SD_MODEL_CACHE,
         )
-    logger.info(
+    logging.info(
         f"✅ Downloaded model: {key} | Duration: {round(time.time() - s, 1)} seconds"
     )
     return {"key": key}
@@ -74,16 +74,16 @@ def download_sd_models_concurrently_from_hf():
 
 
 def download_swinir_models():
-    logger.info("⏳ Downloading SwinIR models...")
+    logging.info("⏳ Downloading SwinIR models...")
     if os.path.exists(os.path.join(MODEL_DIR_SWINIR, MODEL_NAME_SWINIR)):
-        logger.info("✅ SwinIR models already downloaded")
+        logging.info("✅ SwinIR models already downloaded")
     else:
         os.system(
             f"wget -q https://github.com/JingyunLiang/SwinIR/releases/download/v0.0/{MODEL_NAME_SWINIR} -P {MODEL_DIR_SWINIR}"
         )
-        logger.info("✅ Downloaded SwinIR models")
+        logging.info("✅ Downloaded SwinIR models")
 
 
 if __name__ == "__main__":
     download_models_from_hf()
-    logger.info("✅ Downloaded all models successfully")
+    logging.info("✅ Downloaded all models successfully")

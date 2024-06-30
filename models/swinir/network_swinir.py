@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 from timm.models.layers import DropPath, to_2tuple, trunc_normal_
-from shared.logger import logger
+import logging
 
 
 class Mlp(nn.Module):
@@ -1064,9 +1064,9 @@ if __name__ == "__main__":
         mlp_ratio=2,
         upsampler="pixelshuffledirect",
     )
-    logger.info(model)
-    logger.info(height, width, model.flops() / 1e9)
+    logging.info(model)
+    logging.info(height, width, model.flops() / 1e9)
 
     x = torch.randn((1, 3, height, width))
     x = model(x)
-    logger.info(x.shape)
+    logging.info(x.shape)

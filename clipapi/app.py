@@ -12,7 +12,7 @@ from predict.image.setup import ModelsPack
 from shared.helpers import download_images
 import time
 from shared.helpers import time_code_block
-from shared.logger import logger
+import logging
 
 clipapi = Flask(__name__)
 
@@ -29,23 +29,23 @@ def clip_embed():
         models_pack: ModelsPack = current_app.models_pack
     authheader = request.headers.get("Authorization")
     if authheader is None:
-        logger.info("🔴 Unauthorized: Missing authorization header")
+        logging.info("🔴 Unauthorized: Missing authorization header")
         return "Unauthorized", 401
     if authheader != os.environ["CLIPAPI_AUTH_TOKEN"]:
-        logger.info("🔴 Unauthorized: Invalid authorization header")
+        logging.info("🔴 Unauthorized: Invalid authorization header")
         return "Unauthorized", 401
     try:
         req_body = request.get_json()
     except Exception as e:
         tb = traceback.format_exc()
-        logger.info(f"🔴 Error parsing request body: {tb}\n")
+        logging.info(f"🔴 Error parsing request body: {tb}\n")
         return str(e), 400
     finally:
         if req_body is None:
-            logger.info("🔴 Missing request body")
+            logging.info("🔴 Missing request body")
             return "Missing request body", 400
         if isinstance(req_body, list) is not True:
-            logger.info("🔴 Body should be an array")
+            logging.info("🔴 Body should be an array")
             return "Body should be an array", 400
 
     embeds = [None for _ in range(len(req_body))]
@@ -83,7 +83,7 @@ def clip_embed():
                 pil_images = download_images(urls=image_urls, max_workers=25)
         except Exception as e:
             tb = traceback.format_exc()
-            logger.info(f"Failed to download images: {tb}\n")
+            logging.info(f"Failed to download images: {tb}\n")
             return str(e), 500
         image_embeds = open_clip_get_embeds_of_images(
             pil_images,
@@ -100,7 +100,7 @@ def clip_embed():
             embeds[index] = obj
 
     e = time.time()
-    logger.info(f"🖥️  Embedded {len(req_body)} items in: {e-s:.2f} seconds  🖥️\n")
+    logging.info(f"🖥️  Embedded {len(req_body)} items in: {e-s:.2f} seconds  🖥️\n")
     return jsonify({"embeddings": embeds})
 
 
@@ -109,7 +109,7 @@ def run_clipapi(models_pack: ModelsPack):
     port = os.environ.get("CLIPAPI_PORT", 13339)
     with clipapi.app_context():
         current_app.models_pack = models_pack
-    logger.info("//////////////////////////////////////////////////////////////////")
-    logger.info(f"🖥️🟢 Starting CLIP API on {host}:{port}")
-    logger.info("//////////////////////////////////////////////////////////////////")
+    logging.info("//////////////////////////////////////////////////////////////////")
+    logging.info(f"🖥️🟢 Starting CLIP API on {host}:{port}")
+    logging.info("//////////////////////////////////////////////////////////////////")
     serve(clipapi, host=host, port=port)

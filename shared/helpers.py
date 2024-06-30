@@ -20,7 +20,7 @@ import torch
 from pydub import AudioSegment
 from pyloudnorm import Meter, normalize
 from io import BytesIO
-from shared.logger import logger
+import logging
 from tabulate import tabulate
 
 
@@ -36,7 +36,7 @@ def clean_folder(folder):
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
         except Exception as e:
-            logger.info("Failed to delete %s. Reason: %s" % (file_path, e))
+            logging.info("Failed to delete %s. Reason: %s" % (file_path, e))
 
 
 def ensure_trailing_slash(url: str) -> str:
@@ -75,7 +75,7 @@ def time_it(func):
         t1 = time.time()
         result = func(*args, **kwargs)
         t2 = time.time()
-        logger.info(f"Function {func.__name__!r} executed in {((t2-t1)*1000):.0f}ms")
+        logging.info(f"Function {func.__name__!r} executed in {((t2-t1)*1000):.0f}ms")
         return result
 
     return wrap_func
@@ -94,7 +94,7 @@ class time_code_block:
         statement = f"Executed in: {self.elapsed_time:.2f} ms"
         if self.prefix:
             statement = f"{self.prefix} - {statement}"
-        logger.info(statement)
+        logging.info(statement)
 
 
 def download_image(url):
@@ -230,7 +230,7 @@ def do_normalize_audio_loudness(audio_arr, sample_rate, target_lufs=-16):
     # Normalize the audio to the target LUFS
     normalized_audio_arr = normalize.loudness(audio_arr, loudness, target_lufs)
     e = time.time()
-    logger.info(f"🔊 Normalized audio loudness in: {round((e - s) * 1000)} ms 🔊")
+    logging.info(f"🔊 Normalized audio loudness in: {round((e - s) * 1000)} ms 🔊")
     return normalized_audio_arr
 
 
@@ -346,12 +346,12 @@ def log_gpu_memory(device_id=0, message=None):
             ["Cached Memory (GB)", cached_str],
         ]
         if message is not None:
-            logger.info(message)
-        logger.info(
+            logging.info(message)
+        logging.info(
             tabulate([["GPU Memory Log", "Value"]] + log_table, tablefmt="double_grid")
         )
     except Exception as e:
-        logger.info(f"Failed to log GPU memory")
+        logging.info(f"Failed to log GPU memory")
 
 
 def move_pipe_to_device(pipe, model_name, device):
@@ -359,7 +359,7 @@ def move_pipe_to_device(pipe, model_name, device):
     pipe = pipe.to(device, silence_dtype_warnings=True)
     e = time.time()
     emoji = "🚀" if device == "cuda" else "🐌"
-    logger.info(
+    logging.info(
         f"{emoji} Moved {model_name} to {device} in: {round((e - s) * 1000)} ms"
     )
     return pipe
