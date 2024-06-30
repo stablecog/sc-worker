@@ -27,7 +27,7 @@ def setup_logger():
 
     # Set up the logging queue and handlers
     queue = Queue(-1)
-    handler = logging.handlers.QueueHandler(queue)
+    queue_handler = logging.handlers.QueueHandler(queue)
 
     # Set up the Loki handler
     handler_loki = logging_loki.LokiHandler(
@@ -37,12 +37,6 @@ def setup_logger():
         version="1",
     )
 
-    # Set up the listener to handle log entries from the queue
-    listener = logging.handlers.QueueListener(queue, handler_loki)
-
-    # Start the listener
-    listener.start()
-
     # Set up the stdout handler for console logging
     stdout_handler = logging.StreamHandler(sys.stdout)
     stdout_handler.setLevel(logging.INFO)
@@ -51,10 +45,15 @@ def setup_logger():
     )
     stdout_handler.setFormatter(formatter)
 
+    # Set up the listener to handle log entries from the queue
+    listener = logging.handlers.QueueListener(queue, handler_loki, stdout_handler)
+
+    # Start the listener
+    listener.start()
+
     # Set up the root logger
     root_logger = logging.getLogger()
-    root_logger.addHandler(handler)
-    root_logger.addHandler(stdout_handler)
+    root_logger.addHandler(queue_handler)
     root_logger.setLevel(logging.INFO)
 
     return listener
