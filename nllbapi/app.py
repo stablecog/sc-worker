@@ -32,17 +32,20 @@ def translate():
         models_pack: ModelsPack = current_app.models_pack
     authheader = request.headers.get("Authorization")
     if authheader is None:
+        logger.info("🔴 Unauthorized: Missing authorization header")
         return "Unauthorized", 401
     if authheader != os.environ["NLLBAPI_AUTH_TOKEN"]:
+        logger.info("🔴 Unauthorized: Invalid authorization header")
         return "Unauthorized", 401
     try:
         req_body = request.get_json()
     except Exception as e:
         tb = traceback.format_exc()
-        logger.info(f"Error parsing request body: {tb}\n")
+        logger.info(f"🔴 Error parsing request body: {tb}\n")
         return str(e), 400
     finally:
         if req_body is None:
+            logger.info("🔴 Missing request body")
             return "Missing request body", 400
 
     # Text 1
@@ -65,12 +68,6 @@ def translate():
     )
     label_2 = req_body.get("label_2", "Text")
 
-    extra_kwargs = {
-        "model": models_pack.translator["model"],
-        "tokenizer": models_pack.translator["tokenizer"],
-        "detector": models_pack.translator["detector"],
-    }
-
     output_strings = []
     translated_text = translate_text(
         text=text_1,
@@ -79,7 +76,7 @@ def translate():
         detected_confidence_score_min=detected_confidence_score_min_1,
         target_score_max=target_score_max_1,
         label=label_1,
-        **extra_kwargs,
+        translator=models_pack.translator,
     )
     output_strings.append(translated_text)
     if text_2 is not None:
@@ -90,7 +87,7 @@ def translate():
             detected_confidence_score_min=detected_confidence_score_min_2,
             target_score_max=target_score_max_2,
             label=label_2,
-            **extra_kwargs,
+            translator=models_pack.translator,
         )
         output_strings.append(translated_text_2)
 
