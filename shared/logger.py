@@ -25,7 +25,7 @@ def setup_logger():
     if not loki_password:
         raise ValueError("LOKI_PASSWORD environment variable is not set")
 
-    # Set up the logging queue and handlers
+    # Set up the logging queue and handler
     queue = Queue(-1)
     queue_handler = logging.handlers.QueueHandler(queue)
 
@@ -53,21 +53,10 @@ def setup_logger():
 
     # Set up the root logger
     root_logger = logging.getLogger()
+    # Clear existing handlers to avoid double logging
+    if root_logger.hasHandlers():
+        root_logger.handlers.clear()
     root_logger.addHandler(queue_handler)
     root_logger.setLevel(logging.INFO)
 
     return listener
-
-
-listener = setup_logger()
-
-
-def stop_listener():
-    listener.stop()
-
-
-if __name__ == "__main__":
-    try:
-        logging.info("Starting worker...")
-    finally:
-        stop_listener()

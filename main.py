@@ -1,6 +1,6 @@
 from shared.logger import setup_logger
 
-setup_logger()
+logger_listener = setup_logger()
 
 from threading import Thread, Event
 from typing import Any, Dict
@@ -58,6 +58,7 @@ if __name__ == "__main__":
             logging.info("Signal received, shutting down...")
             shutdown_event.set()
             connection.connection.close()
+            logger_listener.stop()
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
