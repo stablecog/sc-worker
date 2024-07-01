@@ -34,6 +34,8 @@ def clip_embed():
     if authheader != os.environ["CLIPAPI_AUTH_TOKEN"]:
         logging.error("🔴 Unauthorized: Invalid authorization header")
         return "Unauthorized", 401
+
+    req_body = None
     try:
         req_body = request.get_json()
     except Exception as e:
