@@ -29,10 +29,10 @@ def clip_embed():
         models_pack: ModelsPack = current_app.models_pack
     authheader = request.headers.get("Authorization")
     if authheader is None:
-        logging.info("🔴 Unauthorized: Missing authorization header")
+        logging.error("🔴 Unauthorized: Missing authorization header")
         return "Unauthorized", 401
     if authheader != os.environ["CLIPAPI_AUTH_TOKEN"]:
-        logging.info("🔴 Unauthorized: Invalid authorization header")
+        logging.error("🔴 Unauthorized: Invalid authorization header")
         return "Unauthorized", 401
     try:
         req_body = request.get_json()
@@ -42,10 +42,10 @@ def clip_embed():
         return str(e), 400
     finally:
         if req_body is None:
-            logging.info("🔴 Missing request body")
+            logging.error("🔴 Missing request body")
             return "Missing request body", 400
         if isinstance(req_body, list) is not True:
-            logging.info("🔴 Body should be an array")
+            logging.error("🔴 Body should be an array")
             return "Body should be an array", 400
 
     embeds = [None for _ in range(len(req_body))]

@@ -32,10 +32,10 @@ def translate():
         models_pack: ModelsPack = current_app.models_pack
     authheader = request.headers.get("Authorization")
     if authheader is None:
-        logging.info("🔴 Unauthorized: Missing authorization header")
+        logging.error("🔴 Unauthorized: Missing authorization header")
         return "Unauthorized", 401
     if authheader != os.environ["NLLBAPI_AUTH_TOKEN"]:
-        logging.info("🔴 Unauthorized: Invalid authorization header")
+        logging.error("🔴 Unauthorized: Invalid authorization header")
         return "Unauthorized", 401
     try:
         req_body = request.get_json()
@@ -45,28 +45,42 @@ def translate():
         return str(e), 400
     finally:
         if req_body is None:
-            logging.info("🔴 Missing request body")
+            logging.error("🔴 Missing request body")
             return "Missing request body", 400
 
+    prediction_input = req_body.get("input", None)
+
+    if prediction_input is None:
+        logging.error("🔴 Missing input field in request body")
+        return "Missing input field in request body", 400
+
     # Text 1
-    text_1 = req_body.get("text_1", "")
-    text_flores_1 = req_body.get("text_flores_1", None)
-    target_flores_1 = req_body.get("target_flores_1", TARGET_LANG_FLORES)
-    target_score_max_1 = req_body.get("target_score_max_1", TARGET_LANG_SCORE_MAX)
-    detected_confidence_score_min_1 = req_body.get(
+    text_1 = prediction_input.get("text_1", "")
+    if text_1 == "":
+        logging.error("🔴 Missing text_1 field in input")
+        return "Missing text_1 field in input", 400
+
+    text_flores_1 = prediction_input.get("text_flores_1", None)
+    target_flores_1 = prediction_input.get("target_flores_1", TARGET_LANG_FLORES)
+    target_score_max_1 = prediction_input.get(
+        "target_score_max_1", TARGET_LANG_SCORE_MAX
+    )
+    detected_confidence_score_min_1 = prediction_input.get(
         "detected_confidence_score_min_1", DETECTED_CONFIDENCE_SCORE_MIN
     )
-    label_1 = req_body.get("label_1", "Text")
+    label_1 = prediction_input.get("label_1", "Text")
 
     # Text 2
-    text_2 = req_body.get("text_2", None)
-    text_flores_2 = req_body.get("text_flores_2", None)
-    target_flores_2 = req_body.get("target_flores_2", TARGET_LANG_FLORES)
-    target_score_max_2 = req_body.get("target_score_max_2", TARGET_LANG_SCORE_MAX)
-    detected_confidence_score_min_2 = req_body.get(
+    text_2 = prediction_input.get("text_2", None)
+    text_flores_2 = prediction_input.get("text_flores_2", None)
+    target_flores_2 = prediction_input.get("target_flores_2", TARGET_LANG_FLORES)
+    target_score_max_2 = prediction_input.get(
+        "target_score_max_2", TARGET_LANG_SCORE_MAX
+    )
+    detected_confidence_score_min_2 = prediction_input.get(
         "detected_confidence_score_min_2", DETECTED_CONFIDENCE_SCORE_MIN
     )
-    label_2 = req_body.get("label_2", "Text")
+    label_2 = prediction_input.get("label_2", "Text")
 
     output_strings = []
     translated_text = translate_text(
