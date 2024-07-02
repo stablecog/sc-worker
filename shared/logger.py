@@ -15,7 +15,7 @@ def setup_logger():
     loki_url = os.getenv("LOKI_URL")
     loki_username = os.getenv("LOKI_USERNAME")
     loki_password = os.getenv("LOKI_PASSWORD")
-    app_tag = os.getenv("WORKER_NAME", str(uuid.uuid4()))
+    worker_name = os.getenv("WORKER_NAME", str(uuid.uuid4()))
 
     # Validate environment variables
     if not loki_url:
@@ -32,7 +32,7 @@ def setup_logger():
     # Set up the Loki handler
     handler_loki = logging_loki.LokiHandler(
         url=f"{loki_url}/loki/api/v1/push",
-        tags={"application": app_tag},
+        tags={"worker_name": worker_name, "application": "sc-worker"},
         auth=(loki_username, loki_password),
         version="1",
     )
