@@ -6,7 +6,6 @@ from typing import List, Dict, Any
 
 
 from predict.image.predict import PredictResult as PredictResultForImage
-from predict.voiceover.predict import PredictResult as PredictResultForVoiceover
 from rabbitmq_consumer.events import Status
 from shared.webhook import post_webhook
 from upload.upload import upload_files_for_image
@@ -26,9 +25,7 @@ def start_upload_worker(
             uploadMsg: List[Dict[str, Any]] = q.get(timeout=1)
             # logging.info(f"-- Upload: Got from queue --\n")
             if "upload_output" in uploadMsg:
-                predict_result: PredictResultForImage | PredictResultForVoiceover = (
-                    uploadMsg["upload_output"]
-                )
+                predict_result: PredictResultForImage = uploadMsg["upload_output"]
                 if len(predict_result.outputs) > 0:
                     logging.info(
                         f"-- Upload: Uploading {len(predict_result.outputs)} files --"

@@ -14,7 +14,6 @@ import torch
 from models.nllb.constants import LAUNCH_NLLBAPI
 from nllbapi.app import run_nllbapi
 from predict.image.setup import setup as image_setup
-from predict.voiceover.setup import setup as voiceover_setup
 from rabbitmq_consumer.worker import start_amqp_queue_worker
 from rabbitmq_consumer.connection import RabbitMQConnection
 from upload.worker import start_upload_worker
@@ -41,10 +40,7 @@ if __name__ == "__main__":
     if amqpQueueName is None:
         raise ValueError("Missing RABBITMQ_QUEUE_NAME environment variable.")
 
-    if WORKER_TYPE == "voiceover":
-        models_pack = voiceover_setup()
-    else:
-        models_pack = image_setup()
+    models_pack = image_setup()
 
     # Create queue for thread communication
     upload_queue: queue.Queue[Dict[str, Any]] = queue.Queue()
