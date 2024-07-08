@@ -283,12 +283,6 @@ def setup() -> ModelsPack:
                 subfolder="text_encoder_3",
                 quantization_config=quantization_config,
             )
-            if SD_MODELS[key].get("keep_in_cpu_when_idle"):
-                text_encoder = text_encoder.to("cpu", silence_dtype_warnings=True)
-                logging.info(f"🐌 Keep in CPU when idle: {key} text encoder")
-            else:
-                text_encoder = text_encoder.to(DEVICE)
-                logging.info(f"🚀 Keep in GPU: {key} text encoder")
             args = {
                 "pretrained_model_name_or_path": SD_MODELS[key]["id"],
                 "torch_dtype": SD_MODELS[key]["torch_dtype"],
