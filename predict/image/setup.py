@@ -279,7 +279,7 @@ def setup() -> ModelsPack:
         elif base_model == "Stable Diffusion 3":
             quantization_config = BitsAndBytesConfig(load_in_8bit=True)
             text_encoder = T5EncoderModel.from_pretrained(
-                model_id=SD_MODELS[key]["id"],
+                pretrained_model_name_or_path=SD_MODELS[key]["id"],
                 subfolder="text_encoder_3",
                 quantization_config=quantization_config,
             )
