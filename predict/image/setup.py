@@ -52,7 +52,6 @@ from shared.constants import WORKER_VERSION
 import logging
 from tabulate import tabulate
 from diffusers import StableDiffusion3Pipeline
-from transformers import T5EncoderModel, BitsAndBytesConfig
 
 
 class SDPipeSet:
@@ -277,18 +276,11 @@ def setup() -> ModelsPack:
                 vae=vae,
             )
         elif base_model == "Stable Diffusion 3":
-            quantization_config = BitsAndBytesConfig(load_in_8bit=True)
-            text_encoder = T5EncoderModel.from_pretrained(
-                pretrained_model_name_or_path=SD_MODELS[key]["id"],
-                subfolder="text_encoder_3",
-                quantization_config=quantization_config,
-            )
             args = {
                 "pretrained_model_name_or_path": SD_MODELS[key]["id"],
                 "torch_dtype": SD_MODELS[key]["torch_dtype"],
                 "cache_dir": SD_MODEL_CACHE,
                 "safety_checker": None,
-                "text_encoder_3": text_encoder,
             }
             if "variant" in SD_MODELS[key]:
                 args["variant"] = SD_MODELS[key]["variant"]
