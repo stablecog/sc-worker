@@ -9,22 +9,14 @@ from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor
 from PIL import ImageOps
 from typing import TypeVar, List
-from scipy.io.wavfile import write
-from pydub import AudioSegment
 from io import BytesIO
-from pydub.silence import split_on_silence
 import numpy as np
 import textwrap
 import torch
 
-from pydub import AudioSegment
-from pyloudnorm import Meter, normalize
 from io import BytesIO
 import logging
 from tabulate import tabulate
-
-
-from predict.voiceover.classes import RemoveSilenceParams
 
 
 def clean_folder(folder):
@@ -139,41 +131,6 @@ def return_value_if_in_list(value: T, list_of_values: List[T]) -> bool:
     return value
 
 
-def numpy_to_wav_bytes(numpy_array, sample_rate):
-    wav_io = BytesIO()
-    write(wav_io, sample_rate, numpy_array)
-    wav_io.seek(0)
-    return wav_io
-
-
-def remove_silence_from_wav(
-    wav_bytes: BytesIO,
-    remove_silence_params: RemoveSilenceParams,
-) -> BytesIO:
-    audio_segment = AudioSegment.from_wav(wav_bytes)
-    audio_chunks = split_on_silence(
-        audio_segment,
-        min_silence_len=remove_silence_params.min_silence_len,
-        silence_thresh=remove_silence_params.silence_thresh,
-        keep_silence=remove_silence_params.keep_silence_len,
-    )
-    combined = AudioSegment.empty()
-    for chunk in audio_chunks:
-        combined += chunk
-    wav_io = BytesIO()
-    combined.export(wav_io, format="wav")
-    wav_io.seek(0)
-    return wav_io
-
-
-def convert_wav_to_mp3(wav_bytes: BytesIO):
-    audio_segment = AudioSegment.from_wav(wav_bytes)
-    mp3_io = BytesIO()
-    audio_segment.export(mp3_io, format="mp3", bitrate="320k")
-    mp3_io.seek(0)
-    return mp3_io
-
-
 def create_scaled_mask(width, height, scale_factor):
     # First, create an initial mask filled with zeros
     mask = np.zeros((height, width), dtype=np.float32)
@@ -219,19 +176,6 @@ def resize_to_mask(img, mask):
 def wrap_text(text, width=50):
     # This function wraps the text to a certain width
     return "\n".join(textwrap.wrap(text, width=width))
-
-
-def do_normalize_audio_loudness(audio_arr, sample_rate, target_lufs=-16):
-    s = time.time()
-    # Create a meter instance
-    meter = Meter(sample_rate)
-    # Measure the loudness of the audio
-    loudness = meter.integrated_loudness(audio_arr)
-    # Normalize the audio to the target LUFS
-    normalized_audio_arr = normalize.loudness(audio_arr, loudness, target_lufs)
-    e = time.time()
-    logging.info(f"🔊 Normalized audio loudness in: {round((e - s) * 1000)} ms 🔊")
-    return normalized_audio_arr
 
 
 def pad_image_mask_nd(

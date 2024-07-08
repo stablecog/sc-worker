@@ -22,14 +22,8 @@ from predict.image.predict import (
     predict as predict_for_image,
     PredictResult as PredictResultForImage,
 )
-from predict.voiceover.predict import (
-    PredictInput as PredictInputForVoiceover,
-    predict as predict_for_voiceover,
-    PredictResult as PredictResultForVoiceover,
-)
 from shared.helpers import format_datetime
 from predict.image.setup import ModelsPack as ModelsPackForImage
-from predict.voiceover.setup import ModelsPack as ModelsPackForVoiceover
 from shared.webhook import post_webhook
 from tabulate import tabulate
 import logging
@@ -63,7 +57,7 @@ def create_amqp_callback(
     queue_name: str,
     worker_type: str,
     upload_queue: queue.Queue[Dict[str, Any]],
-    models_pack: ModelsPackForImage | ModelsPackForVoiceover,
+    models_pack: ModelsPackForImage,
 ):
     """Create the amqp callback to handle rabbitmq messages"""
 
@@ -106,21 +100,14 @@ def create_amqp_callback(
 
             run_prediction = None
             args = {}
-            if worker_type == "voiceover":
-                run_prediction = run_prediction_for_voiceover
-            else:
-                run_prediction = run_prediction_for_image
+            run_prediction = run_prediction_for_image
 
             args["models_pack"] = models_pack
 
             for response_event, response in run_prediction(message, **args):
                 if "upload_output" in response and isinstance(
                     response["upload_output"],
-                    (
-                        PredictResultForVoiceover
-                        if worker_type == "voiceover"
-                        else PredictResultForImage
-                    ),
+                    (PredictResultForImage),
                 ):
                     logging.info(f"-- Upload: Putting to queue")
                     upload_queue.put(response)
@@ -143,7 +130,7 @@ def start_amqp_queue_worker(
     connection: RabbitMQConnection,
     queue_name: str,
     upload_queue: queue.Queue[Dict[str, Any]],
-    models_pack: ModelsPackForImage | ModelsPackForVoiceover,
+    models_pack: ModelsPackForImage,
     shutdown_event: Event,
 ) -> None:
     logging.info(f"Listening for messages on {queue_name}\n")
@@ -256,67 +243,6 @@ def run_prediction_for_image(
         response["upload_prefix"] = input_obj.get("upload_path_prefix", "")
         response["upload_output"] = predictResult
         response["nsfw_count"] = predictResult.nsfw_count
-
-        completed_at = datetime.datetime.now()
-        response["completed_at"] = format_datetime(completed_at)
-
-        response["status"] = Status.SUCCEEDED
-        response["metrics"] = {
-            "predict_time": (completed_at - started_at).total_seconds()
-        }
-    except Exception as e:
-        tb = traceback.format_exc()
-        logging.error(f"Failed to run prediction: {tb}\n")
-        completed_at = datetime.datetime.now()
-        response["completed_at"] = format_datetime(completed_at)
-        response["status"] = Status.FAILED
-        response["error"] = str(e)
-    finally:
-        yield (Event.COMPLETED, response)
-
-
-def run_prediction_for_voiceover(
-    message: Dict[str, Any],
-    models_pack: ModelsPackForVoiceover,
-) -> Iterable[Tuple[Event, Dict[str, Any]]]:
-    """Runs the prediction and yields events and responses."""
-
-    # use the request message as the basis of our response so
-    # that we echo back any additional fields sent to us
-    response = message
-    response["status"] = Status.PROCESSING
-    response["outputs"] = None
-    response["logs"] = ""
-
-    started_at = datetime.datetime.now()
-
-    try:
-        input_obj: Dict[str, Any] = response["input"]
-    except Exception as e:
-        tb = traceback.format_exc()
-        logging.error(f"Failed to start prediction: {tb}\n")
-        response["status"] = Status.FAILED
-        response["error"] = str(e)
-        yield (Event.COMPLETED, response)
-
-        return
-
-    response["started_at"] = format_datetime(started_at)
-    response["logs"] = ""
-
-    yield (Event.START, response)
-
-    try:
-        predictResult = predict_for_voiceover(
-            input=PredictInputForVoiceover(**input_obj),
-            models_pack=models_pack,
-        )
-
-        if len(predictResult.outputs) == 0:
-            raise Exception("Missing outputs")
-
-        response["upload_prefix"] = input_obj.get("upload_path_prefix", "")
-        response["upload_output"] = predictResult
 
         completed_at = datetime.datetime.now()
         response["completed_at"] = format_datetime(completed_at)
