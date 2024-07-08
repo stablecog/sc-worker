@@ -108,7 +108,10 @@ def generate(
             pipe=pipe_selected, model_name=model, device=DEVICE
         )
 
-    pipe_selected.scheduler = get_scheduler(scheduler, pipe_selected.scheduler.config)
+    if SD_MODELS[model].get("base_model", None) != "Stable Diffusion 3":
+        pipe_selected.scheduler = get_scheduler(
+            scheduler, pipe_selected.scheduler.config
+        )
     output = pipe_selected(
         prompt=prompt,
         negative_prompt=negative_prompt,
