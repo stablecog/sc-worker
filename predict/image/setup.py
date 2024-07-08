@@ -289,7 +289,6 @@ def setup() -> ModelsPack:
                 "cache_dir": SD_MODEL_CACHE,
                 "safety_checker": None,
                 "text_encoder_3": text_encoder,
-                "device_map": "balanced",
             }
             if "variant" in SD_MODELS[key]:
                 args["variant"] = SD_MODELS[key]["variant"]
