@@ -51,13 +51,18 @@ from models.swinir.helpers import define_model_swinir, get_args_swinir
 from shared.constants import WORKER_VERSION
 import logging
 from tabulate import tabulate
+from diffusers import StableDiffusion3Pipeline
 
 
 class SDPipeSet:
     def __init__(
         self,
-        text2img: StableDiffusionPipeline | StableDiffusionXLPipeline,
-        img2img: StableDiffusionImg2ImgPipeline | StableDiffusionImg2ImgPipeline,
+        text2img: (
+            StableDiffusionPipeline
+            | StableDiffusionXLPipeline
+            | StableDiffusion3Pipeline
+        ),
+        img2img: StableDiffusionImg2ImgPipeline | None,
         inpaint: StableDiffusionInpaintPipeline | None,
         refiner: StableDiffusionXLImg2ImgPipeline | None,
         vae: Any | None = None,
@@ -196,10 +201,11 @@ def setup() -> ModelsPack:
                 "pretrained_model_name_or_path": SD_MODELS[key]["id"],
                 "torch_dtype": SD_MODELS[key]["torch_dtype"],
                 "cache_dir": SD_MODEL_CACHE,
-                "variant": SD_MODELS[key]["variant"],
                 "use_safetensors": True,
                 "add_watermarker": False,
             }
+            if "variant" in SD_MODELS[key]:
+                args["variant"] = SD_MODELS[key]["variant"]
             if vae is not None:
                 args["vae"] = vae
             text2img = StableDiffusionXLPipeline.from_pretrained(**args)
@@ -222,16 +228,12 @@ def setup() -> ModelsPack:
                     "use_safetensors": True,
                     "add_watermarker": False,
                 }
+                if "variant" in SD_MODELS[key]:
+                    refiner_args["variant"] = SD_MODELS[key]["variant"]
                 if refiner_vae is not None:
                     refiner_args["vae"] = refiner_vae
                 refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
-                    SD_MODELS[key]["refiner_id"],
-                    torch_dtype=SD_MODELS[key]["torch_dtype"],
-                    cache_dir=SD_MODEL_CACHE,
-                    variant=SD_MODELS[key]["variant"],
-                    use_safetensors=True,
-                    vae=refiner_vae,
-                    add_watermarker=False,
+                    **refiner_args
                 )
                 if SD_MODELS[key].get("keep_in_cpu_when_idle"):
                     refiner = refiner.to("cpu", silence_dtype_warnings=True)
@@ -273,15 +275,40 @@ def setup() -> ModelsPack:
                 refiner_vae=refiner_vae,
                 vae=vae,
             )
-        else:
-            extra_args = {}
-            extra_args["safety_checker"] = None
-            text2img = StableDiffusionPipeline.from_pretrained(
-                SD_MODELS[key]["id"],
-                torch_dtype=SD_MODELS[key]["torch_dtype"],
-                cache_dir=SD_MODEL_CACHE,
-                **extra_args,
+        elif base_model == "Stable Diffusion 3":
+            args = {
+                "pretrained_model_name_or_path": SD_MODELS[key]["id"],
+                "torch_dtype": SD_MODELS[key]["torch_dtype"],
+                "cache_dir": SD_MODEL_CACHE,
+                "safety_checker": None,
+            }
+            if "variant" in SD_MODELS[key]:
+                args["variant"] = SD_MODELS[key]["variant"]
+            text2img = StableDiffusion3Pipeline.from_pretrained(**args)
+            if SD_MODELS[key].get("keep_in_cpu_when_idle"):
+                text2img = text2img.to("cpu", silence_dtype_warnings=True)
+                logging.info(f"🐌 Keep in CPU when idle: {key}")
+            else:
+                text2img = text2img.to(DEVICE)
+                logging.info(f"🚀 Keep in GPU: {key}")
+            img2img = None
+            inpaint = None
+            pipe = SDPipeSet(
+                text2img=text2img,
+                img2img=img2img,
+                inpaint=inpaint,
+                refiner=None,
             )
+        else:
+            args = {
+                "pretrained_model_name_or_path": SD_MODELS[key]["id"],
+                "torch_dtype": SD_MODELS[key]["torch_dtype"],
+                "cache_dir": SD_MODEL_CACHE,
+                "safety_checker": None,
+            }
+            if "variant" in SD_MODELS[key]:
+                args["variant"] = SD_MODELS[key]["variant"]
+            text2img = StableDiffusionPipeline.from_pretrained(**args)
             if SD_MODELS[key].get("keep_in_cpu_when_idle"):
                 text2img = text2img.to("cpu", silence_dtype_warnings=True)
                 logging.info(f"🐌 Keep in CPU when idle: {key}")
@@ -290,14 +317,6 @@ def setup() -> ModelsPack:
                 logging.info(f"🚀 Keep in GPU: {key}")
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
             inpaint = None
-
-            """ inpaint = get_saved_sd_model(
-                model_id_key="inpaint_id",
-                model_id=SD_MODELS[key]["inpaint_id"],
-                model_type_for_class="inpaint",
-            )
-            if inpaint is None:
-                inpaint = StableDiffusionInpaintPipeline(**text2img.components)"""
 
             pipe = SDPipeSet(
                 text2img=text2img,

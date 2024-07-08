@@ -30,10 +30,17 @@ SD_ENV_KEY_TO_KEY = {
     "SX": "SDXL",
     "WDX": "Waifu Diffusion XL",
     "SSD": "SSD-1B",
+    "SD3": "Stable Diffusion 3",
 }
 SD_MODEL_CACHE = "/app/data/diffusers-cache"
 
 SD_MODELS_ALL = {
+    "Stable Diffusion 3": {
+        "id": "stabilityai/stable-diffusion-3-medium-diffusers",
+        "torch_dtype": torch.float16,
+        "keep_in_cpu_when_idle": device_vram_gb < 75,
+        "base_model": "Stable Diffusion 3",
+    },
     "SDXL": {
         "id": "stabilityai/stable-diffusion-xl-base-1.0",
         "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
@@ -55,7 +62,7 @@ SD_MODELS_ALL = {
         "vae": "madebyollin/sdxl-vae-fp16-fix",
         "refiner_vae": "stabilityai/sdxl-vae",
         "base_model": "SDXL",
-        "keep_in_cpu_when_idle": device_vram_gb < 75,
+        "keep_in_cpu_when_idle": True,
     },
     "Luna Diffusion": {
         "id": "proximasanfinetuning/luna-diffusion",

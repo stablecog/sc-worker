@@ -28,19 +28,28 @@ def download_sd_model_from_hf(key):
     s = time.time()
     logging.info(f"⏳ Downloading model: {model_id}")
     if key == "SDXL" or key == "Waifu Diffusion XL":
+        args = {
+            "pretrained_model_name_or_path": SD_MODELS[key]["id"],
+            "torch_dtype": SD_MODELS[key]["torch_dtype"],
+            "cache_dir": SD_MODEL_CACHE,
+            "variant": SD_MODELS[key]["variant"],
+            "use_safetensors": True,
+        }
+        if "variant" in SD_MODELS[key]:
+            args["variant"] = SD_MODELS[key]["variant"]
         pipe = StableDiffusionXLPipeline.from_pretrained(
-            SD_MODELS[key]["id"],
-            torch_dtype=SD_MODELS[key]["torch_dtype"],
-            cache_dir=SD_MODEL_CACHE,
-            variant=SD_MODELS[key]["variant"],
-            use_safetensors=True,
+            **args,
         )
+        refiner_args = {
+            "pretrained_model_name_or_path": SD_MODELS[key]["refiner_id"],
+            "torch_dtype": SD_MODELS[key]["torch_dtype"],
+            "cache_dir": SD_MODEL_CACHE,
+            "use_safetensors": True,
+        }
+        if "variant" in SD_MODELS[key]:
+            refiner_args["variant"] = SD_MODELS[key]["variant"]
         pipe_refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
-            SD_MODELS[key]["refiner_id"],
-            torch_dtype=SD_MODELS[key]["torch_dtype"],
-            cache_dir=SD_MODEL_CACHE,
-            variant=SD_MODELS[key]["variant"],
-            use_safetensors=True,
+            **refiner_args,
         )
     else:
         pipe = StableDiffusionPipeline.from_pretrained(
