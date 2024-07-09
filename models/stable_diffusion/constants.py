@@ -35,6 +35,12 @@ SD_ENV_KEY_TO_KEY = {
 SD_MODEL_CACHE = "/app/data/diffusers-cache"
 
 SD_MODELS_ALL = {
+    "Stable Diffusion 3": {
+        "id": "stabilityai/stable-diffusion-3-medium-diffusers",
+        "torch_dtype": torch.float16,
+        "base_model": "Stable Diffusion 3",
+        "keep_in_cpu_when_idle": False,
+    },
     "SDXL": {
         "id": "stabilityai/stable-diffusion-xl-base-1.0",
         "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",

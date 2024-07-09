@@ -51,8 +51,7 @@ from models.swinir.helpers import define_model_swinir, get_args_swinir
 from shared.constants import WORKER_VERSION
 import logging
 from tabulate import tabulate
-from diffusers import StableDiffusion3Pipeline
-from transformers import T5EncoderModel, BitsAndBytesConfig
+from diffusers import StableDiffusion3Pipeline, StableDiffusion3Img2ImgPipeline
 
 
 class SDPipeSet:
@@ -129,6 +128,18 @@ class ModelsPack:
         self.open_clip = open_clip
         self.kandinsky_2_2 = kandinsky_2_2
         self.aesthetics_scorer = aesthetics_scorer
+
+
+def auto_send_to_device(dict, key, pipe, extra_text):
+    log_text = key
+    if extra_text:
+        log_text += f" {extra_text}"
+    if dict[key].get("keep_in_cpu_when_idle"):
+        logging.info(f"🐌 Keep in CPU when idle: {log_text}")
+        return pipe.to("cpu", silence_dtype_warnings=True)
+    else:
+        logging.info(f"🚀 Keep in GPU: {log_text}")
+        return pipe.to(DEVICE)
 
 
 def setup() -> ModelsPack:
@@ -236,20 +247,9 @@ def setup() -> ModelsPack:
                 refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
                     **refiner_args
                 )
-                if SD_MODELS[key].get("keep_in_cpu_when_idle"):
-                    refiner = refiner.to("cpu", silence_dtype_warnings=True)
-                    logging.info(f"🐌 Keep in CPU when idle: {key} refiner")
-                else:
-                    refiner = refiner.to(DEVICE)
-                    logging.info(f"🚀 Keep in GPU: {key} refiner")
+                refiner = auto_send_to_device(SD_MODELS, key, refiner, "refiner")
 
-            if SD_MODELS[key].get("keep_in_cpu_when_idle"):
-                text2img = text2img.to("cpu", silence_dtype_warnings=True)
-                logging.info(f"🐌 Keep in CPU when idle: {key}")
-            else:
-                text2img = text2img.to(DEVICE)
-                logging.info(f"🚀 Keep in GPU: {key}")
-
+            text2img = auto_send_to_device(SD_MODELS, key, text2img)
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
 
             inpaint = None
@@ -277,24 +277,20 @@ def setup() -> ModelsPack:
                 vae=vae,
             )
         elif base_model == "Stable Diffusion 3":
-            quantization_config = BitsAndBytesConfig(load_in_8bit=True)
-            text_encoder = T5EncoderModel.from_pretrained(
-                SD_MODELS[key]["id"],
-                subfolder="text_encoder_3",
-                quantization_config=quantization_config,
-            )
             args = {
                 "pretrained_model_name_or_path": SD_MODELS[key]["id"],
                 "torch_dtype": SD_MODELS[key]["torch_dtype"],
                 "cache_dir": SD_MODEL_CACHE,
-                "text_encoder_3": text_encoder,
+                "text_encoder_3": None,
+                "tokenizer_3": None,
                 "safety_checker": None,
-                "device_map": "balanced",
             }
             if "variant" in SD_MODELS[key]:
                 args["variant"] = SD_MODELS[key]["variant"]
+
             text2img = StableDiffusion3Pipeline.from_pretrained(**args)
-            img2img = None
+            text2img = auto_send_to_device(SD_MODELS, key, text2img)
+            img2img = StableDiffusion3Img2ImgPipeline(**text2img.components)
             inpaint = None
             pipe = SDPipeSet(
                 text2img=text2img,
@@ -312,12 +308,7 @@ def setup() -> ModelsPack:
             if "variant" in SD_MODELS[key]:
                 args["variant"] = SD_MODELS[key]["variant"]
             text2img = StableDiffusionPipeline.from_pretrained(**args)
-            if SD_MODELS[key].get("keep_in_cpu_when_idle"):
-                text2img = text2img.to("cpu", silence_dtype_warnings=True)
-                logging.info(f"🐌 Keep in CPU when idle: {key}")
-            else:
-                text2img = text2img.to(DEVICE)
-                logging.info(f"🚀 Keep in GPU: {key}")
+            text2img = auto_send_to_device(SD_MODELS, key, text2img)
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
             inpaint = None
 
