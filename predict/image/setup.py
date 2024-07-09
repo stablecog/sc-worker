@@ -247,9 +247,9 @@ def setup() -> ModelsPack:
                 refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
                     **refiner_args
                 )
-                refiner = auto_send_to_device(SD_MODELS, key, refiner, "refiner")
+                refiner = auto_send_to_device(SD_MODELS, key, refiner, f"{key} refiner")
 
-            text2img = auto_send_to_device(SD_MODELS, key, text2img)
+            text2img = auto_send_to_device(SD_MODELS, key, text2img, f"{key} text2img")
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
 
             inpaint = None
@@ -289,7 +289,7 @@ def setup() -> ModelsPack:
                 args["variant"] = SD_MODELS[key]["variant"]
 
             text2img = StableDiffusion3Pipeline.from_pretrained(**args)
-            text2img = auto_send_to_device(SD_MODELS, key, text2img)
+            text2img = auto_send_to_device(SD_MODELS, key, text2img, f"{key} text2img")
             img2img = StableDiffusion3Img2ImgPipeline(**text2img.components)
             inpaint = None
             pipe = SDPipeSet(
@@ -308,7 +308,7 @@ def setup() -> ModelsPack:
             if "variant" in SD_MODELS[key]:
                 args["variant"] = SD_MODELS[key]["variant"]
             text2img = StableDiffusionPipeline.from_pretrained(**args)
-            text2img = auto_send_to_device(SD_MODELS, key, text2img)
+            text2img = auto_send_to_device(SD_MODELS, key, text2img, f"{key} text2img")
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
             inpaint = None
 
