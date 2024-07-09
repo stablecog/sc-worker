@@ -130,15 +130,12 @@ class ModelsPack:
         self.aesthetics_scorer = aesthetics_scorer
 
 
-def auto_send_to_device(dict, key, pipe, extra_text):
-    log_text = key
-    if extra_text:
-        log_text += f" {extra_text}"
+def auto_send_to_device(dict, key, pipe, description):
     if dict[key].get("keep_in_cpu_when_idle"):
-        logging.info(f"🐌 Keep in CPU when idle: {log_text}")
+        logging.info(f"🐌 Keep in CPU when idle: {description}")
         return pipe.to("cpu", silence_dtype_warnings=True)
     else:
-        logging.info(f"🚀 Keep in GPU: {log_text}")
+        logging.info(f"🚀 Keep in GPU: {description}")
         return pipe.to(DEVICE)
 
 
