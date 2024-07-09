@@ -2,6 +2,8 @@ name: Build and Publish Worker
 
 on:
   push:
+    tags:
+      - "release*"
 concurrency:
   group: workflow-${{ github.workflow }}
   cancel-in-progress: true
@@ -46,6 +48,7 @@ jobs:
     steps:
       - name: Delete huge unnecessary tools folder
         run: rm -rf /opt/hostedtoolcache
+
       - uses: actions/checkout@master
         with:
           ref: master
@@ -61,7 +64,10 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: stablecog/sc-worker:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
+          tags: |
+            stablecog/sc-worker:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
+            stablecog/sc-worker:latest
+            stablecog/sc-worker:auto-vram
 
       - name: Cleanup Docker Junk
         if: success()
