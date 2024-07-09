@@ -4,6 +4,7 @@ import json
 import os
 import requests
 from urllib.parse import urlparse
+import logging
 
 
 class AestheticScorer(nn.Module):
@@ -79,7 +80,7 @@ class AestheticScorer(nn.Module):
             except RuntimeError as e:
                 # check if error contains string "File"
                 if "cannot be opened" in str(e) and i < 5:
-                    print("Model save failed, retrying...")
+                    logging.info("Model save failed, retrying...")
                 else:
                     raise e
 

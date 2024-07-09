@@ -5,13 +5,9 @@ from models.aesthetics_scorer.generate import (
 )
 
 from models.kandinsky.constants import (
-    KANDINSKY_2_1_MODEL_NAME,
     KANDINKSY_2_2_MODEL_NAME,
-    KANDINSKY_2_1_SCHEDULER_CHOICES,
-    LOAD_KANDINSKY_2_1,
     LOAD_KANDINSKY_2_2,
 )
-from models.kandinsky.generate import generate as generate_with_kandinsky
 from models.kandinsky.generate import generate_2_2 as generate_with_kandinsky_2_2
 from models.stable_diffusion.constants import (
     SD_MODEL_CHOICES,
@@ -21,8 +17,6 @@ from models.stable_diffusion.constants import (
 )
 
 from models.stable_diffusion.generate import generate as generate_with_sd
-from models.nllb.translate import translate_text_set_via_api
-from models.nllb.constants import TRANSLATOR_COG_URL
 from models.swinir.upscale import upscale
 
 from typing import List
@@ -37,6 +31,7 @@ from models.open_clip.main import (
 from pydantic import BaseModel, Field, validator
 from shared.helpers import log_gpu_memory, return_value_if_in_list, wrap_text
 from tabulate import tabulate
+import logging
 
 
 class PredictInput(BaseModel):
@@ -113,23 +108,13 @@ class PredictInput(BaseModel):
         description="Height of output image.",
         default=512,
     )
-    translator_cog_url: str = Field(
-        description="URL of the translator cog. If it's blank, TRANSLATOR_COG_URL environment variable will be used (if it exists).",
-        default=TRANSLATOR_COG_URL,
-    )
-    skip_translation: bool = Field(
-        description="Whether to skip translating the prompt and the negative prompt or not.",
-        default=False,
-    )
-    skip_safety_checker: bool = Field(
-        description="Whether to skip the safety checker or not.", default=False
+    signed_urls: List[str] = Field(
+        description="List of signed URLs for images to be uploaded to.", default=None
     )
 
     @validator("model")
     def validate_model(cls, v):
         rest = []
-        if LOAD_KANDINSKY_2_1:
-            rest += [KANDINSKY_2_1_MODEL_NAME]
         if LOAD_KANDINSKY_2_2:
             rest += [KANDINKSY_2_2_MODEL_NAME]
         choices = SD_MODEL_CHOICES + rest
@@ -137,7 +122,7 @@ class PredictInput(BaseModel):
 
     @validator("scheduler")
     def validate_scheduler(cls, v):
-        choices = SD_SCHEDULER_CHOICES + KANDINSKY_2_1_SCHEDULER_CHOICES
+        choices = SD_SCHEDULER_CHOICES
         return return_value_if_in_list(v, choices)
 
     @validator("height")
@@ -174,45 +159,35 @@ def predict(
     models_pack: ModelsPack,
 ) -> PredictResult:
     process_start = time.time()
-    print("//////////////////////////////////////////////////////////////////")
-    print(f"⏳ Process started: {input.process_type} ⏳")
+    logging.info("//////////////////////////////////////////////////////////////////")
+    logging.info(f"⏳ Process started: {input.process_type} ⏳")
     log_gpu_memory(message="GPU status before inference")
     output_images = []
     nsfw_count = 0
     open_clip_embeds_of_images = None
     open_clip_embed_of_prompt = None
-    saved_safety_checker = None
 
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
-        t_prompt = input.prompt
-        t_negative_prompt = input.negative_prompt
-        if input.translator_cog_url is not None and input.skip_translation is False:
-            [t_prompt, t_negative_prompt] = translate_text_set_via_api(
-                text_1=input.prompt,
-                flores_1=input.prompt_flores_200_code,
-                text_2=input.negative_prompt,
-                flores_2=input.negative_prompt_flores_200_code,
-                translator_url=input.translator_cog_url,
-                detector=models_pack.translator["detector"],
-                label="Prompt & Negative Prompt",
+        if input.signed_urls is None or len(input.signed_urls) < input.num_outputs:
+            raise ValueError(
+                f"🔴 Signed URLs are required for {input.num_outputs} outputs. Got {len(input.signed_urls) if input.signed_urls is not None else 0}."
             )
-        prompt_is_translated = input.prompt is not None and t_prompt != input.prompt
-        neg_prompt_is_translated = (
-            input.negative_prompt is not None
-            and t_negative_prompt != input.negative_prompt
-        )
+    elif input.process_type == "upscale":
+        if input.signed_urls is None or len(input.signed_urls) < 1:
+            raise ValueError("🔴 A signed URL is required for the image to upscale.")
 
+    if input.process_type == "generate" or input.process_type == "generate_and_upscale":
         generator_pipe = None
-        if input.model == KANDINSKY_2_1_MODEL_NAME:
-            generator_pipe = models_pack.kandinsky
-        elif input.model == KANDINKSY_2_2_MODEL_NAME:
+        if input.model == KANDINKSY_2_2_MODEL_NAME:
             generator_pipe = models_pack.kandinsky_2_2
         else:
             generator_pipe = models_pack.sd_pipes[input.model]
 
-        if input.skip_safety_checker and hasattr(generator_pipe, "safety_checker"):
-            saved_safety_checker = generator_pipe.safety_checker
+        if hasattr(generator_pipe, "safety_checker"):
             generator_pipe.safety_checker = None
+
+        prompt_final = input.prompt
+        negative_prompt_final = input.negative_prompt
 
         log_table = [
             ["Model", input.model],
@@ -225,27 +200,25 @@ def predict(
             ["Seed", input.seed],
             [
                 "Init Image URL",
-                wrap_text(input.init_image_url)
-                if input.init_image_url is not None
-                else None,
+                (
+                    wrap_text(input.init_image_url)
+                    if input.init_image_url is not None
+                    else None
+                ),
             ],
             [
                 "Mask Image URL",
-                wrap_text(input.mask_image_url)
-                if input.mask_image_url is not None
-                else None,
+                (
+                    wrap_text(input.mask_image_url)
+                    if input.mask_image_url is not None
+                    else None
+                ),
             ],
             ["Prompt Strength", input.prompt_strength],
+            ["Prompt", wrap_text(prompt_final)],
+            ["Negative Prompt", wrap_text(negative_prompt_final)],
         ]
-        if prompt_is_translated:
-            log_table.append(["Original Prompt", wrap_text(input.prompt)])
-        log_table.append(["Final Prompt", wrap_text(t_prompt)])
-        log_table.append(["Prompt Translated", prompt_is_translated])
-        if neg_prompt_is_translated:
-            log_table.append(["Original Neg. Prompt", wrap_text(input.negative_prompt)])
-        log_table.append(["Final Neg. Prompt", wrap_text(t_negative_prompt)])
-        log_table.append(["Neg. Prompt Translated", neg_prompt_is_translated])
-        print(
+        logging.info(
             tabulate(
                 [["🖼️  Generation 🟡", "Started"]] + log_table, tablefmt="double_grid"
             )
@@ -253,8 +226,8 @@ def predict(
 
         startTime = time.time()
         args = {
-            "prompt": t_prompt,
-            "negative_prompt": t_negative_prompt,
+            "prompt": prompt_final,
+            "negative_prompt": negative_prompt_final,
             "prompt_prefix": input.prompt_prefix,
             "negative_prompt_prefix": input.negative_prompt_prefix,
             "width": input.width,
@@ -271,19 +244,9 @@ def predict(
             "pipe": generator_pipe,
         }
 
-        if input.model == KANDINSKY_2_1_MODEL_NAME:
-            generate_output_images, generate_nsfw_count = generate_with_kandinsky(
-                **args,
-                safety_checker=None
-                if input.skip_safety_checker
-                else models_pack.safety_checker,
-            )
-        elif input.model == KANDINKSY_2_2_MODEL_NAME:
+        if input.model == KANDINKSY_2_2_MODEL_NAME:
             generate_output_images, generate_nsfw_count = generate_with_kandinsky_2_2(
-                **args,
-                safety_checker=None
-                if input.skip_safety_checker
-                else models_pack.safety_checker,
+                **args, safety_checker=None
             )
         else:
             generate_output_images, generate_nsfw_count = generate_with_sd(**args)
@@ -291,7 +254,7 @@ def predict(
         nsfw_count = generate_nsfw_count
 
         endTime = time.time()
-        print(
+        logging.info(
             tabulate(
                 [["🖼️  Generation 🟢", f"{round((endTime - startTime) * 1000)} ms"]]
                 + log_table,
@@ -301,12 +264,12 @@ def predict(
 
         start_open_clip_prompt = time.time()
         open_clip_embed_of_prompt = open_clip_get_embeds_of_texts(
-            [t_prompt],
-            models_pack.open_clip["model"],
-            models_pack.open_clip["tokenizer"],
+            [prompt_final],
+            models_pack.open_clip.model,
+            models_pack.open_clip.tokenizer,
         )[0]
         end_open_clip_prompt = time.time()
-        print(
+        logging.info(
             f"📜 Open CLIP prompt embedding in: {round((end_open_clip_prompt - start_open_clip_prompt) * 1000)} ms 📜"
         )
 
@@ -314,16 +277,16 @@ def predict(
             start_open_clip_image = time.time()
             open_clip_embeds_of_images = open_clip_get_embeds_of_images(
                 output_images,
-                models_pack.open_clip["model"],
-                models_pack.open_clip["processor"],
+                models_pack.open_clip.model,
+                models_pack.open_clip.processor,
             )
             end_open_clip_image = time.time()
-            print(
+            logging.info(
                 f"🖼️ Open CLIP image embeddings in: {round((end_open_clip_image - start_open_clip_image) * 1000)} ms - {len(output_images)} images 🖼️"
             )
         else:
             open_clip_embeds_of_images = []
-            print(
+            logging.info(
                 "🖼️ No non-NSFW images generated. Skipping Open CLIP image embeddings. 🖼️"
             )
 
@@ -339,25 +302,25 @@ def predict(
                 upscale_output_images.append(upscale_output_image)
             output_images = upscale_output_images
         endTime = time.time()
-        print(f"⭐️ Upscaled in: {round((endTime - startTime) * 1000)} ms ⭐️")
+        logging.info(f"⭐️ Upscaled in: {round((endTime - startTime) * 1000)} ms ⭐️")
 
     # Aesthetic Score
     s_aes = time.time()
     aesthetic_scores: List[AestheticScoreResult] = []
     for i, image in enumerate(output_images):
         aesthetic_score_result = generate_aesthetic_scores(
-            img=image,
-            rating_model=models_pack.aesthetics_scorer["rating_model"],
-            artifacts_model=models_pack.aesthetics_scorer["artifact_model"],
-            clip_processor=models_pack.open_clip["processor"],
-            vision_model=models_pack.open_clip["model"].vision_model,
+            image=image,
+            aesthetics_scorer=models_pack.aesthetics_scorer,
+            clip=models_pack.open_clip,
         )
         aesthetic_scores.append(aesthetic_score_result)
-        print(
+        logging.info(
             f"🎨 Image {i+1} | Rating Score: {aesthetic_score_result.rating_score} | Artifact Score: {aesthetic_score_result.artifact_score}"
         )
     e_aes = time.time()
-    print(f"🎨 Calculated aesthetic scores in: {round((e_aes - s_aes) * 1000)} ms")
+    logging.info(
+        f"🎨 Calculated aesthetic scores in: {round((e_aes - s_aes) * 1000)} ms"
+    )
 
     # Prepare output objects
     output_objects: List[PredictOutput] = []
@@ -366,12 +329,16 @@ def predict(
             pil_image=image,
             target_quality=input.output_image_quality,
             target_extension=input.output_image_extension,
-            open_clip_image_embed=open_clip_embeds_of_images[i]
-            if open_clip_embeds_of_images is not None
-            else None,
-            open_clip_prompt_embed=open_clip_embed_of_prompt
-            if open_clip_embed_of_prompt is not None
-            else None,
+            open_clip_image_embed=(
+                open_clip_embeds_of_images[i]
+                if open_clip_embeds_of_images is not None
+                else None
+            ),
+            open_clip_prompt_embed=(
+                open_clip_embed_of_prompt
+                if open_clip_embed_of_prompt is not None
+                else None
+            ),
             aesthetic_rating_score=aesthetic_scores[i].rating_score,
             aesthetic_artifact_score=aesthetic_scores[i].artifact_score,
         )
@@ -380,17 +347,13 @@ def predict(
     result = PredictResult(
         outputs=output_objects,
         nsfw_count=nsfw_count,
+        signed_urls=input.signed_urls,
     )
     process_end = time.time()
 
-    if (
-        saved_safety_checker is not None
-        and generator_pipe is not None
-        and hasattr(generator_pipe, "safety_checker")
-    ):
-        generator_pipe.safety_checker = saved_safety_checker
-
-    print(f"✅ Process completed in: {round((process_end - process_start) * 1000)} ms ✅")
-    print("//////////////////////////////////////////////////////////////////")
+    logging.info(
+        f"✅ Process completed in: {round((process_end - process_start) * 1000)} ms ✅"
+    )
+    logging.info("//////////////////////////////////////////////////////////////////")
 
     return result

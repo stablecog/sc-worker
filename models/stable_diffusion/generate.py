@@ -8,8 +8,9 @@ import time
 from shared.helpers import (
     download_and_fit_image,
     log_gpu_memory,
-    print_tuple,
+    move_pipe_to_device,
 )
+import logging
 
 
 def generate(
@@ -32,7 +33,7 @@ def generate(
 ):
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
-    print(f"Using seed: {seed}")
+    logging.info(f"Using seed: {seed}")
     generator = torch.Generator(device="cuda").manual_seed(seed)
 
     if prompt_prefix is not None:
@@ -57,16 +58,18 @@ def generate(
             else:
                 negative_prompt = f"{default_negative_prompt_prefix} {negative_prompt}"
 
-    print(f"-- Prompt: {prompt} --")
-    print(f"-- Negative Prompt: {negative_prompt} --")
+    logging.info(f"-- Prompt: {prompt} --")
+    logging.info(f"-- Negative Prompt: {negative_prompt} --")
 
     extra_kwargs = {}
     pipe_selected = None
 
     if pipe.refiner is not None:
         extra_kwargs["output_type"] = "latent"
-    if init_image_url is not None:
-        # The process is: img2img or inpainting
+
+    if init_image_url is not None and (
+        pipe.img2img is not None or pipe.inpaint is not None
+    ):
         start_i = time.time()
         extra_kwargs["image"] = download_and_fit_image(
             url=init_image_url,
@@ -75,11 +78,11 @@ def generate(
         )
         extra_kwargs["strength"] = prompt_strength
         end_i = time.time()
-        print(
+        logging.info(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
         )
 
-        if mask_image_url is not None and pipe.inpaint is not None:
+        if pipe.inpaint is not None and mask_image_url is not None:
             # The process is: inpainting
             pipe_selected = pipe.inpaint
             start_i = time.time()
@@ -90,10 +93,10 @@ def generate(
             )
             extra_kwargs["strength"] = 0.99
             end_i = time.time()
-            print(
+            logging.info(
                 f"-- Downloaded and cropped mask image in: {round((end_i - start_i) * 1000)} ms"
             )
-        else:
+        elif pipe.img2img is not None:
             # The process is: img2img
             pipe_selected = pipe.img2img
     else:
@@ -102,13 +105,15 @@ def generate(
         extra_kwargs["width"] = width
         extra_kwargs["height"] = height
 
-    if "keep_in_cpu_when_idle" in SD_MODELS[model]:
-        s = time.time()
-        pipe_selected = pipe_selected.to(DEVICE)
-        e = time.time()
-        print_tuple(f"🚀 Moved {model} to GPU", f"{round((e - s) * 1000)} ms")
+    if SD_MODELS[model].get("keep_in_cpu_when_idle"):
+        pipe_selected = move_pipe_to_device(
+            pipe=pipe_selected, model_name=model, device=DEVICE
+        )
 
-    pipe_selected.scheduler = get_scheduler(scheduler, pipe_selected.scheduler.config)
+    if SD_MODELS[model].get("base_model", None) != "Stable Diffusion 3":
+        pipe_selected.scheduler = get_scheduler(
+            scheduler, pipe_selected.scheduler.config
+        )
     output = pipe_selected(
         prompt=prompt,
         negative_prompt=negative_prompt,
@@ -120,11 +125,10 @@ def generate(
     )
     log_gpu_memory(message="GPU status after inference")
 
-    if "keep_in_cpu_when_idle" in SD_MODELS[model]:
-        s = time.time()
-        pipe_selected = pipe_selected.to("cpu", silence_dtype_warnings=True)
-        e = time.time()
-        print_tuple(f"🐢 Moved {model} to CPU", f"{round((e - s) * 1000)} ms")
+    if SD_MODELS[model].get("keep_in_cpu_when_idle"):
+        pipe_selected = move_pipe_to_device(
+            pipe=pipe_selected, model_name=model, device="cpu"
+        )
 
     output_images = []
     nsfw_count = 0
@@ -151,9 +155,27 @@ def generate(
             "num_inference_steps": num_inference_steps,
             "image": output_images,
         }
+
+        if SD_MODELS[model].get("keep_in_cpu_when_idle"):
+            pipe.refiner = move_pipe_to_device(
+                pipe=pipe.refiner, model_name=f"{model} refiner", device=DEVICE
+            )
+
+        s = time.time()
         output_images = pipe.refiner(**args).images
+        e = time.time()
+        logging.info(
+            f"🖌️ Refined {len(output_images)} images in: {round((e - s) * 1000)} ms"
+        )
+
+        if SD_MODELS[model].get("keep_in_cpu_when_idle"):
+            pipe.refiner = move_pipe_to_device(
+                pipe=pipe.refiner, model_name=f"{model} refiner", device="cpu"
+            )
 
     if nsfw_count > 0:
-        print(f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs.")
+        logging.info(
+            f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs."
+        )
 
     return output_images, nsfw_count
