@@ -52,6 +52,7 @@ from shared.constants import WORKER_VERSION
 import logging
 from tabulate import tabulate
 from diffusers import StableDiffusion3Pipeline
+from transformers import T5EncoderModel, BitsAndBytesConfig
 
 
 class SDPipeSet:
@@ -276,21 +277,23 @@ def setup() -> ModelsPack:
                 vae=vae,
             )
         elif base_model == "Stable Diffusion 3":
+            quantization_config = BitsAndBytesConfig(load_in_8bit=True)
+            text_encoder = T5EncoderModel.from_pretrained(
+                SD_MODELS[key]["id"],
+                subfolder="text_encoder_3",
+                quantization_config=quantization_config,
+            )
             args = {
                 "pretrained_model_name_or_path": SD_MODELS[key]["id"],
                 "torch_dtype": SD_MODELS[key]["torch_dtype"],
                 "cache_dir": SD_MODEL_CACHE,
+                "text_encoder_3": text_encoder,
                 "safety_checker": None,
+                "device_map": "balanced",
             }
             if "variant" in SD_MODELS[key]:
                 args["variant"] = SD_MODELS[key]["variant"]
             text2img = StableDiffusion3Pipeline.from_pretrained(**args)
-            if SD_MODELS[key].get("keep_in_cpu_when_idle"):
-                text2img = text2img.to("cpu", silence_dtype_warnings=True)
-                logging.info(f"🐌 Keep in CPU when idle: {key}")
-            else:
-                text2img = text2img.to(DEVICE)
-                logging.info(f"🚀 Keep in GPU: {key}")
             img2img = None
             inpaint = None
             pipe = SDPipeSet(

@@ -66,8 +66,10 @@ def generate(
 
     if pipe.refiner is not None:
         extra_kwargs["output_type"] = "latent"
-    if init_image_url is not None:
-        # The process is: img2img or inpainting
+
+    if init_image_url is not None and (
+        pipe.img2img is not None or pipe.inpaint is not None
+    ):
         start_i = time.time()
         extra_kwargs["image"] = download_and_fit_image(
             url=init_image_url,
@@ -80,7 +82,7 @@ def generate(
             f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
         )
 
-        if mask_image_url is not None and pipe.inpaint is not None:
+        if pipe.inpaint is not None and mask_image_url is not None:
             # The process is: inpainting
             pipe_selected = pipe.inpaint
             start_i = time.time()
@@ -94,7 +96,7 @@ def generate(
             logging.info(
                 f"-- Downloaded and cropped mask image in: {round((end_i - start_i) * 1000)} ms"
             )
-        else:
+        elif pipe.img2img is not None:
             # The process is: img2img
             pipe_selected = pipe.img2img
     else:
