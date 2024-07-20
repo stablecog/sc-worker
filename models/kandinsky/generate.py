@@ -47,7 +47,7 @@ def generate_2_2(
 ):
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
-    generator = torch.Generator(device="cuda").manual_seed(seed)
+    generator = torch.Generator(device=DEVICE_CUDA).manual_seed(seed)
     logging.info(f"Using seed: {seed}")
 
     if prompt_prefix is not None:
@@ -206,7 +206,7 @@ def generate_2_2(
             if safety_checker is not None:
                 safety_checker_input = safety_checker["feature_extractor"](
                     images=image, return_tensors="pt"
-                ).to("cuda")
+                ).to(DEVICE_CUDA)
                 result, has_nsfw_concepts = safety_checker["checker"].forward(
                     clip_input=safety_checker_input.pixel_values, images=image
                 )

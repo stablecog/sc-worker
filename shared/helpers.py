@@ -18,6 +18,8 @@ from io import BytesIO
 import logging
 from tabulate import tabulate
 
+from models.constants import DEVICE_CUDA
+
 
 def clean_folder(folder):
     for filename in os.listdir(folder):
@@ -302,7 +304,7 @@ def move_pipe_to_device(pipe, model_name, device):
     s = time.time()
     pipe = pipe.to(device, silence_dtype_warnings=True)
     e = time.time()
-    emoji = "🚀" if device == "cuda" else "🐌"
+    emoji = "🚀" if device == DEVICE_CUDA else "🐌"
     logging.info(
         f"{emoji} Moved {model_name} to {device} in: {round((e - s) * 1000)} ms"
     )

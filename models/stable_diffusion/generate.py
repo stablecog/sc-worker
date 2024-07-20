@@ -34,7 +34,7 @@ def generate(
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
     logging.info(f"Using seed: {seed}")
-    generator = torch.Generator(device="cuda").manual_seed(seed)
+    generator = torch.Generator(device=DEVICE_CUDA).manual_seed(seed)
 
     if prompt_prefix is not None:
         prompt = f"{prompt_prefix} {prompt}"
