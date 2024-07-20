@@ -1,7 +1,7 @@
 import os
 import time
 
-from models.constants import DEVICE
+from models.constants import DEVICE_CUDA
 from models.kandinsky.constants import KANDINSKY_2_2_IN_CPU_WHEN_IDLE
 from .helpers import get_scheduler
 from predict.image.setup import KandinskyPipe_2_2
@@ -72,7 +72,7 @@ def generate_2_2(
         pipe.prior = move_pipe_to_device(
             pipe=pipe.prior,
             model_name=f"{kandinsky_2_2_model_name} Prior",
-            device=DEVICE,
+            device=DEVICE_CUDA,
         )
 
     if (
@@ -103,7 +103,7 @@ def generate_2_2(
             pipe.inpaint = move_pipe_to_device(
                 pipe=pipe.inpaint,
                 name=f"{kandinsky_2_2_model_name} Inpaint",
-                device=DEVICE,
+                device=DEVICE_CUDA,
             )
         img_emb = pipe.prior(
             prompt=prompt,
@@ -143,7 +143,9 @@ def generate_2_2(
         weights = [prompt_strength, 1 - prompt_strength]
         if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
             pipe.text2img = move_pipe_to_device(
-                pipe=pipe.text2img, model_name=kandinsky_2_2_model_name, device=DEVICE
+                pipe=pipe.text2img,
+                model_name=kandinsky_2_2_model_name,
+                device=DEVICE_CUDA,
             )
         prior_out = pipe.prior.interpolate(
             images_and_texts,
@@ -166,7 +168,9 @@ def generate_2_2(
         pipe.text2img.scheduler = get_scheduler(scheduler, pipe.text2img)
         if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
             pipe.text2img = move_pipe_to_device(
-                pipe=pipe.text2img, model_name=kandinsky_2_2_model_name, device=DEVICE
+                pipe=pipe.text2img,
+                model_name=kandinsky_2_2_model_name,
+                device=DEVICE_CUDA,
             )
         img_emb = pipe.prior(
             prompt=prompt,

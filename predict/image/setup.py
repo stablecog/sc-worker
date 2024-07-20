@@ -27,7 +27,7 @@ from models.aesthetics_scorer.constants import (
     AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_WEIGHT_URL,
 )
 from models.aesthetics_scorer.model import load_model as load_aesthetics_scorer_model
-from models.constants import DEVICE
+from models.constants import DEVICE_CUDA
 from models.download.download_from_hf import download_swinir_models
 from models.kandinsky.constants import (
     KANDINSKY_2_2_DECODER_MODEL_ID,
@@ -136,7 +136,7 @@ def auto_send_to_device(dict, key, pipe, description):
         return pipe.to("cpu", silence_dtype_warnings=True)
     else:
         logging.info(f"🚀 Keep in GPU: {description}")
-        return pipe.to(DEVICE)
+        return pipe.to(DEVICE_CUDA)
 
 
 def setup() -> ModelsPack:
@@ -264,7 +264,7 @@ def setup() -> ModelsPack:
                     use_safetensors=True,
                     add_watermarker=False,
                 )
-                inpaint.to(DEVICE) """
+                inpaint.to(DEVICE_CUDA) """
             pipe = SDPipeSet(
                 text2img=text2img,
                 img2img=img2img,
@@ -326,7 +326,7 @@ def setup() -> ModelsPack:
     if LOAD_KANDINSKY_2_2:
         s = time.time()
         logging.info("⏳ Loading Kandinsky 2.2")
-        kandinsky_device = DEVICE
+        kandinsky_device = DEVICE_CUDA
         if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
             kandinsky_device = "cpu"
             logging.info(f"🐌 Keep in CPU when idle: Kandinsky 2.2")
@@ -348,7 +348,7 @@ def setup() -> ModelsPack:
             KANDINSKY_2_2_DECODER_INPAINT_MODEL_ID,
             torch_dtype=torch.float16,
             cache_dir=SD_MODEL_CACHE,
-        ).to(DEVICE) """
+        ).to(DEVICE_CUDA) """
         kandinsky_2_2 = KandinskyPipe_2_2(
             prior=prior,
             text2img=text2img,
@@ -400,7 +400,7 @@ def setup() -> ModelsPack:
     open_clip = OpenCLIP(
         model=AutoModel.from_pretrained(
             OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
-        ).to(DEVICE),
+        ).to(DEVICE_CUDA),
         processor=AutoProcessor.from_pretrained(
             OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
         ),
@@ -417,12 +417,12 @@ def setup() -> ModelsPack:
             weight_url=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_WEIGHT_URL,
             cache_dir=AESTHETICS_SCORER_CACHE_DIR,
             config=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_CONFIG,
-        ).to(DEVICE),
+        ).to(DEVICE_CUDA),
         artifacts_model=load_aesthetics_scorer_model(
             weight_url=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_WEIGHT_URL,
             cache_dir=AESTHETICS_SCORER_CACHE_DIR,
             config=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_CONFIG,
-        ).to(DEVICE),
+        ).to(DEVICE_CUDA),
     )
     logging.info("✅ Loaded Aesthetics Scorer")
 

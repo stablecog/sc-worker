@@ -1,5 +1,5 @@
 from PIL import Image
-from models.constants import DEVICE
+from models.constants import DEVICE_CUDA
 from .constants import OPEN_CLIP_TOKEN_LENGTH_MAX
 from typing import List
 import torch
@@ -63,7 +63,7 @@ def open_clip_get_embeds_of_images(images: List[Image.Image], model, processor):
     with torch.no_grad():
         with time_code_block(prefix=f"// Preprocessed {len(images)} image(s)"):
             inputs = clip_preprocessor(images=images, return_tensors="pt")
-        inputs = inputs.to(DEVICE)
+        inputs = inputs.to(DEVICE_CUDA)
         with time_code_block(prefix=f"// Embedded {len(images)} image(s)"):
             image_embeddings = model.get_image_features(pixel_values=inputs)
         with time_code_block(
@@ -84,7 +84,7 @@ def open_clip_get_embeds_of_texts(texts: str, model, tokenizer):
                 truncation=True,
                 max_length=OPEN_CLIP_TOKEN_LENGTH_MAX,
             )
-        inputs = inputs.to(DEVICE)
+        inputs = inputs.to(DEVICE_CUDA)
         with time_code_block(prefix=f"Embedded {len(texts)} text(s)"):
             text_embeddings = model.get_text_features(**inputs)
         with time_code_block(prefix=f"Moved {len(texts)} embeddings(s) to CPU"):

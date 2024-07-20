@@ -1,7 +1,7 @@
 import os
 import torch
 
-from models.constants import DEVICE
+from models.constants import DEVICE_CUDA
 from .helpers import get_scheduler
 from .constants import SD_MODELS
 import time
@@ -107,7 +107,7 @@ def generate(
 
     if SD_MODELS[model].get("keep_in_cpu_when_idle"):
         pipe_selected = move_pipe_to_device(
-            pipe=pipe_selected, model_name=model, device=DEVICE
+            pipe=pipe_selected, model_name=model, device=DEVICE_CUDA
         )
 
     if SD_MODELS[model].get("base_model", None) != "Stable Diffusion 3":
@@ -158,7 +158,7 @@ def generate(
 
         if SD_MODELS[model].get("keep_in_cpu_when_idle"):
             pipe.refiner = move_pipe_to_device(
-                pipe=pipe.refiner, model_name=f"{model} refiner", device=DEVICE
+                pipe=pipe.refiner, model_name=f"{model} refiner", device=DEVICE_CUDA
             )
 
         s = time.time()

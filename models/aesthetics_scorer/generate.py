@@ -2,7 +2,7 @@ import torch
 
 from predict.image.setup import AestheticsScorer, OpenCLIP
 from .model import preprocess
-from models.constants import DEVICE
+from models.constants import DEVICE_CUDA
 
 
 def normalize(value, range_min, range_max):
@@ -37,7 +37,7 @@ def generate_aesthetic_scores(
     rating_model = aesthetics_scorer.rating_model
     artifacts_model = aesthetics_scorer.artifacts_model
 
-    inputs = clip_processor(images=image, return_tensors="pt").to(DEVICE)
+    inputs = clip_processor(images=image, return_tensors="pt").to(DEVICE_CUDA)
     with torch.no_grad():
         vision_output = vision_model(**inputs)
     pooled_output = vision_output.pooler_output
