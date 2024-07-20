@@ -2,7 +2,7 @@ import os
 import time
 
 from models.constants import DEVICE_CPU, DEVICE_CUDA
-from models.kandinsky.constants import KANDINSKY_2_2_IN_CPU_WHEN_IDLE
+from models.kandinsky.constants import KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE
 from .helpers import get_scheduler
 from predict.image.setup import KandinskyPipe_2_2
 from shared.helpers import (
@@ -68,7 +68,7 @@ def generate_2_2(
 
     output_images = None
 
-    if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
+    if KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE:
         pipe.prior = move_pipe_to_device(
             pipe=pipe.prior,
             model_name=f"{kandinsky_2_2_model_name} Prior",
@@ -99,7 +99,7 @@ def generate_2_2(
         logging.info(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
         )
-        if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
+        if KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE:
             pipe.inpaint = move_pipe_to_device(
                 pipe=pipe.inpaint,
                 name=f"{kandinsky_2_2_model_name} Inpaint",
@@ -141,7 +141,7 @@ def generate_2_2(
         start = time.time()
         images_and_texts = [prompt, init_image]
         weights = [prompt_strength, 1 - prompt_strength]
-        if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
+        if KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE:
             pipe.text2img = move_pipe_to_device(
                 pipe=pipe.text2img,
                 model_name=kandinsky_2_2_model_name,
@@ -166,7 +166,7 @@ def generate_2_2(
         ).images
     else:
         pipe.text2img.scheduler = get_scheduler(scheduler, pipe.text2img)
-        if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
+        if KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE:
             pipe.text2img = move_pipe_to_device(
                 pipe=pipe.text2img,
                 model_name=kandinsky_2_2_model_name,
@@ -225,7 +225,7 @@ def generate_2_2(
         else:
             filtered_output_images.append(output_images[i])
 
-    if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
+    if KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE:
         pipe.prior = move_pipe_to_device(
             pipe=pipe.prior,
             model_name=f"{kandinsky_2_2_model_name} Prior",

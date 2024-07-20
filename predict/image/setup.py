@@ -31,7 +31,7 @@ from models.constants import DEVICE_CPU, DEVICE_CUDA
 from models.download.download_from_hf import download_swinir_models
 from models.kandinsky.constants import (
     KANDINSKY_2_2_DECODER_MODEL_ID,
-    KANDINSKY_2_2_IN_CPU_WHEN_IDLE,
+    KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE,
     KANDINSKY_2_2_PRIOR_MODEL_ID,
     LOAD_KANDINSKY_2_2,
 )
@@ -327,7 +327,7 @@ def setup() -> ModelsPack:
         s = time.time()
         logging.info("⏳ Loading Kandinsky 2.2")
         kandinsky_device = DEVICE_CUDA
-        if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
+        if KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE:
             kandinsky_device = DEVICE_CPU
             logging.info(f"🐌 Keep in CPU when idle: Kandinsky 2.2")
         else:
