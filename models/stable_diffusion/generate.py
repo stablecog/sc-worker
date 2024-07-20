@@ -114,6 +114,7 @@ def generate(
         pipe_selected.scheduler = get_scheduler(
             scheduler, pipe_selected.scheduler.config
         )
+
     output = pipe_selected(
         prompt=prompt,
         negative_prompt=negative_prompt,
