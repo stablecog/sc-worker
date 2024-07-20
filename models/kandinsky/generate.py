@@ -1,7 +1,7 @@
 import os
 import time
 
-from models.constants import DEVICE_CUDA
+from models.constants import DEVICE_CPU, DEVICE_CUDA
 from models.kandinsky.constants import KANDINSKY_2_2_IN_CPU_WHEN_IDLE
 from .helpers import get_scheduler
 from predict.image.setup import KandinskyPipe_2_2
@@ -229,7 +229,7 @@ def generate_2_2(
         pipe.prior = move_pipe_to_device(
             pipe=pipe.prior,
             model_name=f"{kandinsky_2_2_model_name} Prior",
-            device="cpu",
+            device=DEVICE_CPU,
         )
         if (
             init_image_url is not None
@@ -239,11 +239,13 @@ def generate_2_2(
             pipe.inpaint = move_pipe_to_device(
                 pipe=pipe.inpaint,
                 model_name=f"{kandinsky_2_2_model_name} Inpaint",
-                device="cpu",
+                device=DEVICE_CPU,
             )
         else:
             pipe.text2img = move_pipe_to_device(
-                pipe=pipe.text2img, model_name=kandinsky_2_2_model_name, device="cpu"
+                pipe=pipe.text2img,
+                model_name=kandinsky_2_2_model_name,
+                device=DEVICE_CPU,
             )
 
     return filtered_output_images, nsfw_count

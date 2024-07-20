@@ -6,6 +6,8 @@ import requests
 from urllib.parse import urlparse
 import logging
 
+from models.constants import DEVICE_CPU, DEVICE_CUDA
+
 
 class AestheticScorer(nn.Module):
     def __init__(
@@ -109,7 +111,10 @@ def download_weights(url, cache_dir):
 
 
 def load_model(
-    weight_url, config, cache_dir, device="cuda" if torch.cuda.is_available() else "cpu"
+    weight_url,
+    config,
+    cache_dir,
+    device=DEVICE_CUDA if torch.cuda.is_available() else DEVICE_CPU,
 ):
     file_path = download_weights(weight_url, cache_dir)
     model = AestheticScorer(config=config)

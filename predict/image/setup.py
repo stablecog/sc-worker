@@ -27,7 +27,7 @@ from models.aesthetics_scorer.constants import (
     AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_WEIGHT_URL,
 )
 from models.aesthetics_scorer.model import load_model as load_aesthetics_scorer_model
-from models.constants import DEVICE_CUDA
+from models.constants import DEVICE_CPU, DEVICE_CUDA
 from models.download.download_from_hf import download_swinir_models
 from models.kandinsky.constants import (
     KANDINSKY_2_2_DECODER_MODEL_ID,
@@ -133,7 +133,7 @@ class ModelsPack:
 def auto_send_to_device(dict, key, pipe, description):
     if dict[key].get("keep_in_cpu_when_idle"):
         logging.info(f"🐌 Keep in CPU when idle: {description}")
-        return pipe.to("cpu", silence_dtype_warnings=True)
+        return pipe.to(DEVICE_CPU, silence_dtype_warnings=True)
     else:
         logging.info(f"🚀 Keep in GPU: {description}")
         return pipe.to(DEVICE_CUDA)
@@ -328,7 +328,7 @@ def setup() -> ModelsPack:
         logging.info("⏳ Loading Kandinsky 2.2")
         kandinsky_device = DEVICE_CUDA
         if KANDINSKY_2_2_IN_CPU_WHEN_IDLE:
-            kandinsky_device = "cpu"
+            kandinsky_device = DEVICE_CPU
             logging.info(f"🐌 Keep in CPU when idle: Kandinsky 2.2")
         else:
             logging.info("🚀 Keep in GPU: Kandinsky 2.2")

@@ -1,7 +1,7 @@
 import os
 import torch
 
-from models.constants import DEVICE_CUDA
+from models.constants import DEVICE_CPU, DEVICE_CUDA
 from .helpers import get_scheduler
 from .constants import SD_MODELS
 import time
@@ -127,7 +127,7 @@ def generate(
 
     if SD_MODELS[model].get("keep_in_cpu_when_idle"):
         pipe_selected = move_pipe_to_device(
-            pipe=pipe_selected, model_name=model, device="cpu"
+            pipe=pipe_selected, model_name=model, device=DEVICE_CPU
         )
 
     output_images = []
@@ -170,7 +170,7 @@ def generate(
 
         if SD_MODELS[model].get("keep_in_cpu_when_idle"):
             pipe.refiner = move_pipe_to_device(
-                pipe=pipe.refiner, model_name=f"{model} refiner", device="cpu"
+                pipe=pipe.refiner, model_name=f"{model} refiner", device=DEVICE_CPU
             )
 
     if nsfw_count > 0:
