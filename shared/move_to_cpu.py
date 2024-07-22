@@ -1,5 +1,6 @@
 import logging
 import time
+from models.stable_diffusion.constants import SD_MODELS
 from predict.image.setup import ModelsPack
 from models.constants import DEVICE_CPU, DEVICE_CUDA
 from .helpers import (
@@ -9,7 +10,6 @@ from models.kandinsky.constants import (
     KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE,
     KANDINSKY_2_2_MODEL_NAME,
 )
-from .constants import SD_MODELS
 
 
 def send_other_models_to_cpu(
