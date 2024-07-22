@@ -78,17 +78,15 @@ class SDPipeSet:
         self.inpaint_vae = inpaint_vae
 
 
-class KandinskyPipe_2_2:
+class KandinskyPipeSet_2_2:
     def __init__(
         self,
         prior: KandinskyV22PriorPipeline,
         text2img: KandinskyV22Pipeline,
-        img2img: KandinskyV22Img2ImgPipeline,
         inpaint: KandinskyV22InpaintPipeline | None,
     ):
         self.prior = prior
         self.text2img = text2img
-        self.img2img = img2img
         self.inpaint = inpaint
 
 
@@ -119,7 +117,7 @@ class ModelsPack:
         upscaler: Any,
         translator: Translator,
         open_clip: OpenCLIP,
-        kandinsky_2_2: KandinskyPipe_2_2,
+        kandinsky_2_2: KandinskyPipeSet_2_2,
         aesthetics_scorer: AestheticsScorer,
     ):
         self.sd_pipes = sd_pipes
@@ -342,17 +340,15 @@ def setup() -> ModelsPack:
             torch_dtype=torch.float16,
             cache_dir=SD_MODEL_CACHE,
         ).to(kandinsky_device)
-        img2img = KandinskyV22Pipeline(**text2img.components)
         inpaint = None
         """ KandinskyV22InpaintPipeline.from_pretrained(
             KANDINSKY_2_2_DECODER_INPAINT_MODEL_ID,
             torch_dtype=torch.float16,
             cache_dir=SD_MODEL_CACHE,
         ).to(DEVICE_CUDA) """
-        kandinsky_2_2 = KandinskyPipe_2_2(
+        kandinsky_2_2 = KandinskyPipeSet_2_2(
             prior=prior,
             text2img=text2img,
-            img2img=img2img,
             inpaint=inpaint,
         )
         logging.info(

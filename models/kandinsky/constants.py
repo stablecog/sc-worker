@@ -14,7 +14,7 @@ KANDINSKY_2_2_DECODER_INPAINT_MODEL_ID = (
     "kandinsky-community/kandinsky-2-2-decoder-inpaint"
 )
 
-KANDINKSY_2_2_MODEL_NAME = "Kandinsky 2.2"
+KANDINSKY_2_2_MODEL_NAME = "Kandinsky 2.2"
 KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE = device_vram_gb < 75
 
 
@@ -28,5 +28,5 @@ KANDINSKY_2_2_SCHEDULERS = {
 }
 
 LOAD_KANDINSKY_2_2 = (
-    MODELS_FROM_ENV == "all" or KANDINKSY_2_2_MODEL_NAME in MODELS_FROM_ENV_LIST
+    MODELS_FROM_ENV == "all" or KANDINSKY_2_2_MODEL_NAME in MODELS_FROM_ENV_LIST
 )

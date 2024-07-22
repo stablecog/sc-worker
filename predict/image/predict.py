@@ -5,7 +5,7 @@ from models.aesthetics_scorer.generate import (
 )
 
 from models.kandinsky.constants import (
-    KANDINKSY_2_2_MODEL_NAME,
+    KANDINSKY_2_2_MODEL_NAME,
     LOAD_KANDINSKY_2_2,
 )
 from models.kandinsky.generate import generate_2_2 as generate_with_kandinsky_2_2
@@ -116,7 +116,7 @@ class PredictInput(BaseModel):
     def validate_model(cls, v):
         rest = []
         if LOAD_KANDINSKY_2_2:
-            rest += [KANDINKSY_2_2_MODEL_NAME]
+            rest += [KANDINSKY_2_2_MODEL_NAME]
         choices = SD_MODEL_CHOICES + rest
         return return_value_if_in_list(v, choices)
 
@@ -178,7 +178,7 @@ def predict(
 
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
         generator_pipe = None
-        if input.model == KANDINKSY_2_2_MODEL_NAME:
+        if input.model == KANDINSKY_2_2_MODEL_NAME:
             generator_pipe = models_pack.kandinsky_2_2
         else:
             generator_pipe = models_pack.sd_pipes[input.model]
@@ -244,12 +244,15 @@ def predict(
             "pipe": generator_pipe,
         }
 
-        if input.model == KANDINKSY_2_2_MODEL_NAME:
+        if input.model == KANDINSKY_2_2_MODEL_NAME:
             generate_output_images, generate_nsfw_count = generate_with_kandinsky_2_2(
-                **args, safety_checker=None
+                **args, safety_checker=None, models_pack=models_pack
             )
         else:
-            generate_output_images, generate_nsfw_count = generate_with_sd(**args)
+            generate_output_images, generate_nsfw_count = generate_with_sd(
+                **args, models_pack=models_pack
+            )
+
         output_images = generate_output_images
         nsfw_count = generate_nsfw_count
 

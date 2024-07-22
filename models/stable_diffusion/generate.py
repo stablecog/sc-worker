@@ -1,7 +1,9 @@
 import os
 import torch
 
-from models.constants import DEVICE_CPU, DEVICE_CUDA
+from models.constants import DEVICE_CUDA
+from predict.image.setup import ModelsPack
+from shared.move_to_cpu import send_other_models_to_cpu
 from .helpers import get_scheduler
 from .constants import SD_MODELS
 import time
@@ -30,7 +32,23 @@ def generate(
     seed,
     model,
     pipe,
+    models_pack: ModelsPack,
 ):
+    #### Send other models to CPU if needed
+    main_model_pipe = "text2img"
+    if (
+        init_image_url is not None
+        and mask_image_url is not None
+        and pipe.inpaint is not None
+    ):
+        main_model_pipe = "inpaint"
+    elif init_image_url is not None and pipe.img2img is not None:
+        main_model_pipe = "img2img"
+    send_other_models_to_cpu(
+        main_model_name=model, main_model_pipe=main_model_pipe, models_pack=models_pack
+    )
+    #####################################
+
     if seed is None:
         seed = int.from_bytes(os.urandom(2), "big")
     logging.info(f"Using seed: {seed}")
@@ -126,11 +144,6 @@ def generate(
     )
     log_gpu_memory(message="GPU status after inference")
 
-    if SD_MODELS[model].get("keep_in_cpu_when_idle"):
-        pipe_selected = move_pipe_to_device(
-            pipe=pipe_selected, model_name=model, device=DEVICE_CPU
-        )
-
     output_images = []
     nsfw_count = 0
 
@@ -168,11 +181,6 @@ def generate(
         logging.info(
             f"🖌️ Refined {len(output_images)} images in: {round((e - s) * 1000)} ms"
         )
-
-        if SD_MODELS[model].get("keep_in_cpu_when_idle"):
-            pipe.refiner = move_pipe_to_device(
-                pipe=pipe.refiner, model_name=f"{model} refiner", device=DEVICE_CPU
-            )
 
     if nsfw_count > 0:
         logging.info(
