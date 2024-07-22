@@ -141,7 +141,7 @@ def send_other_models_to_cpu(
         ):
             models_pack.kandinsky_2_2.text2img = move_pipe_to_device(
                 pipe=models_pack.kandinsky_2_2.text2img,
-                model_name=KANDINSKY_2_2_MODEL_NAME,
+                model_name=f"{KANDINSKY_2_2_MODEL_NAME} text2img",
                 device=DEVICE_CPU,
             )
 
@@ -152,7 +152,7 @@ def send_other_models_to_cpu(
         ):
             models_pack.kandinsky_2_2.inpaint = move_pipe_to_device(
                 pipe=models_pack.kandinsky_2_2.inpaint,
-                model_name=KANDINSKY_2_2_MODEL_NAME,
+                model_name=f"{KANDINSKY_2_2_MODEL_NAME} inpaint",
                 device=DEVICE_CPU,
             )
 
