@@ -21,7 +21,7 @@ def send_other_models_to_cpu(
     )
 
     # Send other Stable Diffusion models to CPU if needed
-    for model_name, pipe_set in models_pack.sd_pipes.items():
+    for model_name, pipe_set in models_pack.sd_pipe_sets.items():
         if main_model_name != model_name and SD_MODELS[model_name].get(
             "keep_in_cpu_when_idle"
         ):
@@ -29,7 +29,7 @@ def send_other_models_to_cpu(
                 pipe_set.text2img is not None
                 and pipe_set.text2img.device.type == DEVICE_CUDA
             ):
-                models_pack.sd_pipes[model_name].text2img = move_pipe_to_device(
+                models_pack.sd_pipe_sets[model_name].text2img = move_pipe_to_device(
                     pipe=pipe_set.text2img,
                     model_name=f"{model_name} text2img",
                     device=DEVICE_CPU,
@@ -38,7 +38,7 @@ def send_other_models_to_cpu(
                 pipe_set.img2img is not None
                 and pipe_set.img2img.device.type == DEVICE_CUDA
             ):
-                models_pack.sd_pipes[model_name].img2img = move_pipe_to_device(
+                models_pack.sd_pipe_sets[model_name].img2img = move_pipe_to_device(
                     pipe=pipe_set.img2img,
                     model_name=f"{model_name} img2img",
                     device=DEVICE_CPU,
@@ -47,7 +47,7 @@ def send_other_models_to_cpu(
                 pipe_set.inpaint is not None
                 and pipe_set.inpaint.device.type == DEVICE_CUDA
             ):
-                models_pack.sd_pipes[model_name].inpaint = move_pipe_to_device(
+                models_pack.sd_pipe_sets[model_name].inpaint = move_pipe_to_device(
                     pipe=pipe_set.inpaint,
                     model_name=f"{model_name} inpaint",
                     device=DEVICE_CPU,
@@ -56,7 +56,7 @@ def send_other_models_to_cpu(
                 pipe_set.refiner is not None
                 and pipe_set.refiner.device.type == DEVICE_CUDA
             ):
-                models_pack.sd_pipes[model_name].refiner = move_pipe_to_device(
+                models_pack.sd_pipe_sets[model_name].refiner = move_pipe_to_device(
                     pipe=pipe_set.refiner,
                     model_name=f"{model_name} refiner",
                     device=DEVICE_CPU,
@@ -96,7 +96,7 @@ def send_other_models_to_cpu(
             )
 
     # Send other Stable Diffusion pipes to CPU if needed
-    main_model = models_pack.sd_pipes.get(main_model_name, None)
+    main_model = models_pack.sd_pipe_sets.get(main_model_name, None)
     main_model_spec = SD_MODELS.get(main_model_name, None)
     if (
         main_model is not None
@@ -108,7 +108,7 @@ def send_other_models_to_cpu(
             and main_model.text2img is not None
             and main_model.text2img.device.type == DEVICE_CUDA
         ):
-            models_pack.sd_pipes[main_model_name].text2img = move_pipe_to_device(
+            models_pack.sd_pipe_sets[main_model_name].text2img = move_pipe_to_device(
                 pipe=main_model.text2img,
                 model_name=f"{main_model_name} text2img",
                 device=DEVICE_CPU,
@@ -118,7 +118,7 @@ def send_other_models_to_cpu(
             and main_model.img2img is not None
             and main_model.img2img.device.type == DEVICE_CUDA
         ):
-            models_pack.sd_pipes[main_model_name].img2img = move_pipe_to_device(
+            models_pack.sd_pipe_sets[main_model_name].img2img = move_pipe_to_device(
                 pipe=main_model.img2img,
                 model_name=f"{main_model_name} img2img",
                 device=DEVICE_CPU,
@@ -128,7 +128,7 @@ def send_other_models_to_cpu(
             and main_model.inpaint is not None
             and main_model.inpaint.device.type == DEVICE_CUDA
         ):
-            models_pack.sd_pipes[main_model_name].inpaint = move_pipe_to_device(
+            models_pack.sd_pipe_sets[main_model_name].inpaint = move_pipe_to_device(
                 pipe=main_model.inpaint,
                 model_name=f"{main_model_name} inpaint",
                 device=DEVICE_CPU,

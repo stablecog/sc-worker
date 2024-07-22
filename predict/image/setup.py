@@ -113,14 +113,14 @@ class AestheticsScorer:
 class ModelsPack:
     def __init__(
         self,
-        sd_pipes: dict[str, SDPipeSet],
+        sd_pipe_sets: dict[str, SDPipeSet],
         upscaler: Any,
         translator: Translator,
         open_clip: OpenCLIP,
         kandinsky_2_2: KandinskyPipeSet_2_2,
         aesthetics_scorer: AestheticsScorer,
     ):
-        self.sd_pipes = sd_pipes
+        self.sd_pipe_sets = sd_pipe_sets
         self.upscaler = upscaler
         self.translator = translator
         self.open_clip = open_clip
@@ -151,10 +151,10 @@ def setup() -> ModelsPack:
 
     download_swinir_models()
 
-    sd_pipes: dict[str, SDPipeSet] = {}
+    sd_pipe_sets: dict[str, SDPipeSet] = {}
 
     def get_saved_sd_model(model_id_key: str, model_id: str, model_type_for_class: str):
-        for key in sd_pipes:
+        for key in sd_pipe_sets:
             model_definition = SD_MODELS.get(key, None)
             if model_definition is None:
                 continue
@@ -162,7 +162,7 @@ def setup() -> ModelsPack:
             if relevant_model_id is None:
                 continue
             if relevant_model_id == model_id:
-                model = getattr(sd_pipes[key], model_type_for_class, None)
+                model = getattr(sd_pipe_sets[key], model_type_for_class, None)
                 if model:
                     return model
         return None
@@ -314,7 +314,7 @@ def setup() -> ModelsPack:
                 refiner=None,
             )
 
-        sd_pipes[key] = pipe
+        sd_pipe_sets[key] = pipe
         logging.info(
             f"✅ Loaded SD model: {key} | Duration: {round(time.time() - s, 1)} seconds"
         )
@@ -428,7 +428,7 @@ def setup() -> ModelsPack:
     logging.info("//////////////////////////////////////////////////////////////////")
 
     return ModelsPack(
-        sd_pipes=sd_pipes,
+        sd_pipe_sets=sd_pipe_sets,
         upscaler=upscaler,
         translator=translator,
         open_clip=open_clip,

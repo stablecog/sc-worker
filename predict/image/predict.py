@@ -181,7 +181,7 @@ def predict(
         if input.model == KANDINSKY_2_2_MODEL_NAME:
             generator_pipe = models_pack.kandinsky_2_2
         else:
-            generator_pipe = models_pack.sd_pipes[input.model]
+            generator_pipe = models_pack.sd_pipe_sets[input.model]
 
         if hasattr(generator_pipe, "safety_checker"):
             generator_pipe.safety_checker = None
