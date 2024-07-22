@@ -97,9 +97,14 @@ def send_other_models_to_cpu(
 
     # Send other Stable Diffusion pipes to CPU if needed
     main_model = models_pack.sd_pipes.get(main_model_name, None)
-    if main_model is not None and main_model.get("keep_in_cpu_when_idle"):
+    main_model_spec = SD_MODELS.get(main_model_name, None)
+    if (
+        main_model is not None
+        and main_model_spec is not None
+        and main_model_spec.get("keep_in_cpu_when_idle", None)
+    ):
         if (
-            main_model_name != "text2img"
+            main_model_pipe != "text2img"
             and main_model.text2img is not None
             and main_model.text2img.device.type == DEVICE_CUDA
         ):
