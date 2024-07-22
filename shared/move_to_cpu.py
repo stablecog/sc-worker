@@ -73,7 +73,7 @@ def send_other_models_to_cpu(
                     device=DEVICE_CPU,
                 )
 
-    # Model isn't Kandinsky, send Kandinsky 2.2 to CPU if needed
+    # If model isn't Kandinsky, send Kandinsky 2.2 to CPU if needed
     if (
         main_model_name != KANDINSKY_2_2_MODEL_NAME
         and KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE
@@ -103,72 +103,6 @@ def send_other_models_to_cpu(
             models_pack.kandinsky_2_2.prior = move_pipe_to_device(
                 pipe=models_pack.kandinsky_2_2.prior,
                 model_name=f"{KANDINSKY_2_2_MODEL_NAME} prior",
-                device=DEVICE_CPU,
-            )
-
-    # Send other Stable Diffusion pipes to CPU if needed
-    main_model = models_pack.sd_pipe_sets.get(main_model_name, None)
-    main_model_spec = SD_MODELS.get(main_model_name, None)
-    if (
-        main_model is not None
-        and main_model_spec is not None
-        and main_model_spec.get("keep_in_cpu_when_idle", None)
-    ):
-        if (
-            main_model_pipe != "text2img"
-            and main_model.text2img is not None
-            and main_model.text2img.device.type == DEVICE_CUDA
-        ):
-            models_pack.sd_pipe_sets[main_model_name].text2img = move_pipe_to_device(
-                pipe=main_model.text2img,
-                model_name=f"{main_model_name} text2img",
-                device=DEVICE_CPU,
-            )
-        if (
-            main_model_pipe != "img2img"
-            and main_model.img2img is not None
-            and main_model.img2img.device.type == DEVICE_CUDA
-        ):
-            models_pack.sd_pipe_sets[main_model_name].img2img = move_pipe_to_device(
-                pipe=main_model.img2img,
-                model_name=f"{main_model_name} img2img",
-                device=DEVICE_CPU,
-            )
-        if (
-            main_model_pipe != "inpaint"
-            and main_model.inpaint is not None
-            and main_model.inpaint.device.type == DEVICE_CUDA
-        ):
-            models_pack.sd_pipe_sets[main_model_name].inpaint = move_pipe_to_device(
-                pipe=main_model.inpaint,
-                model_name=f"{main_model_name} inpaint",
-                device=DEVICE_CPU,
-            )
-
-    # Send other Kandinsky 2.2 pipes to CPU if needed
-    if (
-        main_model_name == KANDINSKY_2_2_MODEL_NAME
-        and KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE
-    ):
-        if (
-            main_model_pipe != "text2img"
-            and models_pack.kandinsky_2_2.text2img is not None
-            and models_pack.kandinsky_2_2.text2img.device.type == DEVICE_CUDA
-        ):
-            models_pack.kandinsky_2_2.text2img = move_pipe_to_device(
-                pipe=models_pack.kandinsky_2_2.text2img,
-                model_name=f"{KANDINSKY_2_2_MODEL_NAME} text2img",
-                device=DEVICE_CPU,
-            )
-
-        if (
-            main_model_pipe != "inpaint"
-            and models_pack.kandinsky_2_2.inpaint is not None
-            and models_pack.kandinsky_2_2.inpaint.device.type == DEVICE_CUDA
-        ):
-            models_pack.kandinsky_2_2.inpaint = move_pipe_to_device(
-                pipe=models_pack.kandinsky_2_2.inpaint,
-                model_name=f"{KANDINSKY_2_2_MODEL_NAME} inpaint",
                 device=DEVICE_CPU,
             )
 
