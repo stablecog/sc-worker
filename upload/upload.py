@@ -38,7 +38,7 @@ def convert_and_upload_image_to_signed_url(
 
     _pil_image = pil_image
     if target_extension == "jpeg":
-        logging.info(f"-- Upload: Converting to JPEG")
+        logging.info(f"^^ Upload: Converting to JPEG")
         _pil_image = _pil_image.convert("RGB")
     img_format = target_extension.upper()
     img_bytes = BytesIO()
@@ -69,7 +69,7 @@ def convert_and_upload_image_to_signed_url(
     session.mount("http://", adapter)
 
     start_upload = time.time()
-    logging.info(f"-- Upload: Uploading to signed URL")
+    logging.info(f"^^ Upload: Uploading to signed URL")
     response = session.put(
         signed_url,
         data=file_bytes,
@@ -101,7 +101,7 @@ def upload_files_for_image(
     # Run all uploads at same time in threadpool
     tasks: List[Future] = []
     with ThreadPoolExecutor(max_workers=len(upload_objects)) as executor:
-        logging.info(f"-- Upload: Submitting to thread")
+        logging.info(f"^^ Upload: Submitting to thread")
         for i, uo in enumerate(upload_objects):
             signed_url = signed_urls[i]
             tasks.append(
@@ -118,7 +118,7 @@ def upload_files_for_image(
     # Get results
     results = []
     for i, task in enumerate(tasks):
-        logging.info(f"-- Upload: Got result")
+        logging.info(f"^^ Upload: Got result")
         uploadObject = upload_objects[i]
         results.append(
             {

@@ -220,7 +220,7 @@ def predict(
         ]
         logging.info(
             tabulate(
-                [["🖼️  Generation 🟡", "Started"]] + log_table, tablefmt="double_grid"
+                [["🖼️ Generation", "🟡 Started"]] + log_table, tablefmt="double_grid"
             )
         )
 
@@ -259,7 +259,7 @@ def predict(
         endTime = time.time()
         logging.info(
             tabulate(
-                [["🖼️  Generation 🟢", f"{round((endTime - startTime) * 1000)} ms"]]
+                [["🖼️ Generation", f"🟢 {round((endTime - startTime) * 1000)} ms"]]
                 + log_table,
                 tablefmt="double_grid",
             ),
