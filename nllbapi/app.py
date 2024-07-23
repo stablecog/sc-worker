@@ -26,16 +26,16 @@ def health():
 def translate():
     start = time.time()
     logging.info("//////////////////////////////////////////////////////////////////")
-    logging.info(f"⏳💬 Translation started 💬⏳")
+    logging.info(f"<>🟡 Translation started")
 
     with current_app.app_context():
         models_pack: ModelsPack = current_app.models_pack
     authheader = request.headers.get("Authorization")
     if authheader is None:
-        logging.error("🔴 Unauthorized: Missing authorization header")
+        logging.error("<>🔴 Unauthorized: Missing authorization header")
         return "Unauthorized", 401
     if authheader != os.environ["NLLBAPI_AUTH_TOKEN"]:
-        logging.error("🔴 Unauthorized: Invalid authorization header")
+        logging.error("<>🔴 Unauthorized: Invalid authorization header")
         return "Unauthorized", 401
 
     req_body = None
@@ -43,23 +43,23 @@ def translate():
         req_body = request.get_json()
     except Exception as e:
         tb = traceback.format_exc()
-        logging.info(f"🔴 Error parsing request body: {tb}\n")
+        logging.info(f"<>🔴 Error parsing request body: {tb}\n")
         return str(e), 400
     finally:
         if req_body is None:
-            logging.error("🔴 Missing request body")
+            logging.error("<>🔴 Missing request body")
             return "Missing request body", 400
 
     prediction_input = req_body.get("input", None)
 
     if prediction_input is None:
-        logging.error("🔴 Missing input field in request body")
+        logging.error("<>🔴 Missing input field in request body")
         return "Missing input field in request body", 400
 
     # Text 1
     text_1 = prediction_input.get("text_1", "")
     if text_1 == "":
-        logging.error("🔴 Missing text_1 field in input")
+        logging.error("<>🔴 Missing text_1 field in input")
         return "Missing text_1 field in input", 400
 
     text_flores_1 = prediction_input.get("text_flores_1", None)
@@ -108,9 +108,7 @@ def translate():
         output_strings.append(translated_text_2)
 
     end = time.time()
-    logging.info(
-        f"✅💬 Translation completed in: {round((end - start) * 1000)} ms 💬✅"
-    )
+    logging.info(f"<>🟢 Translation completed in: {round((end - start) * 1000)} ms")
     logging.info("//////////////////////////////////////////////////////////////////")
     return jsonify({"output": output_strings})
 
@@ -121,6 +119,6 @@ def run_nllbapi(models_pack: ModelsPack):
     with nllbapi.app_context():
         current_app.models_pack = models_pack
     logging.info("//////////////////////////////////////////////////////////////////")
-    logging.info(f"🖥️🟢 Starting NLLB API on {host}:{port}")
+    logging.info(f"<>🟢 Starting NLLB API on {host}:{port}")
     logging.info("//////////////////////////////////////////////////////////////////")
     serve(nllbapi, host=host, port=port)

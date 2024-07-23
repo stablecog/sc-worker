@@ -76,9 +76,6 @@ def generate(
             else:
                 negative_prompt = f"{default_negative_prompt_prefix} {negative_prompt}"
 
-    logging.info(f"-- Prompt: {prompt} --")
-    logging.info(f"-- Negative Prompt: {negative_prompt} --")
-
     extra_kwargs = {}
     pipe_selected = None
 
