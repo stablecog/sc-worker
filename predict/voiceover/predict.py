@@ -92,7 +92,7 @@ def predict(
     ]
 
     logging.info(
-        tabulate([["🎤 Generation 🟡", "Started"]] + log_table, tablefmt="double_grid")
+        tabulate([["🎤 Generation", "🟡 Started"]] + log_table, tablefmt="double_grid")
     )
 
     voiceover_start = time.time()
@@ -111,8 +111,8 @@ def predict(
         tabulate(
             [
                 [
-                    "🎤 Geneneration 🟢",
-                    f"{round(voiceover_end - voiceover_start, 2)} sec.",
+                    "🎤 Geneneration",
+                    f"🟢 {round(voiceover_end - voiceover_start, 2)} sec.",
                 ]
             ]
             + log_table,
