@@ -120,7 +120,7 @@ def upload_files_for_image(
     # Get results
     results = []
     for i, task in enumerate(tasks):
-        logging.info(f"^^ Got result")
+        logging.info(f"^^ Got upload task result")
         uploadObject = upload_objects[i]
         results.append(
             {
