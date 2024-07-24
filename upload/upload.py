@@ -46,7 +46,7 @@ def convert_and_upload_image_to_signed_url(
     file_bytes = img_bytes.getvalue()
     end_conv = time.time()
     logging.info(
-        f"Converted image in: {round((end_conv - start_conv) * 1000)} ms - {img_format} - {target_quality}"
+        f"^^ Upload: Converted image in: {round((end_conv - start_conv) * 1000)} ms - {img_format} - {target_quality}"
     )
 
     # Define the retry strategy
@@ -79,13 +79,15 @@ def convert_and_upload_image_to_signed_url(
 
     if response.status_code == 200:
         logging.info(
-            f"Uploaded image in: {round((end_upload - start_upload) * 1000)} ms"
+            f"^^ Upload: Uploaded image in: {round((end_upload - start_upload) * 1000)} ms"
         )
         final_key = extract_key_from_signed_url(signed_url)
-        logging.info(f"Final key for image is: {final_key}")
+        logging.info(f"^^ Upload: Final key for image is: {final_key}")
         return final_key
     else:
-        logging.info(f"Failed to upload image. Status code: {response.status_code}")
+        logging.info(
+            f"^^ Upload: Failed to upload image. Status code: {response.status_code}"
+        )
         response.raise_for_status()
 
 
@@ -95,7 +97,9 @@ def upload_files_for_image(
     upload_path_prefix: str,
 ) -> Iterable[Dict[str, Any]]:
     """Send all files to S3 in parallel and return the S3 URLs"""
-    logging.info("Started - Upload all files to S3 in parallel and return the S3 URLs")
+    logging.info(
+        "^^ Upload: 🟡 Started - Upload all files to S3 in parallel and return the S3 URLs"
+    )
     start = time.time()
 
     # Run all uploads at same time in threadpool
@@ -131,7 +135,7 @@ def upload_files_for_image(
 
     end = time.time()
     logging.info(
-        f"^^ Upload: 📤 All converted and uploaded to S3 in: {round((end - start) *1000)} ms 📤"
+        f"^^ Upload: 📤 All converted and uploaded to S3 in: {round((end - start) *1000)} ms"
     )
 
     return results
