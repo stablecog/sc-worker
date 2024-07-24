@@ -131,7 +131,7 @@ def upload_files_for_image(
 
     end = time.time()
     logging.info(
-        f"📤 All converted and uploaded to S3 in: {round((end - start) *1000)} ms 📤"
+        f"^^ Upload: 📤 All converted and uploaded to S3 in: {round((end - start) *1000)} ms 📤"
     )
 
     return results

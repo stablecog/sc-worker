@@ -21,14 +21,14 @@ def start_upload_worker(
     logging.info("Starting upload thread...")
     while not shutdown_event.is_set() or not q.empty():
         try:
-            # logging.info(f"^^ Upload: Waiting for queue --\n")
+            # logging.info(f"^^ Upload: Waiting for queue\n")
             uploadMsg: List[Dict[str, Any]] = q.get(timeout=1)
-            # logging.info(f"^^ Upload: Got from queue --\n")
+            # logging.info(f"^^ Upload: Got from queue\n")
             if "upload_output" in uploadMsg:
                 predict_result: PredictResultForImage = uploadMsg["upload_output"]
                 if len(predict_result.outputs) > 0:
                     logging.info(
-                        f"^^ Upload: Uploading {len(predict_result.outputs)} files --"
+                        f"^^ Upload: Uploading {len(predict_result.outputs)} files"
                     )
                     try:
                         uploadMsg["output"] = {
@@ -43,25 +43,25 @@ def start_upload_worker(
                         }
                     except Exception as e:
                         tb = traceback.format_exc()
-                        logging.error(f"Error uploading files {tb}\n")
+                        logging.error(f"^^ Upload: Error uploading files {tb}\n")
                         uploadMsg["status"] = Status.FAILED
                         uploadMsg["error"] = str(e)
-                    logging.info(f"^^ Upload: Finished uploading files --")
+                    logging.info(f"^^ Upload: Finished uploading files")
 
             if "upload_output" in uploadMsg:
-                logging.info(f"^^ Upload: Deleting upload_output from message --")
+                logging.info(f"^^ Upload: Deleting upload_output from message")
                 del uploadMsg["upload_output"]
             if "upload_prefix" in uploadMsg:
-                logging.info(f"^^ Upload: Deleting upload_prefix from message --")
+                logging.info(f"^^ Upload: Deleting upload_prefix from message")
                 del uploadMsg["upload_prefix"]
 
-            logging.info(f"-- 🟡 Upload: Publishing to WEBHOOK --")
+            logging.info(f"^^ 🟡 Upload: Publishing to WEBHOOK")
             post_webhook(uploadMsg["webhook_url"], uploadMsg)
-            logging.info(f"-- 🟢 Upload: Published to WEBHOOK --")
+            logging.info(f"^^ 🟢 Upload: Published to WEBHOOK")
         except queue.Empty:
             continue
         except Exception as e:
             tb = traceback.format_exc()
-            logging.error(f"Exception in upload process {tb}\n")
-            logging.error(f"Message was: {uploadMsg}\n")
-    logging.info("Upload thread exiting")
+            logging.error(f"^^ Upload: Exception in upload process {tb}\n")
+            logging.error(f"^^ Upload: Message was: {uploadMsg}\n")
+    logging.info("^^ Upload: Upload thread exiting")
