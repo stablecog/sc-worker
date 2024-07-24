@@ -82,7 +82,6 @@ def convert_and_upload_image_to_signed_url(
             f"^^ Uploaded image in: {round((end_upload - start_upload) * 1000)} ms"
         )
         final_key = extract_key_from_signed_url(signed_url)
-        logging.info(f"^^ Final key for image is: {final_key}")
         return final_key
     else:
         logging.info(f"^^ Failed to upload image. Status code: {response.status_code}")
