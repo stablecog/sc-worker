@@ -22,7 +22,7 @@ def setup() -> ModelsPack:
     start = time.time()
     version_str = f"Version: {WORKER_VERSION}"
     logging.info(
-        tabulate([["⏳ Setup has started", version_str]], tablefmt="double_grid")
+        tabulate([["🟡 Setup has started", version_str]], tablefmt="double_grid")
     )
 
     nltk.download("punkt")

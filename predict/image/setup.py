@@ -141,7 +141,7 @@ def setup() -> ModelsPack:
     start = time.time()
     version_str = f"Version: {WORKER_VERSION}"
     logging.info(
-        tabulate([["⏳ Setup has started", version_str]], tablefmt="double_grid")
+        tabulate([["🟡 Setup has started", version_str]], tablefmt="double_grid")
     )
 
     hf_token = os.environ.get("HF_TOKEN", None)
@@ -169,7 +169,7 @@ def setup() -> ModelsPack:
 
     for key in SD_MODELS:
         s = time.time()
-        logging.info(f"⏳ Loading SD model: {key}")
+        logging.info(f"🟡 Loading SD model: {key}")
 
         base_model = SD_MODELS[key].get("base_model", None)
 
@@ -323,7 +323,7 @@ def setup() -> ModelsPack:
     kandinsky_2_2 = None
     if LOAD_KANDINSKY_2_2:
         s = time.time()
-        logging.info("⏳ Loading Kandinsky 2.2")
+        logging.info("🟡 Loading Kandinsky 2.2")
         kandinsky_device = DEVICE_CUDA
         if KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE:
             kandinsky_device = DEVICE_CPU
@@ -371,7 +371,7 @@ def setup() -> ModelsPack:
     logging.info("✅ Loaded upscaler")
 
     # For translator
-    logging.info("⏳ Loading translator")
+    logging.info("🟡 Loading translator")
     translator = None
     if LAUNCH_NLLBAPI == True:
         translator = Translator(
@@ -392,7 +392,7 @@ def setup() -> ModelsPack:
         logging.info("⚪️ Skipping translator")
 
     # For OpenCLIP
-    logging.info("⏳ Loading OpenCLIP")
+    logging.info("🟡 Loading OpenCLIP")
     open_clip = OpenCLIP(
         model=AutoModel.from_pretrained(
             OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
@@ -407,7 +407,7 @@ def setup() -> ModelsPack:
     logging.info("✅ Loaded OpenCLIP")
 
     # For asthetics scorer
-    logging.info("⏳ Loading Aesthetics Scorer")
+    logging.info("🟡 Loading Aesthetics Scorer")
     aesthetics_scorer = AestheticsScorer(
         rating_model=load_aesthetics_scorer_model(
             weight_url=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_WEIGHT_URL,

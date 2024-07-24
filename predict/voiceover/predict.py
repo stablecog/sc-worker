@@ -71,7 +71,7 @@ def predict(
 ) -> PredictResult:
     process_start = time.time()
     logging.info("//////////////////////////////////////////////////////////////////")
-    logging.info(f"⏳ Voiceover - Process started ⏳")
+    logging.info(f"🟡 Voiceover - Process started 🟡")
 
     if input.seed is None:
         input.seed = int.from_bytes(os.urandom(2), "big")

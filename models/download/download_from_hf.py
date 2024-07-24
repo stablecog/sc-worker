@@ -16,7 +16,7 @@ def download_models_from_hf(downloadAll=True):
     # Login to HuggingFace if there is a token
     token = os.environ.get("HF_TOKEN", None)
     if token is not None:
-        logging.info(f"⏳ Logging in to HuggingFace")
+        logging.info(f"🟡 Logging in to HuggingFace")
         login(token=token)
         logging.info(f"✅ Logged in to HuggingFace")
     download_sd_models_from_hf(downloadAll=downloadAll)
@@ -26,7 +26,7 @@ def download_models_from_hf(downloadAll=True):
 def download_sd_model_from_hf(key):
     model_id = SD_MODELS_ALL[key]["id"]
     s = time.time()
-    logging.info(f"⏳ Downloading model: {model_id}")
+    logging.info(f"🟡 Downloading model: {model_id}")
     if key == "SDXL" or key == "Waifu Diffusion XL":
         args = {
             "pretrained_model_name_or_path": SD_MODELS[key]["id"],
@@ -83,7 +83,7 @@ def download_sd_models_concurrently_from_hf():
 
 
 def download_swinir_models():
-    logging.info("⏳ Downloading SwinIR models...")
+    logging.info("🟡 Downloading SwinIR models...")
     if os.path.exists(os.path.join(MODEL_DIR_SWINIR, MODEL_NAME_SWINIR)):
         logging.info("✅ SwinIR models already downloaded")
     else:

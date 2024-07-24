@@ -22,13 +22,13 @@ def move_other_models_to_cpu(
         sd_spec is not None and sd_spec.get("keep_in_cpu_when_idle", False) is False
     ):
         logging.info(
-            f"🖥️🟡 Skipping moving other models to {DEVICE_CPU} for -> {main_model_name}, {main_model_pipe}"
+            f"🎛️ 🔵 Skipping moving other models to {DEVICE_CPU} for -> {main_model_name}, {main_model_pipe}"
         )
         return
 
     s = time.time()
     logging.info(
-        f"🖥️ Moving other models to {DEVICE_CPU} for -> {main_model_name}, {main_model_pipe}"
+        f"🎛️ 🟡 Moving other models to {DEVICE_CPU} for -> {main_model_name}, {main_model_pipe}"
     )
 
     # Move other Stable Diffusion models to CPU if needed
@@ -108,5 +108,5 @@ def move_other_models_to_cpu(
 
     e = time.time()
     logging.info(
-        f"🖥️🟢 Moved other models to {DEVICE_CPU} in {e - s:.2f}s for -> {main_model_name}, {main_model_pipe}"
+        f"🎛️ 🟢 Moved other models to {DEVICE_CPU} in {e - s:.2f}s for -> {main_model_name}, {main_model_pipe}"
     )

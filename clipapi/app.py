@@ -29,10 +29,10 @@ def clip_embed():
         models_pack: ModelsPack = current_app.models_pack
     authheader = request.headers.get("Authorization")
     if authheader is None:
-        logging.error("🔴 Unauthorized: Missing authorization header")
+        logging.error("📎 🔴 Unauthorized: Missing authorization header")
         return "Unauthorized", 401
     if authheader != os.environ["CLIPAPI_AUTH_TOKEN"]:
-        logging.error("🔴 Unauthorized: Invalid authorization header")
+        logging.error("📎 🔴 Unauthorized: Invalid authorization header")
         return "Unauthorized", 401
 
     req_body = None
@@ -40,14 +40,14 @@ def clip_embed():
         req_body = request.get_json()
     except Exception as e:
         tb = traceback.format_exc()
-        logging.info(f"🔴 Error parsing request body: {tb}\n")
+        logging.info(f"📎 🔴 Error parsing request body: {tb}\n")
         return str(e), 400
     finally:
         if req_body is None:
-            logging.error("🔴 Missing request body")
+            logging.error("📎 🔴 Missing request body")
             return "Missing request body", 400
         if isinstance(req_body, list) is not True:
-            logging.error("🔴 Body should be an array")
+            logging.error("📎 🔴 Body should be an array")
             return "Body should be an array", 400
 
     embeds = [None for _ in range(len(req_body))]
@@ -102,7 +102,7 @@ def clip_embed():
             embeds[index] = obj
 
     e = time.time()
-    logging.info(f"🖥️  Embedded {len(req_body)} items in: {e-s:.2f} seconds  🖥️\n")
+    logging.info(f"📎 Embedded {len(req_body)} items in: {e-s:.2f} seconds  🖥️\n")
     return jsonify({"embeddings": embeds})
 
 
@@ -112,6 +112,6 @@ def run_clipapi(models_pack: ModelsPack):
     with clipapi.app_context():
         current_app.models_pack = models_pack
     logging.info("//////////////////////////////////////////////////////////////////")
-    logging.info(f"🖥️🟢 Starting CLIP API on {host}:{port}")
+    logging.info(f"📎 🟢 Starting CLIP API on {host}:{port}")
     logging.info("//////////////////////////////////////////////////////////////////")
     serve(clipapi, host=host, port=port)

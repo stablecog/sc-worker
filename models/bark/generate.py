@@ -34,7 +34,7 @@ def generate_voiceover(
 ) -> List[GenerateVoiceoverOutputBark]:
     start = time.time()
     logging.info("//////////////////////////////////////////////////////////////////")
-    logging.info("⏳ Generating voiceover ⏳")
+    logging.info("🟡 Generating voiceover")
 
     script = prompt.replace("\n", " ").strip()
     sentences = nltk.sent_tokenize(script)
