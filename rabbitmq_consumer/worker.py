@@ -109,9 +109,9 @@ def create_amqp_callback(
                     response["upload_output"],
                     (PredictResultForImage),
                 ):
-                    logging.info(f"^^ Upload | Putting to queue")
+                    logging.info(f"^^ Putting to queue")
                     upload_queue.put(response)
-                    logging.info(f"^^ Upload | Put to queue")
+                    logging.info(f"^^ Put to queue")
                 elif response_event in events_filter:
                     status_code = post_webhook(webhook_url, response)
                     logging.info(f"-- Webhook: {status_code}")

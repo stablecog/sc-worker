@@ -26,7 +26,7 @@ def health():
 def translate():
     start = time.time()
     logging.info("//////////////////////////////////////////////////////////////////")
-    logging.info(f"<>🟡 Translation started")
+    logging.info(f"<> 🟡 Translation started")
 
     with current_app.app_context():
         models_pack: ModelsPack = current_app.models_pack
@@ -108,7 +108,7 @@ def translate():
         output_strings.append(translated_text_2)
 
     end = time.time()
-    logging.info(f"<>🟢 Translation completed in: {round((end - start) * 1000)} ms")
+    logging.info(f"<> 🟢 Translation completed in: {round((end - start) * 1000)} ms")
     logging.info("//////////////////////////////////////////////////////////////////")
     return jsonify({"output": output_strings})
 
@@ -119,6 +119,6 @@ def run_nllbapi(models_pack: ModelsPack):
     with nllbapi.app_context():
         current_app.models_pack = models_pack
     logging.info("//////////////////////////////////////////////////////////////////")
-    logging.info(f"<>🟢 Starting NLLB API on {host}:{port}")
+    logging.info(f"<> 🟢 Starting NLLB API on {host}:{port}")
     logging.info("//////////////////////////////////////////////////////////////////")
     serve(nllbapi, host=host, port=port)
