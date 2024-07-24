@@ -3,7 +3,7 @@ import torch
 
 from models.constants import DEVICE_CUDA
 from predict.image.setup import ModelsPack
-from shared.move_to_cpu import send_other_models_to_cpu
+from shared.move_to_cpu import move_other_models_to_cpu
 from .helpers import get_scheduler
 from .constants import SD_MODELS
 import time
@@ -34,7 +34,7 @@ def generate(
     pipe,
     models_pack: ModelsPack,
 ):
-    #### Send other models to CPU if needed
+    #### Move other models to CPU if needed
     main_model_pipe = "text2img"
     if (
         init_image_url is not None
@@ -44,7 +44,7 @@ def generate(
         main_model_pipe = "inpaint"
     elif init_image_url is not None and pipe.img2img is not None:
         main_model_pipe = "img2img"
-    send_other_models_to_cpu(
+    move_other_models_to_cpu(
         main_model_name=model, main_model_pipe=main_model_pipe, models_pack=models_pack
     )
     #####################################

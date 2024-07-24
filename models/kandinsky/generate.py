@@ -6,7 +6,7 @@ from models.kandinsky.constants import (
     KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE,
     KANDINSKY_2_2_MODEL_NAME,
 )
-from shared.move_to_cpu import send_other_models_to_cpu
+from shared.move_to_cpu import move_other_models_to_cpu
 from .helpers import get_scheduler
 from predict.image.setup import KandinskyPipeSet_2_2, ModelsPack
 from shared.helpers import (
@@ -48,7 +48,7 @@ def generate_2_2(
     safety_checker,
     models_pack: ModelsPack,
 ):
-    #### Send other models to CPU if needed
+    #### Move other models to CPU if needed
     main_model_pipe = "text2img"
     if (
         init_image_url is not None
@@ -56,7 +56,7 @@ def generate_2_2(
         and pipe.inpaint is not None
     ):
         main_model_pipe = "inpaint"
-    send_other_models_to_cpu(
+    move_other_models_to_cpu(
         main_model_name=model, main_model_pipe=main_model_pipe, models_pack=models_pack
     )
     #####################################

@@ -128,12 +128,12 @@ class ModelsPack:
         self.aesthetics_scorer = aesthetics_scorer
 
 
-def auto_send_to_device(dict, key, pipe, description):
+def auto_move_to_device(dict, key, pipe, description):
     if dict[key].get("keep_in_cpu_when_idle"):
-        logging.info(f"🐌 Keep in CPU when idle: {description}")
+        logging.info(f"🐌 Keep in {DEVICE_CPU} when idle: {description}")
         return pipe.to(DEVICE_CPU, silence_dtype_warnings=True)
     else:
-        logging.info(f"🚀 Keep in GPU: {description}")
+        logging.info(f"🚀 Keep in {DEVICE_CUDA}: {description}")
         return pipe.to(DEVICE_CUDA)
 
 
@@ -242,9 +242,9 @@ def setup() -> ModelsPack:
                 refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
                     **refiner_args
                 )
-                refiner = auto_send_to_device(SD_MODELS, key, refiner, f"{key} refiner")
+                refiner = auto_move_to_device(SD_MODELS, key, refiner, f"{key} refiner")
 
-            text2img = auto_send_to_device(SD_MODELS, key, text2img, f"{key} text2img")
+            text2img = auto_move_to_device(SD_MODELS, key, text2img, f"{key} text2img")
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
 
             inpaint = None
@@ -284,7 +284,7 @@ def setup() -> ModelsPack:
                 args["variant"] = SD_MODELS[key]["variant"]
 
             text2img = StableDiffusion3Pipeline.from_pretrained(**args)
-            text2img = auto_send_to_device(SD_MODELS, key, text2img, f"{key} text2img")
+            text2img = auto_move_to_device(SD_MODELS, key, text2img, f"{key} text2img")
             img2img = StableDiffusion3Img2ImgPipeline(**text2img.components)
             inpaint = None
             pipe = SDPipeSet(
@@ -303,7 +303,7 @@ def setup() -> ModelsPack:
             if "variant" in SD_MODELS[key]:
                 args["variant"] = SD_MODELS[key]["variant"]
             text2img = StableDiffusionPipeline.from_pretrained(**args)
-            text2img = auto_send_to_device(SD_MODELS, key, text2img, f"{key} text2img")
+            text2img = auto_move_to_device(SD_MODELS, key, text2img, f"{key} text2img")
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
             inpaint = None
 
@@ -327,9 +327,9 @@ def setup() -> ModelsPack:
         kandinsky_device = DEVICE_CUDA
         if KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE:
             kandinsky_device = DEVICE_CPU
-            logging.info(f"🐌 Keep in CPU when idle: Kandinsky 2.2")
+            logging.info(f"🐌 Keep in {DEVICE_CPU} when idle: Kandinsky 2.2")
         else:
-            logging.info("🚀 Keep in GPU: Kandinsky 2.2")
+            logging.info("🚀 Keep in {DEVICE_CUDA}: Kandinsky 2.2")
         prior = KandinskyV22PriorPipeline.from_pretrained(
             KANDINSKY_2_2_PRIOR_MODEL_ID,
             torch_dtype=torch.float16,

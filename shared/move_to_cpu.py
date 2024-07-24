@@ -12,26 +12,26 @@ from models.kandinsky.constants import (
 )
 
 
-def send_other_models_to_cpu(
+def move_other_models_to_cpu(
     main_model_name: str, main_model_pipe: str, models_pack: ModelsPack
 ):
-    # Skip the send if the model is not to be kept in CPU when idle
+    # Skip the move if the model is not to be kept in CPU when idle
     is_kandinsky_2_2 = main_model_name == KANDINSKY_2_2_MODEL_NAME
     sd_spec = SD_MODELS.get(main_model_name, None)
     if (is_kandinsky_2_2 and KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE is False) or (
         sd_spec is not None and sd_spec.get("keep_in_cpu_when_idle", False) is False
     ):
         logging.info(
-            f"🖥️🟡 Skipping sending other models to CPU -> {main_model_name}, {main_model_pipe}"
+            f"🖥️🟡 Skipping moving other models to {DEVICE_CPU} for -> {main_model_name}, {main_model_pipe}"
         )
         return
 
     s = time.time()
     logging.info(
-        f"🖥️ Sending other models to CPU -> {main_model_name}, {main_model_pipe}"
+        f"🖥️ Moving other models to {DEVICE_CPU} for -> {main_model_name}, {main_model_pipe}"
     )
 
-    # Send other Stable Diffusion models to CPU if needed
+    # Move other Stable Diffusion models to CPU if needed
     for model_name, pipe_set in models_pack.sd_pipe_sets.items():
         if main_model_name != model_name and SD_MODELS[model_name].get(
             "keep_in_cpu_when_idle"
@@ -73,7 +73,7 @@ def send_other_models_to_cpu(
                     device=DEVICE_CPU,
                 )
 
-    # If model isn't Kandinsky, send Kandinsky 2.2 to CPU if needed
+    # If model isn't Kandinsky, move Kandinsky 2.2 to CPU if needed
     if (
         main_model_name != KANDINSKY_2_2_MODEL_NAME
         and KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE
@@ -108,5 +108,5 @@ def send_other_models_to_cpu(
 
     e = time.time()
     logging.info(
-        f"🖥️🟢 Sent other models to CPU in {e - s:.2f}s -> {main_model_name}, {main_model_pipe}"
+        f"🖥️🟢 Moved other models to {DEVICE_CPU} in {e - s:.2f}s for -> {main_model_name}, {main_model_pipe}"
     )
