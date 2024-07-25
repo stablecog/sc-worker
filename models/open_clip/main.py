@@ -3,7 +3,7 @@ from models.constants import DEVICE_CUDA
 from .constants import OPEN_CLIP_TOKEN_LENGTH_MAX
 from typing import List
 import torch
-from shared.helpers import time_it, time_code_block
+from shared.helpers import time_log
 from torchvision.transforms import (
     Compose,
     Resize,
@@ -58,25 +58,19 @@ def clip_preprocessor(images: List[Image.Image], return_tensors="pt"):
     return torch.stack(results_sorted)
 
 
-@time_it
 def open_clip_get_embeds_of_images(images: List[Image.Image], model, processor):
-    with torch.no_grad():
-        with time_code_block(prefix=f"📎 Preprocessed {len(images)} image(s)"):
+    with time_log(f"[] OpenCLIP: Embedded {len(images)} image(s)"):
+        with torch.no_grad():
             inputs = clip_preprocessor(images=images, return_tensors="pt")
-        inputs = inputs.to(DEVICE_CUDA)
-        with time_code_block(prefix=f"📎 Embedded {len(images)} image(s)"):
+            inputs = inputs.to(DEVICE_CUDA)
             image_embeddings = model.get_image_features(pixel_values=inputs)
-        with time_code_block(
-            prefix=f"📎 Moved {len(images)} embedding(s) to CPU as list"
-        ):
             image_embeddings = image_embeddings.cpu().numpy().tolist()
-        return image_embeddings
+            return image_embeddings
 
 
-@time_it
 def open_clip_get_embeds_of_texts(texts: str, model, tokenizer):
-    with torch.no_grad():
-        with time_code_block(prefix=f"Tokenized {len(texts)} text(s)"):
+    with time_log(f"[] OpenCLIP: Embedded {len(texts)} text(s)"):
+        with torch.no_grad():
             inputs = tokenizer(
                 texts,
                 padding=True,
@@ -84,9 +78,7 @@ def open_clip_get_embeds_of_texts(texts: str, model, tokenizer):
                 truncation=True,
                 max_length=OPEN_CLIP_TOKEN_LENGTH_MAX,
             )
-        inputs = inputs.to(DEVICE_CUDA)
-        with time_code_block(prefix=f"📎 Embedded {len(texts)} text(s)"):
+            inputs = inputs.to(DEVICE_CUDA)
             text_embeddings = model.get_text_features(**inputs)
-        with time_code_block(prefix=f"📎 Moved {len(texts)} embeddings(s) to CPU"):
             text_embeddings = text_embeddings.cpu().numpy().tolist()
-        return text_embeddings
+            return text_embeddings

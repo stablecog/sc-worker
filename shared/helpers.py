@@ -20,6 +20,7 @@ from tabulate import tabulate
 
 from models.constants import DEVICE_CUDA
 from .constants import TabulateLevels
+from contextlib import contextmanager
 
 
 def clean_folder(folder):
@@ -63,33 +64,32 @@ def format_datetime(timestamp: datetime.datetime) -> str:
     return timestamp.isoformat() + "Z"
 
 
-def time_it(func):
-    # This function shows the execution time of
-    # the function object passed
-    def wrap_func(*args, **kwargs):
-        t1 = time.time()
-        result = func(*args, **kwargs)
-        t2 = time.time()
-        logging.info(f"Function {func.__name__!r} executed in {((t2-t1)*1000):.0f}ms")
-        return result
+def time_function(before: str, after: str):
+    def decorator(func):
+        def wrap_func(*args, **kwargs):
+            logging.info(before)
+            t1 = time.time()
+            result = func(*args, **kwargs)
+            t2 = time.time()
+            logging.info(f"{after}: {((t2-t1)*1000):.0f}ms")
+            return result
 
-    return wrap_func
+        return wrap_func
+
+    return decorator
 
 
-class time_code_block:
-    def __init__(self, prefix=None):
-        self.prefix = prefix
-
-    def __enter__(self):
-        self.start_time = time.time()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.end_time = time.time()
-        self.elapsed_time = (self.end_time - self.start_time) * 1000
-        statement = f"Executed in: {self.elapsed_time:.2f} ms"
-        if self.prefix:
-            statement = f"{self.prefix} - {statement}"
-        logging.info(statement)
+@contextmanager
+def time_log(after: str = "Completed", before: str | None = None):
+    if before is not None:
+        logging.info(before)
+    start_time = time.time()
+    try:
+        yield
+    finally:
+        end_time = time.time()
+        execution_time = (end_time - start_time) * 1000  # Convert to milliseconds
+        logging.info(f"{after}: {execution_time:.0f}ms")
 
 
 def download_image(url):

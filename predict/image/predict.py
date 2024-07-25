@@ -286,7 +286,7 @@ def predict(
         )[0]
         end_open_clip_prompt = time.time()
         logging.info(
-            f"📜 Open CLIP prompt embedding in: {round((end_open_clip_prompt - start_open_clip_prompt) * 1000)} ms 📜"
+            f"📜 OpenCLIP prompt embedding in: {round((end_open_clip_prompt - start_open_clip_prompt) * 1000)} ms 📜"
         )
 
         if len(output_images) > 0:
@@ -298,15 +298,16 @@ def predict(
             )
             end_open_clip_image = time.time()
             logging.info(
-                f"🖼️ Open CLIP image embeddings in: {round((end_open_clip_image - start_open_clip_image) * 1000)} ms - {len(output_images)} images 🖼️"
+                f"🖼️ OpenCLIP image embeddings in: {round((end_open_clip_image - start_open_clip_image) * 1000)} ms - {len(output_images)} images 🖼️"
             )
         else:
             open_clip_embeds_of_images = []
             logging.info(
-                "🖼️ No non-NSFW images generated. Skipping Open CLIP image embeddings. 🖼️"
+                "🖼️ No non-NSFW images generated. Skipping OpenCLIP image embeddings. 🖼️"
             )
 
     if input.process_type == "upscale" or input.process_type == "generate_and_upscale":
+        logging.info(f"⭐️ 🟡 Upscaling")
         startTime = time.time()
         if input.process_type == "upscale":
             upscale_output_image = upscale(
@@ -326,7 +327,7 @@ def predict(
                 upscale_output_images.append(upscale_output_image)
             output_images = upscale_output_images
         endTime = time.time()
-        logging.info(f"⭐️ Upscaled in: {round((endTime - startTime) * 1000)} ms ⭐️")
+        logging.info(f"⭐️ 🟢 Upscaled in: {round((endTime - startTime) * 1000)} ms")
 
     # Aesthetic Score
     s_aes = time.time()

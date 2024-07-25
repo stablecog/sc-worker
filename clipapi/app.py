@@ -9,9 +9,8 @@ from models.open_clip.main import (
     open_clip_get_embeds_of_images,
 )
 from predict.image.setup import ModelsPack
-from shared.helpers import download_images
+from shared.helpers import download_images, time_log
 import time
-from shared.helpers import time_code_block
 import logging
 
 clipapi = Flask(__name__)
@@ -81,11 +80,11 @@ def clip_embed():
         for obj in imageObjects:
             image_urls.append(obj["item"]["image"])
         try:
-            with time_code_block(prefix=f"Downloaded {len(image_urls)} image(s)"):
+            with time_log(f"📎 Downloaded {len(image_urls)} image(s)"):
                 pil_images = download_images(urls=image_urls, max_workers=25)
         except Exception as e:
             tb = traceback.format_exc()
-            logging.info(f"Failed to download images: {tb}\n")
+            logging.info(f"📎 🔴 Failed to download images: {tb}\n")
             return str(e), 500
         image_embeds = open_clip_get_embeds_of_images(
             pil_images,
@@ -102,7 +101,7 @@ def clip_embed():
             embeds[index] = obj
 
     e = time.time()
-    logging.info(f"📎 Embedded {len(req_body)} items in: {e-s:.2f} seconds  🖥️\n")
+    logging.info(f"📎 Embedded {len(req_body)} item(s) in: {e-s:.2f} seconds  🖥️\n")
     return jsonify({"embeddings": embeds})
 
 

@@ -178,7 +178,7 @@ def generate(
         output_images = pipe.refiner(**args).images
         e = time.time()
         logging.info(
-            f"🖌️ Refined {len(output_images)} images in: {round((e - s) * 1000)} ms"
+            f"🖌️ Refined {len(output_images)} image(s) in: {round((e - s) * 1000)} ms"
         )
 
     if nsfw_count > 0:

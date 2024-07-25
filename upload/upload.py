@@ -83,7 +83,7 @@ def upload_files_for_image(
 ) -> Iterable[Dict[str, Any]]:
     """Upload all images to S3 in parallel and return the S3 URLs"""
     logging.info(
-        f"^^ 📤 🟡 Started - Convert and upload {len(upload_objects)} images to S3 in parallel"
+        f"^^ 📤 🟡 Started - Convert and upload {len(upload_objects)} image(s) to S3 in parallel"
     )
     start = time.time()
 
@@ -123,7 +123,7 @@ def upload_files_for_image(
 
     end = time.time()
     logging.info(
-        f"^^ 📤 🟢 All {len(upload_objects)} images converted and uploaded to S3 in: {round((end - start) *1000)} ms"
+        f"^^ 📤 🟢 {len(upload_objects)} images converted and uploaded to S3 in: {round((end - start) *1000)} ms"
     )
 
     return results
