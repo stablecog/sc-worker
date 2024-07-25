@@ -26,6 +26,7 @@ def move_other_models_to_cpu(
         )
         return
 
+    model_count = 0
     s = time.time()
     logging.info(
         f"🎛️ 🟡 Moving other models to {DEVICE_CPU} for -> {main_model_name}, {main_model_pipe}"
@@ -40,6 +41,7 @@ def move_other_models_to_cpu(
                 pipe_set.text2img is not None
                 and pipe_set.text2img.device.type == DEVICE_CUDA
             ):
+                model_count += 1
                 models_pack.sd_pipe_sets[model_name].text2img = move_pipe_to_device(
                     pipe=pipe_set.text2img,
                     model_name=f"{model_name} text2img",
@@ -49,6 +51,7 @@ def move_other_models_to_cpu(
                 pipe_set.img2img is not None
                 and pipe_set.img2img.device.type == DEVICE_CUDA
             ):
+                model_count += 1
                 models_pack.sd_pipe_sets[model_name].img2img = move_pipe_to_device(
                     pipe=pipe_set.img2img,
                     model_name=f"{model_name} img2img",
@@ -58,6 +61,7 @@ def move_other_models_to_cpu(
                 pipe_set.inpaint is not None
                 and pipe_set.inpaint.device.type == DEVICE_CUDA
             ):
+                model_count += 1
                 models_pack.sd_pipe_sets[model_name].inpaint = move_pipe_to_device(
                     pipe=pipe_set.inpaint,
                     model_name=f"{model_name} inpaint",
@@ -67,6 +71,7 @@ def move_other_models_to_cpu(
                 pipe_set.refiner is not None
                 and pipe_set.refiner.device.type == DEVICE_CUDA
             ):
+                model_count += 1
                 models_pack.sd_pipe_sets[model_name].refiner = move_pipe_to_device(
                     pipe=pipe_set.refiner,
                     model_name=f"{model_name} refiner",
@@ -82,6 +87,7 @@ def move_other_models_to_cpu(
             models_pack.kandinsky_2_2.text2img is not None
             and models_pack.kandinsky_2_2.text2img.device.type == DEVICE_CUDA
         ):
+            model_count += 1
             models_pack.kandinsky_2_2.text2img = move_pipe_to_device(
                 pipe=models_pack.kandinsky_2_2.text2img,
                 model_name=f"{KANDINSKY_2_2_MODEL_NAME} text2img",
@@ -91,6 +97,7 @@ def move_other_models_to_cpu(
             models_pack.kandinsky_2_2.inpaint is not None
             and models_pack.kandinsky_2_2.inpaint.device.type == DEVICE_CUDA
         ):
+            model_count += 1
             models_pack.kandinsky_2_2.inpaint = move_pipe_to_device(
                 pipe=models_pack.kandinsky_2_2.inpaint,
                 model_name=f"{KANDINSKY_2_2_MODEL_NAME} inpaint",
@@ -100,6 +107,7 @@ def move_other_models_to_cpu(
             models_pack.kandinsky_2_2.prior is not None
             and models_pack.kandinsky_2_2.prior.device.type == DEVICE_CUDA
         ):
+            model_count += 1
             models_pack.kandinsky_2_2.prior = move_pipe_to_device(
                 pipe=models_pack.kandinsky_2_2.prior,
                 model_name=f"{KANDINSKY_2_2_MODEL_NAME} prior",
@@ -108,5 +116,5 @@ def move_other_models_to_cpu(
 
     e = time.time()
     logging.info(
-        f"🎛️ 🟢 Moved other models to {DEVICE_CPU} in {e - s:.2f}s for -> {main_model_name}, {main_model_pipe}"
+        f"🎛️ 🟢 Moved {model_count} other models to {DEVICE_CPU} in {e - s:.2f}s for -> {main_model_name}, {main_model_pipe}"
     )
