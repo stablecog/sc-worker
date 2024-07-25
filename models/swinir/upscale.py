@@ -15,9 +15,6 @@ import logging
 @torch.inference_mode()
 @torch.cuda.amp.autocast()
 def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image:
-    if image is None:
-        raise ValueError("Image is required for the upscaler.")
-
     args = upscaler["args"]
     pipe = upscaler["pipe"]
     output_image = None
