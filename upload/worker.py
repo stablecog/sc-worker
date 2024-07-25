@@ -17,7 +17,7 @@ def start_upload_worker(
     q: queue.Queue[Dict[str, Any]],
     shutdown_event: Event,
 ):
-    """Starts a loop to read from the queue and upload files to S3, send responses to webhook"""
+    """Starts a loop to read from the queue and upload images to S3, send responses to webhook"""
     logging.info("Starting upload thread...")
     while not shutdown_event.is_set() or not q.empty():
         try:

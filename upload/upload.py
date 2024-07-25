@@ -81,9 +81,9 @@ def upload_files_for_image(
     signed_urls: List[str],
     upload_path_prefix: str,
 ) -> Iterable[Dict[str, Any]]:
-    """Send all files to S3 in parallel and return the S3 URLs"""
+    """Upload all images to S3 in parallel and return the S3 URLs"""
     logging.info(
-        f"^^ 📤 🟡 Started - Convert and upload {len(upload_objects)} files to S3 in parallel"
+        f"^^ 📤 🟡 Started - Convert and upload {len(upload_objects)} images to S3 in parallel"
     )
     start = time.time()
 
