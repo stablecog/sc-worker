@@ -64,21 +64,6 @@ def format_datetime(timestamp: datetime.datetime) -> str:
     return timestamp.isoformat() + "Z"
 
 
-def time_function(before: str, after: str):
-    def decorator(func):
-        def wrap_func(*args, **kwargs):
-            logging.info(before)
-            t1 = time.time()
-            result = func(*args, **kwargs)
-            t2 = time.time()
-            logging.info(f"{after}: {((t2-t1)*1000):.0f}ms")
-            return result
-
-        return wrap_func
-
-    return decorator
-
-
 @contextmanager
 def time_log(after: str = "Completed", before: str | None = None):
     if before is not None:
