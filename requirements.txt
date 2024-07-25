@@ -17,7 +17,8 @@ responses==0.24.1
 httpx==0.25.2
 hypothesis==6.92.0
 python-dotenv
-tabulate[widechars]
+wcwidth
+tabulate
 pydantic==2.5.2
 flask==3.0.0
 waitress==2.1.2
