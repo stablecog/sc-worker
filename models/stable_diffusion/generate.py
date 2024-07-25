@@ -122,7 +122,9 @@ def generate(
 
     if SD_MODELS[model].get("keep_in_cpu_when_idle"):
         pipe_selected = move_pipe_to_device(
-            pipe=pipe_selected, model_name=model, device=DEVICE_CUDA
+            pipe=pipe_selected,
+            model_name=f"{model} {main_model_pipe}",
+            device=DEVICE_CUDA,
         )
 
     if SD_MODELS[model].get("base_model", None) != "Stable Diffusion 3":

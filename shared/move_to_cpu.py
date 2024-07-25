@@ -114,6 +114,77 @@ def move_other_models_to_cpu(
                 device=DEVICE_CPU,
             )
 
+    # Move other SD pipes to CPU if needed
+    pipe_set = models_pack.sd_pipe_sets.get(main_model_name, None)
+    if (
+        pipe_set is not None
+        and sd_spec is not None
+        and sd_spec.get("keep_in_cpu_when_idle", False) is True
+    ):
+        if main_model_pipe == "text2img":
+            if (
+                pipe_set.img2img is not None
+                and pipe_set.img2img.device.type == DEVICE_CUDA
+            ):
+                model_count += 1
+                models_pack.sd_pipe_sets[model_name].img2img = move_pipe_to_device(
+                    pipe=models_pack.sd_pipe_sets[model_name].img2img,
+                    model_name=f"{model_name} img2img",
+                    device=DEVICE_CPU,
+                )
+            if (
+                pipe_set.inpaint is not None
+                and pipe_set.inpaint.device.type == DEVICE_CUDA
+            ):
+                model_count += 1
+                models_pack.sd_pipe_sets[model_name].inpaint = move_pipe_to_device(
+                    pipe=models_pack.sd_pipe_sets[model_name].inpaint,
+                    model_name=f"{model_name} inpaint",
+                    device=DEVICE_CPU,
+                )
+        if main_model_pipe == "img2img":
+            if (
+                pipe_set.text2img is not None
+                and pipe_set.text2img.device.type == DEVICE_CUDA
+            ):
+                model_count += 1
+                models_pack.sd_pipe_sets[model_name].text2img = move_pipe_to_device(
+                    pipe=models_pack.sd_pipe_sets[model_name].text2img,
+                    model_name=f"{model_name} text2img",
+                    device=DEVICE_CPU,
+                )
+            if (
+                pipe_set.inpaint is not None
+                and pipe_set.inpaint.device.type == DEVICE_CUDA
+            ):
+                model_count += 1
+                models_pack.sd_pipe_sets[model_name].inpaint = move_pipe_to_device(
+                    pipe=models_pack.sd_pipe_sets[model_name].inpaint,
+                    model_name=f"{model_name} inpaint",
+                    device=DEVICE_CPU,
+                )
+        if main_model_pipe == "inpaint":
+            if (
+                pipe_set.text2img is not None
+                and pipe_set.text2img.device.type == DEVICE_CUDA
+            ):
+                model_count += 1
+                models_pack.sd_pipe_sets[model_name].text2img = move_pipe_to_device(
+                    pipe=models_pack.sd_pipe_sets[model_name].text2img,
+                    model_name=f"{model_name} text2img",
+                    device=DEVICE_CPU,
+                )
+            if (
+                pipe_set.img2img is not None
+                and pipe_set.img2img.device.type == DEVICE_CUDA
+            ):
+                model_count += 1
+                models_pack.sd_pipe_sets[model_name].img2img = move_pipe_to_device(
+                    pipe=models_pack.sd_pipe_sets[model_name].img2img,
+                    model_name=f"{model_name} img2img",
+                    device=DEVICE_CPU,
+                )
+
     e = time.time()
     logging.info(
         f"🎛️ 🟢 Moved {model_count} other models to {DEVICE_CPU} in {e - s:.2f}s for -> {main_model_name}, {main_model_pipe}"
