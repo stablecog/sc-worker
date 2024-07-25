@@ -140,9 +140,7 @@ def auto_move_to_device(dict, key, pipe, description):
 def setup() -> ModelsPack:
     start = time.time()
     version_str = f"Version: {WORKER_VERSION}"
-    logging.info(
-        tabulate([["🟡 Setup has started", version_str]], tablefmt="double_grid")
-    )
+    logging.info(tabulate([["🟡 Setup started", version_str]], tablefmt="double_grid"))
 
     hf_token = os.environ.get("HF_TOKEN", None)
     if hf_token is not None:
