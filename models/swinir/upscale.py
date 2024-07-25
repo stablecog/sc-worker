@@ -2,6 +2,9 @@ import torch
 import numpy as np
 from collections import OrderedDict
 import cv2
+
+from predict.image.setup import ModelsPack
+from shared.move_to_cpu import move_other_models_to_cpu
 from .constants import DEVICE_SWINIR
 from .helpers import get_image_pair, setup
 import time
@@ -14,7 +17,12 @@ import logging
 
 @torch.inference_mode()
 @torch.cuda.amp.autocast()
-def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image:
+def upscale(
+    image: np.ndarray | Image.Image | str, upscaler: Any, models_pack: ModelsPack
+) -> Image.Image:
+    move_other_models_to_cpu(
+        main_model_name="upscaler", main_model_pipe="upscaler", models_pack=models_pack
+    )
     args = upscaler["args"]
     pipe = upscaler["pipe"]
     output_image = None
