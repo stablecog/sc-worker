@@ -27,7 +27,6 @@ def start_upload_worker(
             if "upload_output" in uploadMsg:
                 predict_result: PredictResultForImage = uploadMsg["upload_output"]
                 if len(predict_result.outputs) > 0:
-                    logging.info(f"^^ Uploading {len(predict_result.outputs)} files")
                     try:
                         uploadMsg["output"] = {
                             "prompt_embed": predict_result.outputs[
@@ -44,7 +43,6 @@ def start_upload_worker(
                         logging.error(f"^^ Error uploading files {tb}\n")
                         uploadMsg["status"] = Status.FAILED
                         uploadMsg["error"] = str(e)
-                    logging.info(f"^^ Finished uploading files")
 
             if "upload_output" in uploadMsg:
                 logging.info(f"^^ Deleting upload_output from message")

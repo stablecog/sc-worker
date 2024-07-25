@@ -34,20 +34,14 @@ def convert_and_upload_image_to_signed_url(
     upload_path_prefix: str,
 ) -> str:
     """Convert an individual image to a target format and upload to the provided signed URL."""
-    start_conv = time.time()
 
     _pil_image = pil_image
     if target_extension == "jpeg":
-        logging.info(f"^^ Converting to JPEG")
         _pil_image = _pil_image.convert("RGB")
     img_format = target_extension.upper()
     img_bytes = BytesIO()
     _pil_image.save(img_bytes, format=img_format, quality=target_quality)
     file_bytes = img_bytes.getvalue()
-    end_conv = time.time()
-    logging.info(
-        f"^^ Converted image in: {round((end_conv - start_conv) * 1000)} ms - {img_format} - {target_quality}"
-    )
 
     # Define the retry strategy
     retry_strategy = Retry(
@@ -68,19 +62,13 @@ def convert_and_upload_image_to_signed_url(
     session.mount("https://", adapter)
     session.mount("http://", adapter)
 
-    start_upload = time.time()
-    logging.info(f"^^ Uploading to signed URL")
     response = session.put(
         signed_url,
         data=file_bytes,
         headers={"Content-Type": parse_content_type(target_extension)},
     )
-    end_upload = time.time()
 
     if response.status_code == 200:
-        logging.info(
-            f"^^ Uploaded image in: {round((end_upload - start_upload) * 1000)} ms"
-        )
         final_key = extract_key_from_signed_url(signed_url)
         return final_key
     else:
@@ -95,9 +83,13 @@ def upload_files_for_image(
 ) -> Iterable[Dict[str, Any]]:
     """Send all files to S3 in parallel and return the S3 URLs"""
     logging.info(
-        "^^ 🟡 Started - Upload all files to S3 in parallel and return the S3 URLs"
+        f"^^ 📤 🟡 Started - Convert and upload {len(upload_objects)} files to S3 in parallel"
     )
     start = time.time()
+
+    logging.info(
+        f"^^ Target extension: {upload_objects[0].target_extension} - Target quality: {upload_objects[0].target_quality}"
+    )
 
     # Run all uploads at same time in threadpool
     tasks: List[Future] = []
@@ -119,7 +111,6 @@ def upload_files_for_image(
     # Get results
     results = []
     for i, task in enumerate(tasks):
-        logging.info(f"^^ Got upload task result")
         uploadObject = upload_objects[i]
         results.append(
             {
@@ -132,7 +123,7 @@ def upload_files_for_image(
 
     end = time.time()
     logging.info(
-        f"^^ 📤 All converted and uploaded to S3 in: {round((end - start) *1000)} ms"
+        f"^^ 📤 🟢 All {len(upload_objects)} images converted and uploaded to S3 in: {round((end - start) *1000)} ms"
     )
 
     return results
