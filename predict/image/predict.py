@@ -160,7 +160,7 @@ def predict(
 ) -> PredictResult:
     process_start = time.time()
     logging.info("//////////////////////////////////////////////////////////////////")
-    logging.info(f"""🔧 🟡 Process {input.process_type} started...""")
+    logging.info(f"🔧 🟡 Process '{input.process_type}' started...")
     log_gpu_memory(message="GPU status before inference")
     output_images = []
     nsfw_count = 0
@@ -355,7 +355,7 @@ def predict(
     process_end = time.time()
 
     logging.info(
-        f"""🔧 🟢 Process "{input.process_type}" completed in: {round((process_end - process_start) * 1000)} ms"""
+        f"🔧 🟢 Process '{input.process_type}' completed in: {round((process_end - process_start) * 1000)} ms"
     )
     logging.info("//////////////////////////////////////////////////////////////////")
 
