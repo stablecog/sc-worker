@@ -19,7 +19,7 @@ import logging
 from tabulate import tabulate
 
 from models.constants import DEVICE_CUDA
-from shared.constants import TabulateLevels
+from .constants import TabulateLevels
 
 
 def clean_folder(folder):
