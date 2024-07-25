@@ -5,7 +5,7 @@ from enum import Enum
 
 load_dotenv()
 
-WORKER_VERSION = "v2.79"
+WORKER_VERSION = "v2.80"
 MODELS_FROM_ENV = os.environ.get("MODELS", "all")
 MODELS_FROM_ENV_LIST = map(
     lambda x: clean_prefix_or_suffix_space(x), MODELS_FROM_ENV.split(",")
