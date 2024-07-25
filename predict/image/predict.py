@@ -21,6 +21,8 @@ from models.swinir.upscale import upscale
 
 from typing import List
 
+from shared.constants import TabulateLevels
+
 from .classes import PredictOutput, PredictResult
 from .constants import SIZE_LIST
 from .setup import ModelsPack
@@ -160,8 +162,18 @@ def predict(
 ) -> PredictResult:
     process_start = time.time()
     logging.info("//////////////////////////////////////////////////////////////////")
-    logging.info(f"🔧 🟡 Process '{input.process_type}' started...")
-    log_gpu_memory(message="GPU status before inference")
+    logging.info(
+        tabulate(
+            [
+                [
+                    f"🔧 Process: {input.process_type}",
+                    f"🟡 Started",
+                ],
+            ],
+            tablefmt=TabulateLevels.PRIMARY.value,
+        )
+    )
+    log_gpu_memory(message="Before inference")
     output_images = []
     nsfw_count = 0
     open_clip_embeds_of_images = None
@@ -220,7 +232,8 @@ def predict(
         ]
         logging.info(
             tabulate(
-                [["🖼️ Generation", "🟡 Started"]] + log_table, tablefmt="double_grid"
+                [["🖼️ Generation", "🟡 Started"]] + log_table,
+                tablefmt=TabulateLevels.PRIMARY.value,
             )
         )
 
@@ -261,7 +274,7 @@ def predict(
             tabulate(
                 [["🖼️ Generation", f"🟢 {round((endTime - startTime) * 1000)} ms"]]
                 + log_table,
-                tablefmt="double_grid",
+                tablefmt=TabulateLevels.PRIMARY.value,
             ),
         )
 
@@ -318,7 +331,7 @@ def predict(
         )
         aesthetic_scores.append(aesthetic_score_result)
         logging.info(
-            f"🎨 Image {i+1} | Rating Score: {aesthetic_score_result.rating_score} | Artifact Score: {aesthetic_score_result.artifact_score}"
+            f"🎨 Image {i+1} | Rating Score: {aesthetic_score_result.rating_score:.2f} | Artifact Score: {aesthetic_score_result.artifact_score:.2f}"
         )
     e_aes = time.time()
     logging.info(
@@ -355,7 +368,15 @@ def predict(
     process_end = time.time()
 
     logging.info(
-        f"🔧 🟢 Process '{input.process_type}' completed in: {round((process_end - process_start) * 1000)} ms"
+        tabulate(
+            [
+                [
+                    f"🔧 Process: {input.process_type}",
+                    f"🟢 {round((process_end - process_start) * 1000)} ms",
+                ]
+            ],
+            tablefmt=TabulateLevels.PRIMARY.value,
+        )
     )
     logging.info("//////////////////////////////////////////////////////////////////")
 

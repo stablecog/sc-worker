@@ -48,7 +48,7 @@ from models.stable_diffusion.constants import (
 )
 from models.swinir.constants import DEVICE_SWINIR, MODELS_SWINIR, TASKS_SWINIR
 from models.swinir.helpers import define_model_swinir, get_args_swinir
-from shared.constants import WORKER_VERSION
+from shared.constants import WORKER_VERSION, TabulateLevels
 import logging
 from tabulate import tabulate
 from diffusers import StableDiffusion3Pipeline, StableDiffusion3Img2ImgPipeline
@@ -140,7 +140,11 @@ def auto_move_to_device(dict, key, pipe, description):
 def setup() -> ModelsPack:
     start = time.time()
     version_str = f"Version: {WORKER_VERSION}"
-    logging.info(tabulate([["🟡 Setup started", version_str]], tablefmt="double_grid"))
+    logging.info(
+        tabulate(
+            [["🟡 Setup started", version_str]], tablefmt=TabulateLevels.PRIMARY.value
+        )
+    )
 
     hf_token = os.environ.get("HF_TOKEN", None)
     if hf_token is not None:

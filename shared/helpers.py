@@ -19,6 +19,7 @@ import logging
 from tabulate import tabulate
 
 from models.constants import DEVICE_CUDA
+from shared.constants import TabulateLevels
 
 
 def clean_folder(folder):
@@ -274,7 +275,7 @@ def clean_prefix_or_suffix_space(text: str):
     return text
 
 
-def log_gpu_memory(device_id=0, message=None):
+def log_gpu_memory(device_id=0, message="Value"):
     try:
         device_properties = torch.cuda.get_device_properties(device_id)
 
@@ -288,14 +289,11 @@ def log_gpu_memory(device_id=0, message=None):
         cached = cached_memory / (1024**3)
         cached_str = f"{cached:.1f} GB"
         log_table = [
+            ["GPU Memory Log", message],
             ["Allocated / Total (GB)", total_and_allocated_str],
             ["Cached Memory (GB)", cached_str],
         ]
-        if message is not None:
-            logging.info(message)
-        logging.info(
-            tabulate([["GPU Memory Log", "Value"]] + log_table, tablefmt="double_grid")
-        )
+        logging.info(tabulate(log_table, tablefmt=TabulateLevels.PRIMARY.value))
     except Exception as e:
         logging.info(f"Failed to log GPU memory")
 

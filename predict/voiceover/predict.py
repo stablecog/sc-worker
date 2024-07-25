@@ -3,6 +3,7 @@ import time
 from typing import List
 
 from predict.voiceover.setup import ModelsPack
+from shared.constants import TabulateLevels
 from .classes import PredictOutput, PredictResult, RemoveSilenceParams
 from .constants import models, models_speakers
 from pydantic import BaseModel, Field, validator
@@ -71,7 +72,17 @@ def predict(
 ) -> PredictResult:
     process_start = time.time()
     logging.info("//////////////////////////////////////////////////////////////////")
-    logging.info(f"🔧 🟡 Voiceover - Process started")
+    logging.info(
+        tabulate(
+            [
+                [
+                    f"🔧 Process: {input.process_type}",
+                    f"🟡 Started",
+                ],
+            ],
+            tablefmt=TabulateLevels.PRIMARY.value,
+        )
+    )
 
     if input.seed is None:
         input.seed = int.from_bytes(os.urandom(2), "big")
@@ -92,7 +103,10 @@ def predict(
     ]
 
     logging.info(
-        tabulate([["🎤 Generation", "🟡 Started"]] + log_table, tablefmt="double_grid")
+        tabulate(
+            [["🎤 Generation", "🟡 Started"]] + log_table,
+            tablefmt=TabulateLevels.PRIMARY.value,
+        )
     )
 
     voiceover_start = time.time()
@@ -116,7 +130,7 @@ def predict(
                 ]
             ]
             + log_table,
-            tablefmt="double_grid",
+            tablefmt=TabulateLevels.PRIMARY.value,
         )
     )
 
@@ -144,7 +158,15 @@ def predict(
 
     process_end = time.time()
     logging.info(
-        f"🔧 🟢 Voiceover - Process completed in: {round(process_end - process_start, 2)} sec."
+        tabulate(
+            [
+                [
+                    f"🔧 Process: {input.process_type}",
+                    f"🟢 {round((process_end - process_start) * 1000)} ms",
+                ]
+            ],
+            tablefmt=TabulateLevels.PRIMARY.value,
+        )
     )
     logging.info("//////////////////////////////////////////////////////////////////")
 

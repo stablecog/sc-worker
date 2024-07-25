@@ -2,6 +2,8 @@ import torch
 import logging
 from tabulate import tabulate
 
+from shared.constants import TabulateLevels
+
 
 def get_device_vram_gb(device_id=0):
     if torch.cuda.device_count() > device_id:
@@ -11,7 +13,8 @@ def get_device_vram_gb(device_id=0):
         total_memory_gb_str = f"{total_memory_gb:.1f} GB"
         logging.info(
             tabulate(
-                [["Total GPU Memory", total_memory_gb_str]], tablefmt="double_grid"
+                [["Total GPU Memory", total_memory_gb_str]],
+                tablefmt=TabulateLevels.PRIMARY.value,
             )
         )
         return total_memory_gb

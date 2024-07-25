@@ -1,5 +1,5 @@
 import time
-from shared.constants import WORKER_VERSION
+from shared.constants import WORKER_VERSION, TabulateLevels
 from bark.generation import (
     preload_models,
 )
@@ -21,7 +21,11 @@ class ModelsPack:
 def setup() -> ModelsPack:
     start = time.time()
     version_str = f"Version: {WORKER_VERSION}"
-    logging.info(tabulate([["🟡 Setup started", version_str]], tablefmt="double_grid"))
+    logging.info(
+        tabulate(
+            [["🟡 Setup started", version_str]], tablefmt=TabulateLevels.PRIMARY.value
+        )
+    )
 
     nltk.download("punkt")
     preload_models()

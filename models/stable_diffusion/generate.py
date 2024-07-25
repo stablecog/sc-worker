@@ -139,7 +139,7 @@ def generate(
         num_inference_steps=num_inference_steps,
         **extra_kwargs,
     )
-    log_gpu_memory(message="GPU status after inference")
+    log_gpu_memory(message="After inference")
 
     output_images = []
     nsfw_count = 0

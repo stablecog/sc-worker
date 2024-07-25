@@ -22,6 +22,7 @@ from predict.image.predict import (
     predict as predict_for_image,
     PredictResult as PredictResultForImage,
 )
+from shared.constants import TabulateLevels
 from shared.helpers import format_datetime
 from predict.image.setup import ModelsPack as ModelsPackForImage
 from shared.webhook import post_webhook
@@ -80,7 +81,7 @@ def create_amqp_callback(
                 ["Message ID", properties.message_id],
                 ["Priority", properties.priority],
             ]
-            logging.info("\n" + tabulate(log_table, tablefmt="double_grid"))
+            logging.info(tabulate(log_table, tablefmt=TabulateLevels.SECONDARY.value))
 
             if "webhook_events_filter" in message:
                 valid_events = {ev.value for ev in Event}
