@@ -123,7 +123,7 @@ def upload_files_for_image(
 
     end = time.time()
     logging.info(
-        f"^^ 📤 🟢 {len(upload_objects)} images converted and uploaded to S3 in: {round((end - start) *1000)} ms"
+        f"^^ 📤 🟢 {len(upload_objects)} image(s) converted and uploaded to S3 in: {round((end - start) *1000)} ms"
     )
 
     return results

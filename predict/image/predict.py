@@ -298,7 +298,7 @@ def predict(
             )
             end_open_clip_image = time.time()
             logging.info(
-                f"🖼️ OpenCLIP image embeddings in: {round((end_open_clip_image - start_open_clip_image) * 1000)} ms - {len(output_images)} images 🖼️"
+                f"🖼️ OpenCLIP image embeddings in: {round((end_open_clip_image - start_open_clip_image) * 1000)} ms - {len(output_images)} image(s) 🖼️"
             )
         else:
             open_clip_embeds_of_images = []
