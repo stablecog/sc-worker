@@ -39,7 +39,7 @@ SD_MODELS_ALL = {
         "id": "stabilityai/stable-diffusion-3-medium-diffusers",
         "torch_dtype": torch.float16,
         "base_model": "Stable Diffusion 3",
-        "keep_in_cpu_when_idle": False,
+        "keep_in_cpu_when_idle": device_vram_gb < 45,
     },
     "SDXL": {
         "id": "stabilityai/stable-diffusion-xl-base-1.0",
