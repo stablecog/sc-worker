@@ -62,7 +62,7 @@ SD_MODELS_ALL = {
         "vae": "madebyollin/sdxl-vae-fp16-fix",
         "refiner_vae": "stabilityai/sdxl-vae",
         "base_model": "SDXL",
-        "keep_in_cpu_when_idle": device_vram_gb < 45,
+        "keep_in_cpu_when_idle": device_vram_gb < 75,
     },
     "Luna Diffusion": {
         "id": "proximasanfinetuning/luna-diffusion",
