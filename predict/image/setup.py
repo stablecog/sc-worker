@@ -314,7 +314,7 @@ def setup() -> ModelsPack:
             kandinsky_device = DEVICE_CPU
             logging.info(f"🐌 Keep in {DEVICE_CPU} when idle: Kandinsky 2.2")
         else:
-            logging.info("🚀 Keep in {DEVICE_CUDA}: Kandinsky 2.2")
+            logging.info(f"🚀 Keep in {DEVICE_CUDA}: Kandinsky 2.2")
         prior = KandinskyV22PriorPipeline.from_pretrained(
             KANDINSKY_2_2_PRIOR_MODEL_ID,
             torch_dtype=torch.float16,
