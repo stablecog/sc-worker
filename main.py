@@ -11,8 +11,6 @@ import queue
 from dotenv import load_dotenv
 import torch
 
-from models.nllb.constants import LAUNCH_NLLBAPI
-from nllbapi.app import run_nllbapi
 from predict.image.setup import setup as image_setup
 from rabbitmq_consumer.worker import start_amqp_queue_worker
 from rabbitmq_consumer.connection import RabbitMQConnection
@@ -84,17 +82,12 @@ if __name__ == "__main__":
             # CLIP
             clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
             clipapi_thread.start()
-            # NLLB
-            if LAUNCH_NLLBAPI:
-                nllbapi_thread = Thread(
-                    target=lambda: run_nllbapi(models_pack=models_pack)
-                )
-                nllbapi_thread.start()
+            # Put other threads here
 
             # Join threads
             clipapi_thread.join()
-            if LAUNCH_NLLBAPI:
-                nllbapi_thread.join()
+            # Join other threads here
+
         mq_worker_thread.join()
         upload_thread.join()
     except KeyboardInterrupt:

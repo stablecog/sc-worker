@@ -4,7 +4,6 @@ from typing import Any
 
 import torch
 from diffusers import (
-    KandinskyV22Img2ImgPipeline,
     KandinskyV22InpaintPipeline,
     KandinskyV22Pipeline,
     KandinskyV22PriorPipeline,
@@ -16,8 +15,7 @@ from diffusers import (
 )
 from diffusers.models import AutoencoderKL
 from huggingface_hub import login
-from lingua import LanguageDetectorBuilder
-from transformers import AutoModel, AutoProcessor, AutoTokenizer, AutoModelForSeq2SeqLM
+from transformers import AutoModel, AutoProcessor, AutoTokenizer
 
 from models.aesthetics_scorer.constants import (
     AESTHETICS_SCORER_CACHE_DIR,
@@ -34,12 +32,6 @@ from models.kandinsky.constants import (
     KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE,
     KANDINSKY_2_2_PRIOR_MODEL_ID,
     LOAD_KANDINSKY_2_2,
-)
-from models.nllb.constants import (
-    LAUNCH_NLLBAPI,
-    TRANSLATOR_MODEL_CACHE,
-    TRANSLATOR_MODEL_ID,
-    TRANSLATOR_TOKENIZER_CACHE,
 )
 from models.open_clip.constants import OPEN_CLIP_MODEL_CACHE, OPEN_CLIP_MODEL_ID
 from models.stable_diffusion.constants import (
@@ -90,13 +82,6 @@ class KandinskyPipeSet_2_2:
         self.inpaint = inpaint
 
 
-class Translator:
-    def __init__(self, model, tokenizer, detector):
-        self.model = model
-        self.tokenizer = tokenizer
-        self.detector = detector
-
-
 class OpenCLIP:
     def __init__(self, model, processor, tokenizer):
         self.model = model
@@ -115,14 +100,12 @@ class ModelsPack:
         self,
         sd_pipe_sets: dict[str, SDPipeSet],
         upscaler: Any,
-        translator: Translator,
         open_clip: OpenCLIP,
         kandinsky_2_2: KandinskyPipeSet_2_2,
         aesthetics_scorer: AestheticsScorer,
     ):
         self.sd_pipe_sets = sd_pipe_sets
         self.upscaler = upscaler
-        self.translator = translator
         self.open_clip = open_clip
         self.kandinsky_2_2 = kandinsky_2_2
         self.aesthetics_scorer = aesthetics_scorer
@@ -372,27 +355,6 @@ def setup() -> ModelsPack:
     }
     logging.info("✅ Loaded upscaler")
 
-    # For translator
-    logging.info("🟡 Loading translator")
-    translator = None
-    if LAUNCH_NLLBAPI == True:
-        translator = Translator(
-            model=AutoModelForSeq2SeqLM.from_pretrained(
-                TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_MODEL_CACHE
-            ),
-            tokenizer=AutoTokenizer.from_pretrained(
-                TRANSLATOR_MODEL_ID, cache_dir=TRANSLATOR_TOKENIZER_CACHE
-            ),
-            detector=(
-                LanguageDetectorBuilder.from_all_languages()
-                .with_preloaded_language_models()
-                .build()
-            ),
-        )
-        logging.info("✅ Loaded translator")
-    else:
-        logging.info("⚪️ Skipping translator")
-
     # For OpenCLIP
     logging.info("🟡 Loading OpenCLIP")
     open_clip = OpenCLIP(
@@ -432,7 +394,6 @@ def setup() -> ModelsPack:
     return ModelsPack(
         sd_pipe_sets=sd_pipe_sets,
         upscaler=upscaler,
-        translator=translator,
         open_clip=open_clip,
         kandinsky_2_2=kandinsky_2_2,
         aesthetics_scorer=aesthetics_scorer,
