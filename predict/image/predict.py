@@ -17,6 +17,7 @@ from models.swinir.upscale import upscale
 from typing import List
 
 from shared.constants import TabulateLevels
+from shared.oom import with_oom_protection
 
 from .classes import PredictOutput, PredictResult
 from .constants import SIZE_LIST
@@ -147,6 +148,7 @@ class PredictInput(BaseModel):
         )
 
 
+@with_oom_protection(max_retries=1)
 def predict(
     input: PredictInput,
     models_pack: ModelsPack,
