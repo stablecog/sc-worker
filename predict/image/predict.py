@@ -1,9 +1,4 @@
 import time
-from models.aesthetics_scorer.generate import (
-    AestheticScoreResult,
-    generate_aesthetic_scores,
-)
-
 from models.kandinsky.constants import (
     KANDINSKY_2_2_MODEL_NAME,
     LOAD_KANDINSKY_2_2,
@@ -26,10 +21,6 @@ from shared.constants import TabulateLevels
 from .classes import PredictOutput, PredictResult
 from .constants import SIZE_LIST
 from .setup import ModelsPack
-from models.open_clip.main import (
-    open_clip_get_embeds_of_images,
-    open_clip_get_embeds_of_texts,
-)
 from pydantic import BaseModel, Field, validator
 from shared.helpers import log_gpu_memory, return_value_if_in_list, wrap_text
 from tabulate import tabulate
@@ -176,8 +167,6 @@ def predict(
     log_gpu_memory(message="Before inference")
     output_images = []
     nsfw_count = 0
-    open_clip_embeds_of_images = None
-    open_clip_embed_of_prompt = None
 
     if input.process_type == "generate" or input.process_type == "generate_and_upscale":
         if input.signed_urls is None or len(input.signed_urls) < input.num_outputs:
@@ -278,34 +267,6 @@ def predict(
             ),
         )
 
-        start_open_clip_prompt = time.time()
-        open_clip_embed_of_prompt = open_clip_get_embeds_of_texts(
-            [prompt_final],
-            models_pack.open_clip.model,
-            models_pack.open_clip.tokenizer,
-        )[0]
-        end_open_clip_prompt = time.time()
-        logging.info(
-            f"📜 OpenCLIP prompt embedding in: {round((end_open_clip_prompt - start_open_clip_prompt) * 1000)} ms 📜"
-        )
-
-        if len(output_images) > 0:
-            start_open_clip_image = time.time()
-            open_clip_embeds_of_images = open_clip_get_embeds_of_images(
-                output_images,
-                models_pack.open_clip.model,
-                models_pack.open_clip.processor,
-            )
-            end_open_clip_image = time.time()
-            logging.info(
-                f"🖼️ OpenCLIP image embeddings in: {round((end_open_clip_image - start_open_clip_image) * 1000)} ms - {len(output_images)} image(s) 🖼️"
-            )
-        else:
-            open_clip_embeds_of_images = []
-            logging.info(
-                "🖼️ No non-NSFW images generated. Skipping OpenCLIP image embeddings. 🖼️"
-            )
-
     if input.process_type == "upscale" or input.process_type == "generate_and_upscale":
         logging.info(f"⭐️ 🟡 Upscaling")
         startTime = time.time()
@@ -329,24 +290,6 @@ def predict(
         endTime = time.time()
         logging.info(f"⭐️ 🟢 Upscaled in: {round((endTime - startTime) * 1000)} ms")
 
-    # Aesthetic Score
-    s_aes = time.time()
-    aesthetic_scores: List[AestheticScoreResult] = []
-    for i, image in enumerate(output_images):
-        aesthetic_score_result = generate_aesthetic_scores(
-            image=image,
-            aesthetics_scorer=models_pack.aesthetics_scorer,
-            clip=models_pack.open_clip,
-        )
-        aesthetic_scores.append(aesthetic_score_result)
-        logging.info(
-            f"🎨 Image {i+1} | Rating Score: {aesthetic_score_result.rating_score:.2f} | Artifact Score: {aesthetic_score_result.artifact_score:.2f}"
-        )
-    e_aes = time.time()
-    logging.info(
-        f"🎨 Calculated aesthetic scores in: {round((e_aes - s_aes) * 1000)} ms"
-    )
-
     # Prepare output objects
     output_objects: List[PredictOutput] = []
     for i, image in enumerate(output_images):
@@ -354,18 +297,6 @@ def predict(
             pil_image=image,
             target_quality=input.output_image_quality,
             target_extension=input.output_image_extension,
-            open_clip_image_embed=(
-                open_clip_embeds_of_images[i]
-                if open_clip_embeds_of_images is not None
-                else None
-            ),
-            open_clip_prompt_embed=(
-                open_clip_embed_of_prompt
-                if open_clip_embed_of_prompt is not None
-                else None
-            ),
-            aesthetic_rating_score=aesthetic_scores[i].rating_score,
-            aesthetic_artifact_score=aesthetic_scores[i].artifact_score,
         )
         output_objects.append(obj)
 

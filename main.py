@@ -15,7 +15,6 @@ from predict.image.setup import setup as image_setup
 from rabbitmq_consumer.worker import start_amqp_queue_worker
 from rabbitmq_consumer.connection import RabbitMQConnection
 from upload.worker import start_upload_worker
-from clipapi.app import run_clipapi
 import logging
 
 # Define an event to signal all threads to exit
@@ -78,16 +77,6 @@ if __name__ == "__main__":
     try:
         mq_worker_thread.start()
         upload_thread.start()
-        if WORKER_TYPE == "image":
-            # CLIP
-            clipapi_thread = Thread(target=lambda: run_clipapi(models_pack=models_pack))
-            clipapi_thread.start()
-            # Put other threads here
-
-            # Join threads
-            clipapi_thread.join()
-            # Join other threads here
-
         mq_worker_thread.join()
         upload_thread.join()
     except KeyboardInterrupt:

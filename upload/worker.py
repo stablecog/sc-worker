@@ -29,9 +29,6 @@ def start_upload_worker(
                 if len(predict_result.outputs) > 0:
                     try:
                         uploadMsg["output"] = {
-                            "prompt_embed": predict_result.outputs[
-                                0
-                            ].open_clip_prompt_embed,
                             "images": upload_files_for_image(
                                 predict_result.outputs,
                                 predict_result.signed_urls,

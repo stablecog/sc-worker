@@ -115,9 +115,6 @@ def upload_files_for_image(
         results.append(
             {
                 "image": task.result(),
-                "image_embed": uploadObject.open_clip_image_embed,
-                "aesthetic_rating_score": uploadObject.aesthetic_rating_score,
-                "aesthetic_artifact_score": uploadObject.aesthetic_artifact_score,
             }
         )
 

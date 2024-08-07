@@ -24,11 +24,6 @@ flask==3.0.0
 waitress==2.1.2
 nltk==3.8.1
 pytorch-seed==0.2.0
-pydub==0.25.1
-moviepy==1.0.3
-ffmpeg-python==0.2.0
-pyloudnorm==0.1.1
-PyWavelets==1.5.0
 invisible-watermark==0.2.0
 hf-transfer==0.1.4
 pika==1.3.2
@@ -37,4 +32,3 @@ protobuf
 sentencepiece==0.2.0
 peft
 git+https://github.com/ai-forever/Kandinsky-2
-git+https://github.com/openai/CLIP.git

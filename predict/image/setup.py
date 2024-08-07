@@ -15,16 +15,7 @@ from diffusers import (
 )
 from diffusers.models import AutoencoderKL
 from huggingface_hub import login
-from transformers import AutoModel, AutoProcessor, AutoTokenizer
 
-from models.aesthetics_scorer.constants import (
-    AESTHETICS_SCORER_CACHE_DIR,
-    AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_CONFIG,
-    AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_WEIGHT_URL,
-    AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_CONFIG,
-    AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_WEIGHT_URL,
-)
-from models.aesthetics_scorer.model import load_model as load_aesthetics_scorer_model
 from models.constants import DEVICE_CPU, DEVICE_CUDA
 from models.download.download_from_hf import download_swinir_models
 from models.kandinsky.constants import (
@@ -33,7 +24,6 @@ from models.kandinsky.constants import (
     KANDINSKY_2_2_PRIOR_MODEL_ID,
     LOAD_KANDINSKY_2_2,
 )
-from models.open_clip.constants import OPEN_CLIP_MODEL_CACHE, OPEN_CLIP_MODEL_ID
 from models.stable_diffusion.constants import (
     SD_MODEL_CACHE,
     SD_MODELS,
@@ -82,33 +72,16 @@ class KandinskyPipeSet_2_2:
         self.inpaint = inpaint
 
 
-class OpenCLIP:
-    def __init__(self, model, processor, tokenizer):
-        self.model = model
-        self.processor = processor
-        self.tokenizer = tokenizer
-
-
-class AestheticsScorer:
-    def __init__(self, rating_model, artifacts_model):
-        self.rating_model = rating_model
-        self.artifacts_model = artifacts_model
-
-
 class ModelsPack:
     def __init__(
         self,
         sd_pipe_sets: dict[str, SDPipeSet],
         upscaler: Any,
-        open_clip: OpenCLIP,
         kandinsky_2_2: KandinskyPipeSet_2_2,
-        aesthetics_scorer: AestheticsScorer,
     ):
         self.sd_pipe_sets = sd_pipe_sets
         self.upscaler = upscaler
-        self.open_clip = open_clip
         self.kandinsky_2_2 = kandinsky_2_2
-        self.aesthetics_scorer = aesthetics_scorer
 
 
 def auto_move_to_device(dict, key, pipe, description):
@@ -355,37 +328,6 @@ def setup() -> ModelsPack:
     }
     logging.info("✅ Loaded upscaler")
 
-    # For OpenCLIP
-    logging.info("🟡 Loading OpenCLIP")
-    open_clip = OpenCLIP(
-        model=AutoModel.from_pretrained(
-            OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
-        ).to(DEVICE_CUDA),
-        processor=AutoProcessor.from_pretrained(
-            OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
-        ),
-        tokenizer=AutoTokenizer.from_pretrained(
-            OPEN_CLIP_MODEL_ID, cache_dir=OPEN_CLIP_MODEL_CACHE
-        ),
-    )
-    logging.info("✅ Loaded OpenCLIP")
-
-    # For asthetics scorer
-    logging.info("🟡 Loading Aesthetics Scorer")
-    aesthetics_scorer = AestheticsScorer(
-        rating_model=load_aesthetics_scorer_model(
-            weight_url=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_WEIGHT_URL,
-            cache_dir=AESTHETICS_SCORER_CACHE_DIR,
-            config=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_RATING_CONFIG,
-        ).to(DEVICE_CUDA),
-        artifacts_model=load_aesthetics_scorer_model(
-            weight_url=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_WEIGHT_URL,
-            cache_dir=AESTHETICS_SCORER_CACHE_DIR,
-            config=AESTHETICS_SCORER_OPENCLIP_VIT_H_14_ARTIFACT_CONFIG,
-        ).to(DEVICE_CUDA),
-    )
-    logging.info("✅ Loaded Aesthetics Scorer")
-
     end = time.time()
     logging.info("//////////////////////////////////////////////////////////////////")
     logging.info(f"✅ Predict setup is done in: {round((end - start))} sec.")
@@ -394,7 +336,5 @@ def setup() -> ModelsPack:
     return ModelsPack(
         sd_pipe_sets=sd_pipe_sets,
         upscaler=upscaler,
-        open_clip=open_clip,
         kandinsky_2_2=kandinsky_2_2,
-        aesthetics_scorer=aesthetics_scorer,
     )
