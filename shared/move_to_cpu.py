@@ -3,7 +3,7 @@ import time
 from models.flux1.constants import FLUX1_KEEP_IN_CPU_WHEN_IDLE, FLUX1_MODEL_NAME
 from models.stable_diffusion.constants import SD_MODELS
 from predict.image.classes import ModelsPack
-from models.constants import DEVICE_CPU, DEVICE_CUDA
+from models.constants import DEVICE_CPU, is_cuda
 from .helpers import (
     move_pipe_to_device,
 )
@@ -43,40 +43,28 @@ def move_other_models_to_cpu(
         if main_model_name != model_name and SD_MODELS[model_name].get(
             "keep_in_cpu_when_idle"
         ):
-            if (
-                pipe_set.text2img is not None
-                and pipe_set.text2img.device.type == DEVICE_CUDA
-            ):
+            if pipe_set.text2img is not None and is_cuda(pipe_set.text2img.device.type):
                 model_count += 1
                 models_pack.sd_pipe_sets[model_name].text2img = move_pipe_to_device(
                     pipe=pipe_set.text2img,
                     model_name=f"{model_name} text2img",
                     device=DEVICE_CPU,
                 )
-            if (
-                pipe_set.img2img is not None
-                and pipe_set.img2img.device.type == DEVICE_CUDA
-            ):
+            if pipe_set.img2img is not None and is_cuda(pipe_set.img2img.device.type):
                 model_count += 1
                 models_pack.sd_pipe_sets[model_name].img2img = move_pipe_to_device(
                     pipe=pipe_set.img2img,
                     model_name=f"{model_name} img2img",
                     device=DEVICE_CPU,
                 )
-            if (
-                pipe_set.inpaint is not None
-                and pipe_set.inpaint.device.type == DEVICE_CUDA
-            ):
+            if pipe_set.inpaint is not None and is_cuda(pipe_set.inpaint.device.type):
                 model_count += 1
                 models_pack.sd_pipe_sets[model_name].inpaint = move_pipe_to_device(
                     pipe=pipe_set.inpaint,
                     model_name=f"{model_name} inpaint",
                     device=DEVICE_CPU,
                 )
-            if (
-                pipe_set.refiner is not None
-                and pipe_set.refiner.device.type == DEVICE_CUDA
-            ):
+            if pipe_set.refiner is not None and is_cuda(pipe_set.refiner.device.type):
                 model_count += 1
                 models_pack.sd_pipe_sets[model_name].refiner = move_pipe_to_device(
                     pipe=pipe_set.refiner,
@@ -89,9 +77,8 @@ def move_other_models_to_cpu(
         main_model_name != KANDINSKY_2_2_MODEL_NAME
         and KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE
     ):
-        if (
-            models_pack.kandinsky_2_2.text2img is not None
-            and models_pack.kandinsky_2_2.text2img.device.type == DEVICE_CUDA
+        if models_pack.kandinsky_2_2.text2img is not None and is_cuda(
+            models_pack.kandinsky_2_2.text2img.device.type
         ):
             model_count += 1
             models_pack.kandinsky_2_2.text2img = move_pipe_to_device(
@@ -99,9 +86,8 @@ def move_other_models_to_cpu(
                 model_name=f"{KANDINSKY_2_2_MODEL_NAME} text2img",
                 device=DEVICE_CPU,
             )
-        if (
-            models_pack.kandinsky_2_2.inpaint is not None
-            and models_pack.kandinsky_2_2.inpaint.device.type == DEVICE_CUDA
+        if models_pack.kandinsky_2_2.inpaint is not None and is_cuda(
+            models_pack.kandinsky_2_2.inpaint.device.type
         ):
             model_count += 1
             models_pack.kandinsky_2_2.inpaint = move_pipe_to_device(
@@ -109,9 +95,8 @@ def move_other_models_to_cpu(
                 model_name=f"{KANDINSKY_2_2_MODEL_NAME} inpaint",
                 device=DEVICE_CPU,
             )
-        if (
-            models_pack.kandinsky_2_2.prior is not None
-            and models_pack.kandinsky_2_2.prior.device.type == DEVICE_CUDA
+        if models_pack.kandinsky_2_2.prior is not None and is_cuda(
+            models_pack.kandinsky_2_2.prior.device.type
         ):
             model_count += 1
             models_pack.kandinsky_2_2.prior = move_pipe_to_device(
@@ -122,9 +107,8 @@ def move_other_models_to_cpu(
 
     # If model isn't Flux1, move Flux1 to CPU if needed
     if main_model_name != FLUX1_MODEL_NAME and FLUX1_KEEP_IN_CPU_WHEN_IDLE:
-        if (
-            models_pack.flux1 is not None
-            and models_pack.flux1.text2img.device.type == DEVICE_CUDA
+        if models_pack.flux1 is not None and is_cuda(
+            models_pack.flux1.text2img.device.type
         ):
             model_count += 1
             models_pack.flux1.text2img = move_pipe_to_device(
@@ -141,20 +125,14 @@ def move_other_models_to_cpu(
         and sd_spec.get("keep_in_cpu_when_idle", False) is True
     ):
         if main_model_pipe == "text2img":
-            if (
-                pipe_set.img2img is not None
-                and pipe_set.img2img.device.type == DEVICE_CUDA
-            ):
+            if pipe_set.img2img is not None and is_cuda(pipe_set.img2img.device.type):
                 model_count += 1
                 models_pack.sd_pipe_sets[model_name].img2img = move_pipe_to_device(
                     pipe=models_pack.sd_pipe_sets[model_name].img2img,
                     model_name=f"{model_name} img2img",
                     device=DEVICE_CPU,
                 )
-            if (
-                pipe_set.inpaint is not None
-                and pipe_set.inpaint.device.type == DEVICE_CUDA
-            ):
+            if pipe_set.inpaint is not None and is_cuda(pipe_set.inpaint.device.type):
                 model_count += 1
                 models_pack.sd_pipe_sets[model_name].inpaint = move_pipe_to_device(
                     pipe=models_pack.sd_pipe_sets[model_name].inpaint,
@@ -162,20 +140,14 @@ def move_other_models_to_cpu(
                     device=DEVICE_CPU,
                 )
         if main_model_pipe == "img2img":
-            if (
-                pipe_set.text2img is not None
-                and pipe_set.text2img.device.type == DEVICE_CUDA
-            ):
+            if pipe_set.text2img is not None and is_cuda(pipe_set.text2img.device.type):
                 model_count += 1
                 models_pack.sd_pipe_sets[model_name].text2img = move_pipe_to_device(
                     pipe=models_pack.sd_pipe_sets[model_name].text2img,
                     model_name=f"{model_name} text2img",
                     device=DEVICE_CPU,
                 )
-            if (
-                pipe_set.inpaint is not None
-                and pipe_set.inpaint.device.type == DEVICE_CUDA
-            ):
+            if pipe_set.inpaint is not None and is_cuda(pipe_set.inpaint.device.type):
                 model_count += 1
                 models_pack.sd_pipe_sets[model_name].inpaint = move_pipe_to_device(
                     pipe=models_pack.sd_pipe_sets[model_name].inpaint,
@@ -183,20 +155,14 @@ def move_other_models_to_cpu(
                     device=DEVICE_CPU,
                 )
         if main_model_pipe == "inpaint":
-            if (
-                pipe_set.text2img is not None
-                and pipe_set.text2img.device.type == DEVICE_CUDA
-            ):
+            if pipe_set.text2img is not None and is_cuda(pipe_set.text2img.device.type):
                 model_count += 1
                 models_pack.sd_pipe_sets[model_name].text2img = move_pipe_to_device(
                     pipe=models_pack.sd_pipe_sets[model_name].text2img,
                     model_name=f"{model_name} text2img",
                     device=DEVICE_CPU,
                 )
-            if (
-                pipe_set.img2img is not None
-                and pipe_set.img2img.device.type == DEVICE_CUDA
-            ):
+            if pipe_set.img2img is not None and is_cuda(pipe_set.img2img.device.type):
                 model_count += 1
                 models_pack.sd_pipe_sets[model_name].img2img = move_pipe_to_device(
                     pipe=models_pack.sd_pipe_sets[model_name].img2img,
