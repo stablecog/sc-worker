@@ -3,10 +3,9 @@ from typing import List
 import torch
 
 from models.constants import DEVICE_CUDA
+from models.flux1.constants import FLUX1_KEEP_IN_CPU_WHEN_IDLE
 from predict.image.classes import ModelsPack
 from shared.move_to_cpu import move_other_models_to_cpu
-from .constants import SD_MODELS
-import time
 from shared.helpers import (
     log_gpu_memory,
     move_pipe_to_device,
@@ -58,7 +57,7 @@ def generate(
     extra_kwargs["width"] = width
     extra_kwargs["height"] = height
 
-    if SD_MODELS[model].get("keep_in_cpu_when_idle"):
+    if FLUX1_KEEP_IN_CPU_WHEN_IDLE is True:
         pipe_selected = move_pipe_to_device(
             pipe=pipe_selected,
             model_name=f"{model} {main_model_pipe}",
