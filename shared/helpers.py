@@ -77,7 +77,7 @@ def time_log(job_name: str, ms=False):
         if ms:
             execution_time *= 1000
             unit = "ms"
-        logging.info(f"🟢 Finished | {job_name} | {execution_time:.0f} {unit}")
+        logging.info(f"🟢 Finished | {job_name} | {execution_time:.0f}{unit}")
 
 
 def download_image(url):
