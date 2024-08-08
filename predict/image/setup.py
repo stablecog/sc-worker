@@ -109,7 +109,7 @@ def setup() -> ModelsPack:
         if FLUX1_KEEP_IN_CPU_WHEN_IDLE:
             logging.info(f"🐌 Keep in {DEVICE_CPU} when idle: {FLUX1_MODEL_NAME}")
         else:
-            pipe = pipe.to(DEVICE_CUDA)
+            f1_pipe = f1_pipe.to(DEVICE_CUDA)
             logging.info(f"🚀 Keep in {DEVICE_CUDA}: {FLUX1_MODEL_NAME}")
         flux1 = Flux1PipeSet(
             text2img=f1_pipe,
