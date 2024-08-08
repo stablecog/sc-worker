@@ -46,9 +46,8 @@ def generate(
     #####################################
 
     if seed is None:
-        seed = int.from_bytes(os.urandom(2), "big")
-    logging.info(f"Using seed: {seed}")
-    generator = torch.Generator(device=DEVICE_CUDA).manual_seed(seed)
+        seed = int.from_bytes(os.urandom(3), "big")
+        logging.info(f"Using seed: {seed}")
 
     extra_kwargs = {}
 
@@ -67,6 +66,7 @@ def generate(
     output: Flex1Output = Flex1Output(images=[], nsfw_content_detected=[])
 
     for i in range(num_outputs):
+        generator = torch.Generator(device=DEVICE_CUDA).manual_seed(seed + i)
         out = pipe_selected(
             prompt=prompt,
             generator=generator,

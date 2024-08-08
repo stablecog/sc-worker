@@ -62,7 +62,7 @@ def generate_2_2(
     #####################################
 
     if seed is None:
-        seed = int.from_bytes(os.urandom(2), "big")
+        seed = int.from_bytes(os.urandom(3), "big")
     generator = torch.Generator(device=DEVICE_CUDA).manual_seed(seed)
     logging.info(f"Using seed: {seed}")
 
