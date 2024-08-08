@@ -2,8 +2,7 @@ import os
 from typing import List
 import torch
 
-from models.constants import DEVICE_CUDA
-from models.flux1.constants import FLUX1_KEEP_IN_CPU_WHEN_IDLE
+from models.constants import DEVICE_CUDA, is_not_cuda
 from predict.image.classes import ModelsPack
 from shared.move_to_cpu import move_other_models_to_cpu
 from shared.helpers import (
@@ -57,7 +56,7 @@ def generate(
     extra_kwargs["width"] = width
     extra_kwargs["height"] = height
 
-    if pipe_selected.device.type != DEVICE_CUDA:
+    if is_not_cuda(pipe_selected.device.type):
         pipe_selected = move_pipe_to_device(
             pipe=pipe_selected,
             model_name=f"{model} {main_model_pipe}",

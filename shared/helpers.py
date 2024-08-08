@@ -65,18 +65,19 @@ def format_datetime(timestamp: datetime.datetime) -> str:
 
 
 @contextmanager
-def time_log(after: str = "Completed", before: str | None = None, unit="ms"):
-    if before is not None:
-        logging.info(before)
+def time_log(job_name: str, ms=False):
+    logging.info(f"🟡 Started | {job_name}")
     start_time = time.time()
     try:
         yield
     finally:
         end_time = time.time()
         execution_time = end_time - start_time
-        if unit == "ms":
+        unit = "s"
+        if ms:
             execution_time *= 1000
-        logging.info(f"{after} | {execution_time:.0f}{unit}")
+            unit = "ms"
+        logging.info(f"🟢 Finished | {job_name} | {execution_time:.0f} {unit}")
 
 
 def download_image(url):

@@ -82,43 +82,25 @@ def setup() -> ModelsPack:
 
     if FLUX1_LOAD:
         f1_s = time.time()
-        with time_log(
-            before=f"🟡 Loading {FLUX1_MODEL_NAME} transformer",
-            after=f"🟢 Loaded {FLUX1_MODEL_NAME} transformer",
-        ):
+        with time_log(f"Load {FLUX1_MODEL_NAME} transformer"):
             f1_transformer = FluxTransformer2DModel.from_single_file(
                 "https://huggingface.co/Kijai/flux-fp8/blob/main/flux1-schnell-fp8.safetensors",
                 torch_dtype=FLUX1_DTYPE,
             )
-        with time_log(
-            before=f"🟡 Quantizing {FLUX1_MODEL_NAME} transformer",
-            after=f"🟢 Quantizez {FLUX1_MODEL_NAME} transformer",
-        ):
+        with time_log(f"Quantize {FLUX1_MODEL_NAME} transformer"):
             quantize(f1_transformer, weights=qfloat8)
 
-        with time_log(
-            before=f"🟡 Freezing {FLUX1_MODEL_NAME} transformer",
-            after=f"🟢 Froze {FLUX1_MODEL_NAME} transformer",
-        ):
+        with time_log(f"Freeze {FLUX1_MODEL_NAME} transformer"):
             freeze(f1_transformer)
 
-        with time_log(
-            before=f"🟡 Loading {FLUX1_MODEL_NAME} text_encoder_2",
-            after=f"🟢 Loaded {FLUX1_MODEL_NAME} text_encoder_2",
-        ):
+        with time_log(f"Load {FLUX1_MODEL_NAME} text_encoder_2"):
             f1_text_encoder_2 = T5EncoderModel.from_pretrained(
                 FLUX1_REPO, subfolder="text_encoder_2", torch_dtype=FLUX1_DTYPE
             )
-        with time_log(
-            before=f"🟡 Quantizing {FLUX1_MODEL_NAME} text_encoder_2",
-            after=f"🟢 Quantized {FLUX1_MODEL_NAME} text_encoder_2",
-        ):
+        with time_log(f"Quantize {FLUX1_MODEL_NAME} text_encoder_2"):
             quantize(f1_text_encoder_2, weights=qfloat8)
 
-        with time_log(
-            before=f"🟡 Freezing {FLUX1_MODEL_NAME} text_encoder_2",
-            after=f"🟢 Froze {FLUX1_MODEL_NAME} text_encoder_2",
-        ):
+        with time_log(f"Freeze {FLUX1_MODEL_NAME} text_encoder_2"):
             freeze(f1_text_encoder_2)
 
         f1_pipe = FluxPipeline.from_pretrained(

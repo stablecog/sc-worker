@@ -1,7 +1,7 @@
 import os
 import time
 
-from models.constants import DEVICE_CUDA
+from models.constants import DEVICE_CUDA, is_not_cuda
 from models.kandinsky.constants import (
     KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE,
     KANDINSKY_2_2_MODEL_NAME,
@@ -84,7 +84,7 @@ def generate_2_2(
 
     output_images = []
 
-    if pipe.prior.device.type != DEVICE_CUDA:
+    if is_not_cuda(pipe.prior.device.type):
         pipe.prior = move_pipe_to_device(
             pipe=pipe.prior,
             model_name=f"{KANDINSKY_2_2_MODEL_NAME} prior",
@@ -115,7 +115,7 @@ def generate_2_2(
         logging.info(
             f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
         )
-        if pipe.inpaint.device.type != DEVICE_CUDA:
+        if is_not_cuda(pipe.inpaint.device.type):
             pipe.inpaint = move_pipe_to_device(
                 pipe=pipe.inpaint,
                 name=f"{KANDINSKY_2_2_MODEL_NAME} {main_model_pipe}",
@@ -188,7 +188,7 @@ def generate_2_2(
             output_images.append(out)
     else:
         pipe.text2img.scheduler = get_scheduler(scheduler, pipe.text2img)
-        if pipe.text2img.device.type != DEVICE_CUDA:
+        if is_not_cuda(pipe.text2img.device.type):
             pipe.text2img = move_pipe_to_device(
                 pipe=pipe.text2img,
                 model_name=f"{KANDINSKY_2_2_MODEL_NAME} {main_model_pipe}",
