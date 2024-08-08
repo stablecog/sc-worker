@@ -65,7 +65,7 @@ def format_datetime(timestamp: datetime.datetime) -> str:
 
 
 @contextmanager
-def time_log(after: str = "Completed", before: str | None = None):
+def time_log(after: str = "Completed", before: str | None = None, unit="ms"):
     if before is not None:
         logging.info(before)
     start_time = time.time()
@@ -73,8 +73,10 @@ def time_log(after: str = "Completed", before: str | None = None):
         yield
     finally:
         end_time = time.time()
-        execution_time = (end_time - start_time) * 1000  # Convert to milliseconds
-        logging.info(f"{after}: {execution_time:.0f}ms")
+        execution_time = end_time - start_time
+        if unit == "ms":
+            execution_time *= 1000
+        logging.info(f"{after} | {execution_time:.0f}{unit}")
 
 
 def download_image(url):
