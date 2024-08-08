@@ -17,7 +17,7 @@ from torch.amp import autocast
 
 
 @torch.inference_mode()
-@autocast()
+@autocast("cuda")
 def upscale(
     image: np.ndarray | Image.Image | str, upscaler: Any, models_pack: ModelsPack
 ) -> Image.Image:

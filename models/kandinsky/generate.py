@@ -224,7 +224,7 @@ def generate_2_2(
     output_images = crop_images(image_array=output_images, width=width, height=height)
 
     output_images_nsfw_results = []
-    with autocast():
+    with autocast("cuda"):
         for image in output_images:
             has_nsfw_concepts = False
             result = None
