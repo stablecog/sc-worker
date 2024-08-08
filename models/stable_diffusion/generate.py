@@ -186,7 +186,6 @@ def generate(
             "negative_prompt": negative_prompt,
             "guidance_scale": guidance_scale,
             "num_inference_steps": num_inference_steps,
-            "image": output_images,
         }
 
         if pipe.refiner.device.type != DEVICE_CUDA:
@@ -195,10 +194,12 @@ def generate(
             )
 
         s = time.time()
-        for i in range(num_outputs):
+        for i in range(len(output_images)):
             generator = torch.Generator(device=DEVICE_CUDA).manual_seed(seed + i)
+            image = output_images[i]
             out_image = pipe.refiner(
                 **args,
+                image=image,
                 generator=generator,
                 num_images_per_prompt=1,
             ).images[0]

@@ -50,6 +50,8 @@ from shared.constants import WORKER_VERSION, TabulateLevels
 import logging
 from tabulate import tabulate
 
+from shared.helpers import time_log
+
 
 def auto_move_to_device(dict, key, pipe, description):
     if dict[key].get("keep_in_cpu_when_idle"):
@@ -80,26 +82,44 @@ def setup() -> ModelsPack:
 
     if FLUX1_LOAD:
         f1_s = time.time()
-        logging.info(f"🟡 Loading {FLUX1_MODEL_NAME} models")
-        f1_transformer = FluxTransformer2DModel.from_single_file(
-            "https://huggingface.co/Kijai/flux-fp8/blob/main/flux1-schnell-fp8.safetensors",
-            torch_dtype=FLUX1_DTYPE,
-        )
-        logging.info(f"🟡 Quantizing {FLUX1_MODEL_NAME} transformer to {qfloat8.name}")
-        quantize(f1_transformer, weights=qfloat8)
-        logging.info(f"🟡 Freezing {FLUX1_MODEL_NAME} transformer")
-        freeze(f1_transformer)
+        with time_log(
+            before=f"🟡 Loading {FLUX1_MODEL_NAME} transformer",
+            after=f"🟢 Loaded {FLUX1_MODEL_NAME} transformer",
+        ):
+            f1_transformer = FluxTransformer2DModel.from_single_file(
+                "https://huggingface.co/Kijai/flux-fp8/blob/main/flux1-schnell-fp8.safetensors",
+                torch_dtype=FLUX1_DTYPE,
+            )
+        with time_log(
+            before=f"🟡 Quantizing {FLUX1_MODEL_NAME} transformer",
+            after=f"🟢 Quantizez {FLUX1_MODEL_NAME} transformer",
+        ):
+            quantize(f1_transformer, weights=qfloat8)
 
-        logging.info(f"🟡 Loading {FLUX1_MODEL_NAME} text_encoder_2")
-        f1_text_encoder_2 = T5EncoderModel.from_pretrained(
-            FLUX1_REPO, subfolder="text_encoder_2", torch_dtype=FLUX1_DTYPE
-        )
-        logging.info(
-            f"🟡 Quantizing {FLUX1_MODEL_NAME} text_encoder_2 to {qfloat8.name}"
-        )
-        quantize(f1_text_encoder_2, weights=qfloat8)
-        logging.info(f"🟡 Freezing {FLUX1_MODEL_NAME} text_encoder_2")
-        freeze(f1_text_encoder_2)
+        with time_log(
+            before=f"🟡 Freezing {FLUX1_MODEL_NAME} transformer",
+            after=f"🟢 Froze {FLUX1_MODEL_NAME} transformer",
+        ):
+            freeze(f1_transformer)
+
+        with time_log(
+            before=f"🟡 Loading {FLUX1_MODEL_NAME} text_encoder_2",
+            after=f"🟢 Loaded {FLUX1_MODEL_NAME} text_encoder_2",
+        ):
+            f1_text_encoder_2 = T5EncoderModel.from_pretrained(
+                FLUX1_REPO, subfolder="text_encoder_2", torch_dtype=FLUX1_DTYPE
+            )
+        with time_log(
+            before=f"🟡 Quantizing {FLUX1_MODEL_NAME} text_encoder_2",
+            after=f"🟢 Quantized {FLUX1_MODEL_NAME} text_encoder_2",
+        ):
+            quantize(f1_text_encoder_2, weights=qfloat8)
+
+        with time_log(
+            before=f"🟡 Freezing {FLUX1_MODEL_NAME} text_encoder_2",
+            after=f"🟢 Froze {FLUX1_MODEL_NAME} text_encoder_2",
+        ):
+            freeze(f1_text_encoder_2)
 
         f1_pipe = FluxPipeline.from_pretrained(
             FLUX1_REPO, transformer=None, text_encoder_2=None, torch_dtype=FLUX1_DTYPE
