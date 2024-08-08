@@ -13,10 +13,11 @@ from typing import Any
 import requests
 from io import BytesIO
 import logging
+from torch.amp import autocast
 
 
 @torch.inference_mode()
-@torch.cuda.amp.autocast()
+@autocast()
 def upscale(
     image: np.ndarray | Image.Image | str, upscaler: Any, models_pack: ModelsPack
 ) -> Image.Image:

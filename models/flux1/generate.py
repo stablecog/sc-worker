@@ -48,6 +48,7 @@ def generate(
     if seed is None:
         seed = int.from_bytes(os.urandom(3), "big")
         logging.info(f"Using seed: {seed}")
+    generator = torch.Generator(device=DEVICE_CUDA).manual_seed(seed)
 
     extra_kwargs = {}
 

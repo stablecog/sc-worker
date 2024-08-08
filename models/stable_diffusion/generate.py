@@ -1,4 +1,5 @@
 import os
+from typing import List
 import torch
 
 from models.constants import DEVICE_CUDA
@@ -13,6 +14,12 @@ from shared.helpers import (
     move_pipe_to_device,
 )
 import logging
+
+
+class SDOutput:
+    def __init__(self, images: List[str], nsfw_content_detected: List[bool]):
+        self.images = images
+        self.nsfw_content_detected = nsfw_content_detected
 
 
 def generate(
@@ -51,7 +58,7 @@ def generate(
 
     if seed is None:
         seed = int.from_bytes(os.urandom(3), "big")
-    logging.info(f"Using seed: {seed}")
+        logging.info(f"Using seed: {seed}")
     generator = torch.Generator(device=DEVICE_CUDA).manual_seed(seed)
 
     if prompt_prefix is not None:
@@ -132,15 +139,30 @@ def generate(
             scheduler, pipe_selected.scheduler.config
         )
 
-    output = pipe_selected(
-        prompt=prompt,
-        negative_prompt=negative_prompt,
-        guidance_scale=guidance_scale,
-        generator=generator,
-        num_images_per_prompt=num_outputs,
-        num_inference_steps=num_inference_steps,
-        **extra_kwargs,
-    )
+    output: SDOutput = SDOutput(images=[], nsfw_content_detected=[])
+
+    for i in range(num_outputs):
+        generator = torch.Generator(device=DEVICE_CUDA).manual_seed(seed + i)
+        out = pipe_selected(
+            prompt=prompt,
+            negative_prompt=negative_prompt,
+            guidance_scale=guidance_scale,
+            generator=generator,
+            num_images_per_prompt=1,
+            num_inference_steps=num_inference_steps,
+            **extra_kwargs,
+        )
+        for img in out.images:
+            output.images.append(img)
+        if (
+            hasattr(out, "nsfw_content_detected")
+            and out.nsfw_content_detected is not None
+        ):
+            for nsfw_flag in out.nsfw_content_detected:
+                output.nsfw_content_detected.append(nsfw_flag)
+        else:
+            output.nsfw_content_detected.append(False)
+
     log_gpu_memory(message="After inference")
 
     output_images = []
@@ -163,8 +185,6 @@ def generate(
             "prompt": prompt,
             "negative_prompt": negative_prompt,
             "guidance_scale": guidance_scale,
-            "generator": generator,
-            "num_images_per_prompt": num_outputs,
             "num_inference_steps": num_inference_steps,
             "image": output_images,
         }
@@ -175,7 +195,14 @@ def generate(
             )
 
         s = time.time()
-        output_images = pipe.refiner(**args).images
+        for i in range(num_outputs):
+            generator = torch.Generator(device=DEVICE_CUDA).manual_seed(seed + i)
+            out_image = pipe.refiner(
+                **args,
+                generator=generator,
+                num_images_per_prompt=1,
+            ).images[0]
+            output_images[i] = out_image
         e = time.time()
         logging.info(
             f"🖌️ Refined {len(output_images)} image(s) in: {round((e - s) * 1000)} ms"

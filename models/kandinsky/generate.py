@@ -18,7 +18,7 @@ from shared.helpers import (
     pad_image_pil,
 )
 import torch
-from torch.cuda.amp import autocast
+from torch.amp import autocast
 import logging
 
 PRIOR_STEPS = 25
@@ -63,8 +63,8 @@ def generate_2_2(
 
     if seed is None:
         seed = int.from_bytes(os.urandom(3), "big")
+        logging.info(f"Using seed: {seed}")
     generator = torch.Generator(device=DEVICE_CUDA).manual_seed(seed)
-    logging.info(f"Using seed: {seed}")
 
     if prompt_prefix is not None:
         prompt = f"{prompt_prefix} {prompt}"
@@ -82,7 +82,7 @@ def generate_2_2(
 
     logging.info(f"Negative prompt for Kandinsky 2.2: {negative_prompt}")
 
-    output_images = None
+    output_images = []
 
     if pipe.prior.device.type != DEVICE_CUDA:
         pipe.prior = move_pipe_to_device(
@@ -121,31 +121,34 @@ def generate_2_2(
                 name=f"{KANDINSKY_2_2_MODEL_NAME} {main_model_pipe}",
                 device=DEVICE_CUDA,
             )
-        img_emb = pipe.prior(
-            prompt=prompt,
-            num_inference_steps=PRIOR_STEPS,
-            guidance_scale=PRIOR_GUIDANCE_SCALE,
-            num_images_per_prompt=num_outputs,
-            generator=generator,
-        )
-        neg_emb = pipe.prior(
-            prompt=negative_prompt,
-            num_inference_steps=PRIOR_STEPS,
-            guidance_scale=PRIOR_GUIDANCE_SCALE,
-            num_images_per_prompt=num_outputs,
-            generator=generator,
-        )
-        output_images = pipe.inpaint(
-            image=[init_image] * num_outputs,
-            mask_image=[mask_image] * num_outputs,
-            image_embeds=img_emb.image_embeds,
-            negative_image_embeds=neg_emb.image_embeds,
-            width=init_image.width,
-            height=init_image.height,
-            num_inference_steps=num_inference_steps,
-            guidance_scale=guidance_scale,
-            generator=generator,
-        ).images
+        for i in range(num_outputs):
+            generator = torch.Generator(device=DEVICE_CUDA).manual_seed(seed + i)
+            img_emb = pipe.prior(
+                prompt=prompt,
+                num_inference_steps=PRIOR_STEPS,
+                guidance_scale=PRIOR_GUIDANCE_SCALE,
+                num_images_per_prompt=1,
+                generator=generator,
+            )
+            neg_emb = pipe.prior(
+                prompt=negative_prompt,
+                num_inference_steps=PRIOR_STEPS,
+                guidance_scale=PRIOR_GUIDANCE_SCALE,
+                num_images_per_prompt=1,
+                generator=generator,
+            )
+            out = pipe.inpaint(
+                image=[init_image] * 1,
+                mask_image=[mask_image] * 1,
+                image_embeds=img_emb.image_embeds,
+                negative_image_embeds=neg_emb.image_embeds,
+                width=init_image.width,
+                height=init_image.height,
+                num_inference_steps=num_inference_steps,
+                guidance_scale=guidance_scale,
+                generator=generator,
+            ).images[0]
+            output_images.append(out)
     elif init_image_url is not None:
         pipe.text2img.scheduler = get_scheduler(scheduler, pipe.text2img)
         start = time.time()
@@ -163,23 +166,26 @@ def generate_2_2(
                 model_name=f"{KANDINSKY_2_2_MODEL_NAME} {main_model_pipe}",
                 device=DEVICE_CUDA,
             )
-        prior_out = pipe.prior.interpolate(
-            images_and_texts,
-            weights,
-            negative_prompt=negative_prompt,
-            num_inference_steps=PRIOR_STEPS,
-            guidance_scale=PRIOR_GUIDANCE_SCALE,
-            num_images_per_prompt=num_outputs,
-            generator=generator,
-        )
-        output_images = pipe.text2img(
-            **prior_out,
-            width=width,
-            height=height,
-            generator=generator,
-            num_inference_steps=num_inference_steps,
-            guidance_scale=guidance_scale,
-        ).images
+        for i in range(num_outputs):
+            generator = torch.Generator(device=DEVICE_CUDA).manual_seed(seed + i)
+            prior_out = pipe.prior.interpolate(
+                images_and_texts,
+                weights,
+                negative_prompt=negative_prompt,
+                num_inference_steps=PRIOR_STEPS,
+                guidance_scale=PRIOR_GUIDANCE_SCALE,
+                num_images_per_prompt=1,
+                generator=generator,
+            )
+            out = pipe.text2img(
+                **prior_out,
+                width=width,
+                height=height,
+                num_inference_steps=num_inference_steps,
+                guidance_scale=guidance_scale,
+                generator=generator,
+            ).images[0]
+            output_images.append(out)
     else:
         pipe.text2img.scheduler = get_scheduler(scheduler, pipe.text2img)
         if pipe.text2img.device.type != DEVICE_CUDA:
@@ -188,29 +194,32 @@ def generate_2_2(
                 model_name=f"{KANDINSKY_2_2_MODEL_NAME} {main_model_pipe}",
                 device=DEVICE_CUDA,
             )
-        img_emb = pipe.prior(
-            prompt=prompt,
-            num_inference_steps=PRIOR_STEPS,
-            guidance_scale=PRIOR_GUIDANCE_SCALE,
-            num_images_per_prompt=num_outputs,
-            generator=generator,
-        )
-        neg_emb = pipe.prior(
-            prompt=negative_prompt,
-            num_inference_steps=PRIOR_STEPS,
-            guidance_scale=PRIOR_GUIDANCE_SCALE,
-            num_images_per_prompt=num_outputs,
-            generator=generator,
-        )
-        output_images = pipe.text2img(
-            num_inference_steps=num_inference_steps,
-            guidance_scale=guidance_scale,
-            width=width,
-            height=height,
-            generator=generator,
-            image_embeds=img_emb.image_embeds,
-            negative_image_embeds=neg_emb.image_embeds,
-        ).images
+        for i in range(num_outputs):
+            generator = torch.Generator(device=DEVICE_CUDA).manual_seed(seed + i)
+            img_emb = pipe.prior(
+                prompt=prompt,
+                num_inference_steps=PRIOR_STEPS,
+                guidance_scale=PRIOR_GUIDANCE_SCALE,
+                num_images_per_prompt=1,
+                generator=generator,
+            )
+            neg_emb = pipe.prior(
+                prompt=negative_prompt,
+                num_inference_steps=PRIOR_STEPS,
+                guidance_scale=PRIOR_GUIDANCE_SCALE,
+                num_images_per_prompt=1,
+                generator=generator,
+            )
+            out = pipe.text2img(
+                num_inference_steps=num_inference_steps,
+                guidance_scale=guidance_scale,
+                width=width,
+                height=height,
+                generator=generator,
+                image_embeds=img_emb.image_embeds,
+                negative_image_embeds=neg_emb.image_embeds,
+            ).images[0]
+            output_images.append(out)
 
     output_images = crop_images(image_array=output_images, width=width, height=height)
 
