@@ -186,6 +186,8 @@ def predict(
         generator_pipe = None
         if input.model == KANDINSKY_2_2_MODEL_NAME:
             generator_pipe = models_pack.kandinsky_2_2
+        elif input.model == FLUX1_MODEL_NAME:
+            generator_pipe = models_pack.flux1
         else:
             generator_pipe = models_pack.sd_pipe_sets[input.model]
 
