@@ -56,7 +56,7 @@ def generate(
     extra_kwargs["width"] = width
     extra_kwargs["height"] = height
 
-    if FLUX1_KEEP_IN_CPU_WHEN_IDLE is True:
+    if pipe_selected.device.type != DEVICE_CUDA:
         pipe_selected = move_pipe_to_device(
             pipe=pipe_selected,
             model_name=f"{model} {main_model_pipe}",

@@ -120,7 +120,7 @@ def generate(
         extra_kwargs["width"] = width
         extra_kwargs["height"] = height
 
-    if SD_MODELS[model].get("keep_in_cpu_when_idle"):
+    if pipe_selected.device.type != DEVICE_CUDA:
         pipe_selected = move_pipe_to_device(
             pipe=pipe_selected,
             model_name=f"{model} {main_model_pipe}",
@@ -169,7 +169,7 @@ def generate(
             "image": output_images,
         }
 
-        if SD_MODELS[model].get("keep_in_cpu_when_idle"):
+        if pipe.refiner.device.type != DEVICE_CUDA:
             pipe.refiner = move_pipe_to_device(
                 pipe=pipe.refiner, model_name=f"{model} refiner", device=DEVICE_CUDA
             )
