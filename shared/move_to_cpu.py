@@ -1,7 +1,8 @@
 import logging
 import time
+from models.flux1.constants import FLUX1_KEEP_IN_CPU_WHEN_IDLE, FLUX1_MODEL_NAME
 from models.stable_diffusion.constants import SD_MODELS
-from predict.image.setup import ModelsPack
+from predict.image.classes import ModelsPack
 from models.constants import DEVICE_CPU, DEVICE_CUDA
 from .helpers import (
     move_pipe_to_device,
@@ -18,8 +19,13 @@ def move_other_models_to_cpu(
     # Skip the move if the model is not to be kept in CPU when idle
     is_kandinsky_2_2 = main_model_name == KANDINSKY_2_2_MODEL_NAME
     sd_spec = SD_MODELS.get(main_model_name, None)
-    if (is_kandinsky_2_2 and KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE is False) or (
-        sd_spec is not None and sd_spec.get("keep_in_cpu_when_idle", False) is False
+    is_flux1 = main_model_name == FLUX1_MODEL_NAME
+    if (
+        (is_kandinsky_2_2 and KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE is False)
+        or (
+            sd_spec is not None and sd_spec.get("keep_in_cpu_when_idle", False) is False
+        )
+        or (is_flux1 and FLUX1_KEEP_IN_CPU_WHEN_IDLE is False)
     ):
         logging.info(
             f"🎛️ 🔵 Skip models to {DEVICE_CPU} for -> {main_model_name}, {main_model_pipe}"
@@ -111,6 +117,19 @@ def move_other_models_to_cpu(
             models_pack.kandinsky_2_2.prior = move_pipe_to_device(
                 pipe=models_pack.kandinsky_2_2.prior,
                 model_name=f"{KANDINSKY_2_2_MODEL_NAME} prior",
+                device=DEVICE_CPU,
+            )
+
+    # If model isn't Flux1, move Flux1 to CPU if needed
+    if main_model_name != FLUX1_MODEL_NAME and FLUX1_KEEP_IN_CPU_WHEN_IDLE:
+        if (
+            models_pack.flux1 is not None
+            and models_pack.flux1.text2img.device.type == DEVICE_CUDA
+        ):
+            model_count += 1
+            models_pack.flux1.text2img = move_pipe_to_device(
+                pipe=models_pack.flux1.text2img,
+                model_name=f"{FLUX1_MODEL_NAME} text2img",
                 device=DEVICE_CPU,
             )
 

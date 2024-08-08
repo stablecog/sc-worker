@@ -24,7 +24,7 @@ from predict.image.predict import (
 )
 from shared.constants import TabulateLevels
 from shared.helpers import format_datetime
-from predict.image.setup import ModelsPack as ModelsPackForImage
+from predict.image.classes import ModelsPack as ModelsPackForImage
 from shared.webhook import post_webhook
 from tabulate import tabulate
 import logging

@@ -1,87 +1,54 @@
 import os
 import time
-from typing import Any
 
 import torch
 from diffusers import (
-    KandinskyV22InpaintPipeline,
     KandinskyV22Pipeline,
     KandinskyV22PriorPipeline,
     StableDiffusionImg2ImgPipeline,
-    StableDiffusionInpaintPipeline,
     StableDiffusionPipeline,
     StableDiffusionXLImg2ImgPipeline,
     StableDiffusionXLPipeline,
+    StableDiffusion3Pipeline,
+    StableDiffusion3Img2ImgPipeline,
+    FluxTransformer2DModel,
+    FluxPipeline,
 )
+from transformers import T5EncoderModel, CLIPTextModel
 from diffusers.models import AutoencoderKL
 from huggingface_hub import login
 
 from models.constants import DEVICE_CPU, DEVICE_CUDA
 from models.download.download_from_hf import download_swinir_models
+from models.flux1.constants import (
+    FLUX1_DTYPE,
+    FLUX1_KEEP_IN_CPU_WHEN_IDLE,
+    FLUX1_MODEL_NAME,
+    FLUX1_REPO,
+    FLUX1_LOAD,
+)
 from models.kandinsky.constants import (
     KANDINSKY_2_2_DECODER_MODEL_ID,
     KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE,
     KANDINSKY_2_2_PRIOR_MODEL_ID,
     LOAD_KANDINSKY_2_2,
 )
+from optimum.quanto import freeze, qfloat8, quantize
 from models.stable_diffusion.constants import (
     SD_MODEL_CACHE,
     SD_MODELS,
 )
 from models.swinir.constants import DEVICE_SWINIR, MODELS_SWINIR, TASKS_SWINIR
 from models.swinir.helpers import define_model_swinir, get_args_swinir
+from predict.image.classes import (
+    Flux1PipeSet,
+    KandinskyPipeSet_2_2,
+    ModelsPack,
+    SDPipeSet,
+)
 from shared.constants import WORKER_VERSION, TabulateLevels
 import logging
 from tabulate import tabulate
-from diffusers import StableDiffusion3Pipeline, StableDiffusion3Img2ImgPipeline
-
-
-class SDPipeSet:
-    def __init__(
-        self,
-        text2img: (
-            StableDiffusionPipeline
-            | StableDiffusionXLPipeline
-            | StableDiffusion3Pipeline
-        ),
-        img2img: StableDiffusionImg2ImgPipeline | None,
-        inpaint: StableDiffusionInpaintPipeline | None,
-        refiner: StableDiffusionXLImg2ImgPipeline | None,
-        vae: Any | None = None,
-        refiner_vae: Any | None = None,
-        inpaint_vae: Any | None = None,
-    ):
-        self.text2img = text2img
-        self.img2img = img2img
-        self.inpaint = inpaint
-        self.refiner = refiner
-        self.vae = vae
-        self.refiner_vae = refiner_vae
-        self.inpaint_vae = inpaint_vae
-
-
-class KandinskyPipeSet_2_2:
-    def __init__(
-        self,
-        prior: KandinskyV22PriorPipeline,
-        text2img: KandinskyV22Pipeline,
-        inpaint: KandinskyV22InpaintPipeline | None,
-    ):
-        self.prior = prior
-        self.text2img = text2img
-        self.inpaint = inpaint
-
-
-class ModelsPack:
-    def __init__(
-        self,
-        sd_pipe_sets: dict[str, SDPipeSet],
-        upscaler: Any,
-        kandinsky_2_2: KandinskyPipeSet_2_2,
-    ):
-        self.sd_pipe_sets = sd_pipe_sets
-        self.upscaler = upscaler
-        self.kandinsky_2_2 = kandinsky_2_2
 
 
 def auto_move_to_device(dict, key, pipe, description):
@@ -108,6 +75,49 @@ def setup() -> ModelsPack:
         logging.info(f"✅ Logged in to HuggingFace")
 
     download_swinir_models()
+
+    flux1: Flux1PipeSet = None
+
+    if FLUX1_LOAD:
+        f1_s = time.time()
+        logging.info(f"🟡 Loading {FLUX1_MODEL_NAME} models")
+        f1_transformer = FluxTransformer2DModel.from_single_file(
+            "https://huggingface.co/Kijai/flux-fp8/blob/main/flux1-schnell-fp8.safetensors",
+            torch_dtype=FLUX1_DTYPE,
+        )
+        logging.info(f"🟡 Quantizing {FLUX1_MODEL_NAME} transformer to {qfloat8.name}")
+        quantize(f1_transformer, weights=qfloat8)
+        logging.info(f"🟡 Freezing {FLUX1_MODEL_NAME} transformer")
+        freeze(f1_transformer)
+
+        logging.info(f"🟡 Loading {FLUX1_MODEL_NAME} text_encoder_2")
+        f1_text_encoder_2 = T5EncoderModel.from_pretrained(
+            FLUX1_REPO, subfolder="text_encoder_2", torch_dtype=FLUX1_DTYPE
+        )
+        logging.info(
+            f"🟡 Quantizing {FLUX1_MODEL_NAME} text_encoder_2 to {qfloat8.name}"
+        )
+        quantize(f1_text_encoder_2, weights=qfloat8)
+        logging.info(f"🟡 Freezing {FLUX1_MODEL_NAME} text_encoder_2")
+        freeze(f1_text_encoder_2)
+
+        f1_pipe = FluxPipeline.from_pretrained(
+            FLUX1_REPO, transformer=None, text_encoder_2=None, torch_dtype=FLUX1_DTYPE
+        )
+        f1_pipe.transformer = f1_transformer
+        f1_pipe.text_encoder_2 = f1_text_encoder_2
+        if FLUX1_KEEP_IN_CPU_WHEN_IDLE:
+            logging.info(f"🐌 Keep in {DEVICE_CPU} when idle: {FLUX1_MODEL_NAME}")
+        else:
+            pipe = pipe.to(DEVICE_CUDA)
+            logging.info(f"🚀 Keep in {DEVICE_CUDA}: {FLUX1_MODEL_NAME}")
+        flux1 = Flux1PipeSet(
+            text2img=f1_pipe,
+        )
+        f1_e = time.time()
+        logging.info(
+            f"✅ Loaded {FLUX1_MODEL_NAME} | Duration: {round(f1_e - f1_s, 1)} sec."
+        )
 
     sd_pipe_sets: dict[str, SDPipeSet] = {}
 
@@ -337,4 +347,5 @@ def setup() -> ModelsPack:
         sd_pipe_sets=sd_pipe_sets,
         upscaler=upscaler,
         kandinsky_2_2=kandinsky_2_2,
+        flux1=flux1,
     )

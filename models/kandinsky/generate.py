@@ -8,7 +8,7 @@ from models.kandinsky.constants import (
 )
 from shared.move_to_cpu import move_other_models_to_cpu
 from .helpers import get_scheduler
-from predict.image.setup import KandinskyPipeSet_2_2, ModelsPack
+from predict.image.classes import KandinskyPipeSet_2_2, ModelsPack
 from shared.helpers import (
     crop_images,
     download_and_fit_image,

@@ -3,7 +3,7 @@ import numpy as np
 from collections import OrderedDict
 import cv2
 
-from predict.image.setup import ModelsPack
+from predict.image.classes import ModelsPack
 from shared.move_to_cpu import move_other_models_to_cpu
 from .constants import DEVICE_SWINIR
 from .helpers import get_image_pair, setup

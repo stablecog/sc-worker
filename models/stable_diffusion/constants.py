@@ -39,7 +39,7 @@ SD_MODELS_ALL = {
         "id": "stabilityai/stable-diffusion-3-medium-diffusers",
         "torch_dtype": torch.float16,
         "base_model": "Stable Diffusion 3",
-        "keep_in_cpu_when_idle": device_vram_gb < 45,
+        "keep_in_cpu_when_idle": device_vram_gb < 75,
     },
     "SDXL": {
         "id": "stabilityai/stable-diffusion-xl-base-1.0",
@@ -62,7 +62,7 @@ SD_MODELS_ALL = {
         "vae": "madebyollin/sdxl-vae-fp16-fix",
         "refiner_vae": "stabilityai/sdxl-vae",
         "base_model": "SDXL",
-        "keep_in_cpu_when_idle": device_vram_gb < 75,
+        "keep_in_cpu_when_idle": True,
     },
     "Luna Diffusion": {
         "id": "proximasanfinetuning/luna-diffusion",

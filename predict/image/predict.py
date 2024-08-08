@@ -1,8 +1,10 @@
 import time
+from models.flux1.constants import FLUX1_LOAD, FLUX1_MODEL_NAME
 from models.kandinsky.constants import (
     KANDINSKY_2_2_MODEL_NAME,
     LOAD_KANDINSKY_2_2,
 )
+from models.flux1.generate import generate as generate_with_flux1
 from models.kandinsky.generate import generate_2_2 as generate_with_kandinsky_2_2
 from models.stable_diffusion.constants import (
     SD_MODEL_CHOICES,
@@ -19,9 +21,8 @@ from typing import List
 from shared.constants import TabulateLevels
 from shared.oom import with_oom_protection
 
-from .classes import PredictOutput, PredictResult
+from .classes import PredictOutput, PredictResult, ModelsPack
 from .constants import SIZE_LIST
-from .setup import ModelsPack
 from pydantic import BaseModel, Field, validator
 from shared.helpers import log_gpu_memory, return_value_if_in_list, wrap_text
 from tabulate import tabulate
@@ -111,6 +112,8 @@ class PredictInput(BaseModel):
         rest = []
         if LOAD_KANDINSKY_2_2:
             rest += [KANDINSKY_2_2_MODEL_NAME]
+        if FLUX1_LOAD:
+            rest += [FLUX1_MODEL_NAME]
         choices = SD_MODEL_CHOICES + rest
         return return_value_if_in_list(v, choices)
 
@@ -251,6 +254,10 @@ def predict(
         if input.model == KANDINSKY_2_2_MODEL_NAME:
             generate_output_images, generate_nsfw_count = generate_with_kandinsky_2_2(
                 **args, safety_checker=None, models_pack=models_pack
+            )
+        elif input.model == FLUX1_MODEL_NAME:
+            generate_output_images, generate_nsfw_count = generate_with_flux1(
+                **args, models_pack=models_pack
             )
         else:
             generate_output_images, generate_nsfw_count = generate_with_sd(

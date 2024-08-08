@@ -2,7 +2,7 @@ import os
 import torch
 
 from models.constants import DEVICE_CUDA
-from predict.image.setup import ModelsPack
+from predict.image.classes import ModelsPack
 from shared.move_to_cpu import move_other_models_to_cpu
 from .helpers import get_scheduler
 from .constants import SD_MODELS
