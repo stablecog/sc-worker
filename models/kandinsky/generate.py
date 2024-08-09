@@ -3,7 +3,6 @@ import time
 
 from models.constants import DEVICE_CUDA, is_not_cuda
 from models.kandinsky.constants import (
-    KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE,
     KANDINSKY_2_2_MODEL_NAME,
 )
 from shared.move_to_cpu import move_other_models_to_cpu
@@ -160,7 +159,7 @@ def generate_2_2(
         start = time.time()
         images_and_texts = [prompt, init_image]
         weights = [prompt_strength, 1 - prompt_strength]
-        if KANDINSKY_2_2_KEEP_IN_CPU_WHEN_IDLE:
+        if is_not_cuda(pipe.text2img.device.type):
             pipe.text2img = move_pipe_to_device(
                 pipe=pipe.text2img,
                 model_name=f"{KANDINSKY_2_2_MODEL_NAME} {main_model_pipe}",
