@@ -35,8 +35,8 @@ def with_oom_protection(max_retries=1):
 
                             if models_pack:
                                 move_other_models_to_cpu(
-                                    main_model_name="none",
-                                    main_model_pipe="none",
+                                    main_model_name="no_model",
+                                    main_model_pipe="no_model",
                                     models_pack=models_pack,
                                 )
                         except Exception as e:
