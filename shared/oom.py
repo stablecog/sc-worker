@@ -34,6 +34,8 @@ def with_oom_protection(max_retries=1):
                                     models_pack = args[index]
                                 else:
                                     models_pack = kwargs.get("models_pack", None)
+                            else:
+                                models_pack = kwargs.get("models_pack", None)
 
                             if models_pack:
                                 move_other_models_to_cpu(
