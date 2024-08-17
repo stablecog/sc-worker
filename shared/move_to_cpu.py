@@ -117,6 +117,18 @@ def move_other_models_to_cpu(
                 device=DEVICE_CPU,
             )
 
+    # If model isn't FLUX.1, move FLUX.1 to CPU if needed
+    if main_model_name != FLUX1_MODEL_NAME and FLUX1_KEEP_IN_CPU_WHEN_IDLE:
+        if models_pack.flux1 is not None and is_cuda(
+            models_pack.flux1.text2img.device.type
+        ):
+            model_count += 1
+            models_pack.flux1.text2img = move_pipe_to_device(
+                pipe=models_pack.flux1.text2img,
+                model_name=f"{FLUX1_MODEL_NAME} text2img",
+                device=DEVICE_CPU,
+            )
+
     # Move other SD pipes to CPU if needed
     pipe_set = models_pack.sd_pipe_sets.get(main_model_name, None)
     if (

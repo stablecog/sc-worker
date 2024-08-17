@@ -77,7 +77,7 @@ class KandinskyPipeSet_2_2:
 class Flux1PipeSet:
     def __init__(
         self,
-        text2img: KandinskyV22Pipeline,
+        text2img: FluxPipeline,
     ):
         self.text2img = text2img
 
