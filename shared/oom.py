@@ -22,9 +22,6 @@ def with_oom_protection(max_retries=1):
                         logging.info(
                             f"""🛡️ 🔴 CUDA out of memory error encountered in "{func.__name__}". Clearing cache and retrying (attempt {attempt + 1}/{max_retries})..."""
                         )
-                        torch.cuda.empty_cache()
-                        torch.cuda.synchronize()
-
                         # Move all models to cpu to start fresh
                         try:
                             models_pack = kwargs.get("models_pack", None)
@@ -43,6 +40,9 @@ def with_oom_protection(max_retries=1):
                             logging.info(
                                 f'🛡️ 🔴 Error moving models to CPU in "{func.__name__}": {e}'
                             )
+                        torch.cuda.empty_cache()
+                        torch.cuda.synchronize()
+
                     else:
                         logging.info(f'🛡️ 🔴 Error in "{func.__name__}": {e}')
                         raise  # Re-raise the exception if it's not OOM or we've exceeded retries
