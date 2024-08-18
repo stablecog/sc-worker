@@ -24,17 +24,30 @@ def with_oom_protection(max_retries=1):
                         )
                         # Move all models to cpu to start fresh
                         try:
+                            logging.info("🛡️ Trying to move all models to CPU after OOM")
                             models_pack = kwargs.get("models_pack", None)
+                            if models_pack is not None:
+                                logging.info(f"🛡️ 🟣 Models pack found in kwargs")
+                            else:
+                                logging.info(f"🛡️ 🟠 Models pack not found in kwargs")
                             if models_pack is None and "models_pack" in param_names:
                                 index = param_names.index("models_pack")
                                 if index < len(args):
                                     models_pack = args[index]
-
+                                    logging.info(f"🛡️ 🟣 Models pack found in args")
+                                else:
+                                    logging.info(f"🛡️ 🟠 Models pack not found in args")
                             if models_pack:
+                                logging.info(f"🛡️ 🟡 Moving models_pack to cpu")
                                 move_other_models_to_cpu(
                                     main_model_name="no_model",
                                     main_model_pipe="no_model",
                                     models_pack=models_pack,
+                                )
+                                logging.info(f"🛡️ 🟢 Moved models_pack to cpu")
+                            else:
+                                logging.info(
+                                    f"🛡️ 🔴 Models_pack not found in kwargs or args"
                                 )
                         except Exception as e:
                             logging.info(
