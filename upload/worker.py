@@ -10,6 +10,10 @@ from rabbitmq_consumer.events import Status
 from shared.webhook import post_webhook
 from upload.upload import upload_files_for_image
 import logging
+import time
+
+
+LOG_INTERVAL = 15
 
 
 def start_upload_worker(
@@ -19,9 +23,13 @@ def start_upload_worker(
 ):
     """Starts a loop to read from the queue and upload images to S3, send responses to webhook"""
     logging.info("Starting upload thread...")
+    last_log_time = 0
     while not shutdown_event.is_set() or not q.empty():
+        should_log = time.time() - last_log_time > LOG_INTERVAL
         try:
-            logging.info(f"^^ 🟡 Getting uploadMsg from queue")
+            if should_log:
+                logging.info(f"^^ 🟡 Getting uploadMsg from queue")
+                last_log_time = time.time()
             uploadMsg: List[Dict[str, Any]] = q.get(timeout=1)
             logging.info(f"^^ 🟢 Got uploadMsg from queue")
             if "upload_output" in uploadMsg:
@@ -59,7 +67,8 @@ def start_upload_worker(
             post_webhook(uploadMsg["webhook_url"], uploadMsg)
             logging.info(f"^^ 🟢 Published to WEBHOOK")
         except queue.Empty:
-            logging.info(f"^^ 🔵 Queue is empty, waiting...")
+            if should_log:
+                logging.info(f"^^ 🔵 Queue is empty, waiting...")
             continue
         except Exception as e:
             tb = traceback.format_exc()
