@@ -1,6 +1,7 @@
 from PIL import Image
 from shared.helpers import (
     parse_content_type,
+    time_log,
 )
 from typing import Any, Dict, Iterable, List
 from predict.image.predict import (
@@ -35,13 +36,14 @@ def convert_and_upload_image_to_signed_url(
 ) -> str:
     """Convert an individual image to a target format and upload to the provided signed URL."""
 
-    _pil_image = pil_image
-    if target_extension == "jpeg":
-        _pil_image = _pil_image.convert("RGB")
-    img_format = target_extension.upper()
-    img_bytes = BytesIO()
-    _pil_image.save(img_bytes, format=img_format, quality=target_quality)
-    file_bytes = img_bytes.getvalue()
+    with time_log(f"📨 Convert image to {target_extension}"):
+        _pil_image = pil_image
+        if target_extension == "jpeg":
+            _pil_image = _pil_image.convert("RGB")
+        img_format = target_extension.upper()
+        img_bytes = BytesIO()
+        _pil_image.save(img_bytes, format=img_format, quality=target_quality)
+        file_bytes = img_bytes.getvalue()
 
     # Define the retry strategy
     retry_strategy = Retry(
@@ -62,11 +64,12 @@ def convert_and_upload_image_to_signed_url(
     session.mount("https://", adapter)
     session.mount("http://", adapter)
 
-    response = session.put(
-        signed_url,
-        data=file_bytes,
-        headers={"Content-Type": parse_content_type(target_extension)},
-    )
+    with time_log(f"📨 Upload image to S3"):
+        response = session.put(
+            signed_url,
+            data=file_bytes,
+            headers={"Content-Type": parse_content_type(target_extension)},
+        )
 
     if response.status_code == 200:
         final_key = extract_key_from_signed_url(signed_url)
