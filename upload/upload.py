@@ -36,7 +36,12 @@ def convert_and_upload_image_to_signed_url(
 ) -> str:
     """Convert an individual image to a target format and upload to the provided signed URL."""
 
-    with time_log(f"📨 Convert image to {target_extension}", ms=True):
+    with time_log(
+        f"📨 Converted image to {target_extension}",
+        ms=True,
+        start_log=False,
+        prefix=False,
+    ):
         _pil_image = pil_image
         if target_extension == "jpeg":
             _pil_image = _pil_image.convert("RGB")
@@ -64,7 +69,12 @@ def convert_and_upload_image_to_signed_url(
     session.mount("https://", adapter)
     session.mount("http://", adapter)
 
-    with time_log(f"📨 Upload image to S3", ms=True):
+    with time_log(
+        f"📨 Uploaded image to S3",
+        ms=True,
+        start_log=False,
+        prefix=False,
+    ):
         response = session.put(
             signed_url,
             data=file_bytes,

@@ -65,9 +65,19 @@ def format_datetime(timestamp: datetime.datetime) -> str:
 
 
 @contextmanager
-def time_log(job_name: str, ms=False):
-    logging.info(f"🟡 Started | {job_name}")
+def time_log(job_name: str, ms=False, start_log=True, prefix=True):
+    start_prefix = "🟡 Started | "
+    end_prefix = "🟢 Finished | "
+
+    if prefix is False:
+        start_prefix = ""
+        end_prefix = ""
+
+    if start_log is True:
+        logging.info(f"{start_prefix}{job_name}")
+
     start_time = time.time()
+
     try:
         yield
     finally:
@@ -77,7 +87,7 @@ def time_log(job_name: str, ms=False):
         if ms:
             execution_time *= 1000
             unit = "ms"
-        logging.info(f"🟢 Finished | {job_name} | {execution_time:.0f}{unit}")
+        logging.info(f"{end_prefix}{job_name} | {execution_time:.0f}{unit}")
 
 
 def download_image(url):
