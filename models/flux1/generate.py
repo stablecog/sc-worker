@@ -10,6 +10,7 @@ from shared.helpers import (
     move_pipe_to_device,
 )
 import logging
+import time
 
 
 class Flex1Output:
@@ -43,6 +44,8 @@ def generate(
         main_model_name=model, main_model_pipe=main_model_pipe, models_pack=models_pack
     )
     #####################################
+
+    inference_start = time.time()
 
     if seed is None:
         seed = int.from_bytes(os.urandom(3), "big")
@@ -107,5 +110,10 @@ def generate(
         logging.info(
             f"NSFW content detected in {nsfw_count}/{num_outputs} of the outputs."
         )
+
+    inference_end = time.time()
+    logging.info(
+        f"🔮 🟢 Inference | {model} | {num_outputs} image(s) | {round((inference_end - inference_start) * 1000)} ms"
+    )
 
     return output_images, nsfw_count

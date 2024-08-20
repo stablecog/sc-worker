@@ -21,12 +21,16 @@ from torch.amp import autocast
 def upscale(
     image: np.ndarray | Image.Image | str, upscaler: Any, models_pack: ModelsPack
 ) -> Image.Image:
+    #### Move other models to CPU if needed
     move_other_models_to_cpu(
         main_model_name="upscaler", main_model_pipe="upscaler", models_pack=models_pack
     )
     args = upscaler["args"]
     pipe = upscaler["pipe"]
     output_image = None
+    #####################################
+
+    inference_start = time.time()
 
     # check if image is a url and download it if sso
     if is_url(image):
@@ -96,6 +100,12 @@ def upscale(
     logging.info(
         f"-- Upscale - Array to PIL Image in: {round((end - start) * 1000)} ms --"
     )
+
+    inference_end = time.time()
+    logging.info(
+        f"🔮 🟢 Inference | SwinIR | {round((inference_end - inference_start) * 1000)} ms"
+    )
+
     return pil_image
 
 

@@ -60,6 +60,8 @@ def generate_2_2(
     )
     #####################################
 
+    inference_start = time.time()
+
     if seed is None:
         seed = int.from_bytes(os.urandom(3), "big")
         logging.info(f"Using seed: {seed}")
@@ -248,5 +250,10 @@ def generate_2_2(
             nsfw_count += 1
         else:
             filtered_output_images.append(output_images[i])
+
+    inference_end = time.time()
+    logging.info(
+        f"🔮 🟢 Inference | {model} | {num_outputs} image(s) | {round((inference_end - inference_start) * 1000)} ms"
+    )
 
     return filtered_output_images, nsfw_count

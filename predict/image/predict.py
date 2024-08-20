@@ -272,15 +272,20 @@ def predict(
         endTime = time.time()
         logging.info(
             tabulate(
-                [["🖼️ Generation", f"🟢 {round((endTime - startTime) * 1000)} ms"]]
+                [["🖼️ Generate", f"🟢 {round((endTime - startTime) * 1000)} ms"]]
                 + log_table,
                 tablefmt=TabulateLevels.PRIMARY.value,
             ),
         )
 
     if input.process_type == "upscale" or input.process_type == "generate_and_upscale":
-        logging.info(f"⭐️ 🟡 Upscaling")
-        startTime = time.time()
+        logging.info(
+            tabulate(
+                [["⭐️ Upscale", f"🟡 Started"]],
+                tablefmt=TabulateLevels.PRIMARY.value,
+            ),
+        )
+        u_start = time.time()
         if input.process_type == "upscale":
             upscale_output_image = upscale(
                 image=input.image_to_upscale,
@@ -298,8 +303,13 @@ def predict(
                 )
                 upscale_output_images.append(upscale_output_image)
             output_images = upscale_output_images
-        endTime = time.time()
-        logging.info(f"⭐️ 🟢 Upscaled in: {round((endTime - startTime) * 1000)} ms")
+        u_end = time.time()
+        logging.info(
+            tabulate(
+                [["⭐️ Upscale", f"🟢 {round((u_end - u_start) * 1000)} ms"]],
+                tablefmt=TabulateLevels.PRIMARY.value,
+            ),
+        )
 
     # Prepare output objects
     output_objects: List[PredictOutput] = []
