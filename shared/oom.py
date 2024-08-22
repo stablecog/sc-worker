@@ -4,7 +4,7 @@ import logging
 import inspect
 
 
-from shared.move_to_cpu import move_other_models_to_cpu
+from shared.move_to_cpu import move_all_models_to_cpu, move_other_models_to_cpu
 
 
 def with_oom_protection(max_retries=1):
@@ -39,11 +39,7 @@ def with_oom_protection(max_retries=1):
                                     logging.info(f"🛡️ 🟠 Models pack not found in args")
                             if models_pack:
                                 logging.info(f"🛡️ 🟡 Moving models_pack to cpu")
-                                move_other_models_to_cpu(
-                                    main_model_name="no_model",
-                                    main_model_pipe="no_model",
-                                    models_pack=models_pack,
-                                )
+                                move_all_models_to_cpu(models_pack)
                                 logging.info(f"🛡️ 🟢 Moved models_pack to cpu")
                             else:
                                 logging.info(

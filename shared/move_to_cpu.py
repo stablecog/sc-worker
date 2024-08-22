@@ -117,18 +117,6 @@ def move_other_models_to_cpu(
                 device=DEVICE_CPU,
             )
 
-    # If model isn't FLUX.1, move FLUX.1 to CPU if needed
-    if main_model_name != FLUX1_MODEL_NAME and FLUX1_KEEP_IN_CPU_WHEN_IDLE:
-        if models_pack.flux1 is not None and is_cuda(
-            models_pack.flux1.text2img.device.type
-        ):
-            model_count += 1
-            models_pack.flux1.text2img = move_pipe_to_device(
-                pipe=models_pack.flux1.text2img,
-                model_name=f"{FLUX1_MODEL_NAME} text2img",
-                device=DEVICE_CPU,
-            )
-
     # Move other SD pipes to CPU if needed
     pipe_set = models_pack.sd_pipe_sets.get(main_model_name, None)
     if (
@@ -191,3 +179,75 @@ def move_other_models_to_cpu(
         logging.info(
             f"🎛️ 🟢 {model_count} models to {DEVICE_CPU} in {e - s:.2f}s for -> {main_model_name}, {main_model_pipe}"
         )
+
+
+def move_all_models_to_cpu(models_pack: ModelsPack):
+    s = time.time()
+    model_count = 0
+    logging.info("🎛️ 📦 🟡 Moving all models to CPU")
+
+    # FLUX
+    if models_pack.flux1 is not None:
+        model_count += 1
+        models_pack.flux1.text2img = move_pipe_to_device(
+            pipe=models_pack.flux1.text2img,
+            model_name=f"{FLUX1_MODEL_NAME} text2img",
+            device=DEVICE_CPU,
+        )
+
+    # Kandinsky 2.2
+    if models_pack.kandinsky_2_2.text2img is not None:
+        model_count += 1
+        models_pack.kandinsky_2_2.text2img = move_pipe_to_device(
+            pipe=models_pack.kandinsky_2_2.text2img,
+            model_name=f"{KANDINSKY_2_2_MODEL_NAME} text2img",
+            device=DEVICE_CPU,
+        )
+    if models_pack.kandinsky_2_2.inpaint is not None:
+        model_count += 1
+        models_pack.kandinsky_2_2.inpaint = move_pipe_to_device(
+            pipe=models_pack.kandinsky_2_2.inpaint,
+            model_name=f"{KANDINSKY_2_2_MODEL_NAME} inpaint",
+            device=DEVICE_CPU,
+        )
+    if models_pack.kandinsky_2_2.prior is not None:
+        model_count += 1
+        models_pack.kandinsky_2_2.prior = move_pipe_to_device(
+            pipe=models_pack.kandinsky_2_2.prior,
+            model_name=f"{KANDINSKY_2_2_MODEL_NAME} prior",
+            device=DEVICE_CPU,
+        )
+
+    # SD models
+    for model_name, pipe_set in models_pack.sd_pipe_sets.items():
+        if pipe_set.text2img is not None:
+            model_count += 1
+            models_pack.sd_pipe_sets[model_name].text2img = move_pipe_to_device(
+                pipe=pipe_set.text2img,
+                model_name=f"{model_name} text2img",
+                device=DEVICE_CPU,
+            )
+        if pipe_set.img2img is not None:
+            model_count += 1
+            models_pack.sd_pipe_sets[model_name].img2img = move_pipe_to_device(
+                pipe=pipe_set.img2img,
+                model_name=f"{model_name} img2img",
+                device=DEVICE_CPU,
+            )
+        if pipe_set.inpaint is not None:
+            model_count += 1
+            models_pack.sd_pipe_sets[model_name].inpaint = move_pipe_to_device(
+                pipe=pipe_set.inpaint,
+                model_name=f"{model_name} inpaint",
+                device=DEVICE_CPU,
+            )
+        if pipe_set.refiner is not None:
+            model_count += 1
+            models_pack.sd_pipe_sets[model_name].refiner = move_pipe_to_device(
+                pipe=pipe_set.refiner,
+                model_name=f"{model_name} refiner",
+                device=DEVICE_CPU,
+            )
+
+    e = time.time()
+    logging.info(f"🎛️ 📦 🟢 All models ({model_count}) to {DEVICE_CPU} in {e - s:.2f}s")
