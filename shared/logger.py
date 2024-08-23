@@ -5,28 +5,27 @@ from multiprocessing import Queue
 import os
 import uuid
 import sys
-from io import StringIO
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
-class LoggerWriter:
-    def __init__(self, logger, level):
+class DualLoggerWriter:
+    def __init__(self, original_stream, logger, level):
+        self.original_stream = original_stream
         self.logger = logger
         self.level = level
-        self.buffer = StringIO()
 
     def write(self, message):
         if message and not message.isspace():
-            self.buffer.write(message)
-            self.flush()
+            # Write to the original stream (stdout or stderr)
+            self.original_stream.write(message)
+            self.original_stream.flush()
+            # Log the message
+            self.logger.log(self.level, message.strip())
 
     def flush(self):
-        output = self.buffer.getvalue().strip()
-        if output:
-            self.logger.log(self.level, output)
-            self.buffer = StringIO()  # Reset buffer
+        self.original_stream.flush()
 
 
 def setup_logger():
@@ -56,18 +55,8 @@ def setup_logger():
         version="1",
     )
 
-    # Set up the stdout handler for console logging
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(logging.INFO)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    stdout_handler.setFormatter(formatter)
-
     # Set up the listener to handle log entries from the queue
-    listener = logging.handlers.QueueListener(queue, handler_loki, stdout_handler)
-
-    # Start the listener
+    listener = logging.handlers.QueueListener(queue, handler_loki)
     listener.start()
 
     # Set up the root logger
@@ -78,8 +67,8 @@ def setup_logger():
     root_logger.addHandler(queue_handler)
     root_logger.setLevel(logging.INFO)
 
-    # Redirect stdout and stderr to the logger
-    sys.stdout = LoggerWriter(root_logger, logging.INFO)
-    sys.stderr = LoggerWriter(root_logger, logging.ERROR)
+    # Duplicate stdout and stderr to capture output without altering terminal display
+    sys.stdout = DualLoggerWriter(sys.stdout, root_logger, logging.INFO)
+    sys.stderr = DualLoggerWriter(sys.stderr, root_logger, logging.ERROR)
 
     return listener
