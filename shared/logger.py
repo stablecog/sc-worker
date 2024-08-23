@@ -55,8 +55,16 @@ def setup_logger():
         version="1",
     )
 
+    # Set up the stdout handler for console logging
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    stdout_handler.setFormatter(formatter)
+
     # Set up the listener to handle log entries from the queue
-    listener = logging.handlers.QueueListener(queue, handler_loki)
+    listener = logging.handlers.QueueListener(queue, handler_loki, stdout_handler)
     listener.start()
 
     # Set up the root logger
@@ -65,6 +73,7 @@ def setup_logger():
     if root_logger.hasHandlers():
         root_logger.handlers.clear()
     root_logger.addHandler(queue_handler)
+    root_logger.addHandler(stdout_handler)
     root_logger.setLevel(logging.INFO)
 
     # Duplicate stdout and stderr to capture output without altering terminal display
