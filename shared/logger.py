@@ -1,29 +1,28 @@
 import logging
+import logging.handlers
 import logging_loki
+from multiprocessing import Queue
 import os
+import uuid
+import sys
 from dotenv import load_dotenv
+import io
 
 load_dotenv()
 
 
-class LokiHandler(logging_loki.LokiHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+class LoggerWriter:
+    def __init__(self, logger, level):
+        self.logger = logger
+        self.level = level
+        self.buffer = io.StringIO()
 
-    def emit(self, record):
-        if record.name == "root" and record.levelno == logging.INFO:
-            # For print statements, send the raw message
-            self.formatter = None
-        else:
-            # For logger calls, use the formatted message
-            self.formatter = logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            )
+    def write(self, message):
+        if message.strip():
+            self.logger.log(self.level, message.strip())
 
-        super().emit(record)
+    def flush(self):
+        pass
 
 
 def setup_logger():
@@ -31,49 +30,65 @@ def setup_logger():
     loki_url = os.getenv("LOKI_URL")
     loki_username = os.getenv("LOKI_USERNAME")
     loki_password = os.getenv("LOKI_PASSWORD")
-    worker_name = os.getenv("WORKER_NAME", "default_worker")
+    worker_name = os.getenv("WORKER_NAME", str(uuid.uuid4()))
 
     # Validate environment variables
-    if not all([loki_url, loki_username, loki_password]):
-        raise ValueError("Loki environment variables are not set properly")
+    if not loki_url:
+        raise ValueError("LOKI_URL environment variable is not set")
+    if not loki_username:
+        raise ValueError("LOKI_USERNAME environment variable is not set")
+    if not loki_password:
+        raise ValueError("LOKI_PASSWORD environment variable is not set")
+
+    # Set up the logging queue and handler
+    queue = Queue(-1)
+    queue_handler = logging.handlers.QueueHandler(queue)
 
     # Set up the Loki handler
-    loki_handler = LokiHandler(
+    handler_loki = logging_loki.LokiHandler(
         url=f"{loki_url}/loki/api/v1/push",
         tags={"worker_name": worker_name, "application": "sc-worker"},
         auth=(loki_username, loki_password),
         version="1",
     )
 
-    # Set up the console handler
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(
-        logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    # Set up the stdout handler for console logging
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
+    stdout_handler.setFormatter(formatter)
+
+    # Set up the listener to handle log entries from the queue
+    listener = logging.handlers.QueueListener(queue, handler_loki, stdout_handler)
+
+    # Start the listener
+    listener.start()
 
     # Set up the root logger
     root_logger = logging.getLogger()
+    # Clear existing handlers to avoid double logging
+    if root_logger.hasHandlers():
+        root_logger.handlers.clear()
+    root_logger.addHandler(queue_handler)
     root_logger.setLevel(logging.INFO)
-    root_logger.addHandler(loki_handler)
-    root_logger.addHandler(console_handler)
 
-    # Capture print statements
-    print_logger = logging.getLogger("print")
-    print_logger.setLevel(logging.INFO)
+    # Redirect stdout and stderr to the logger
+    sys.stdout = LoggerWriter(root_logger, logging.INFO)
+    sys.stderr = LoggerWriter(root_logger, logging.ERROR)
 
-    def print_override(*args, sep=" ", end="\n", file=None):
-        message = sep.join(map(str, args)) + end
-        print_logger.info(message)
-        if file:
-            print(*args, sep=sep, end=end, file=file)
-        else:
-            __builtins__["print"](*args, sep=sep, end=end)
-
-    __builtins__["print"] = print_override
-
-    return root_logger
+    return listener
 
 
-# To be called at the end of your application
-def teardown_logger():
-    __builtins__["print"] = __builtins__["__print__"]
+# Usage example
+logger = logging.getLogger(__name__)
+listener = setup_logger()
+
+try:
+    # Your main code here
+    logger.info("This is a log message")
+    print("This is a print statement")
+finally:
+    # Stop the listener when your program is done
+    listener.stop()
