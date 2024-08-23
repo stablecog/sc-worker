@@ -2,7 +2,7 @@ import os
 from typing import List
 import torch
 
-from models.constants import DEVICE_CUDA
+from models.constants import DEVICE_CUDA, is_not_cuda
 from predict.image.classes import ModelsPack
 from shared.move_to_cpu import move_other_models_to_cpu
 from .helpers import get_scheduler
@@ -129,7 +129,7 @@ def generate(
         extra_kwargs["width"] = width
         extra_kwargs["height"] = height
 
-    if SD_MODELS[model].get("keep_in_cpu_when_idle"):
+    if is_not_cuda(pipe_selected.device.type):
         pipe_selected = move_pipe_to_device(
             pipe=pipe_selected,
             model_name=f"{model} {main_model_pipe}",
@@ -190,7 +190,7 @@ def generate(
             "num_inference_steps": num_inference_steps,
         }
 
-        if SD_MODELS[model].get("keep_in_cpu_when_idle"):
+        if is_not_cuda(pipe.refiner.device.type):
             pipe.refiner = move_pipe_to_device(
                 pipe=pipe.refiner, model_name=f"{model} refiner", device=DEVICE_CUDA
             )

@@ -123,20 +123,6 @@ def setup() -> ModelsPack:
 
     sd_pipe_sets: dict[str, SDPipeSet] = {}
 
-    def get_saved_sd_model(model_id_key: str, model_id: str, model_type_for_class: str):
-        for key in sd_pipe_sets:
-            model_definition = SD_MODELS.get(key, None)
-            if model_definition is None:
-                continue
-            relevant_model_id = model_definition.get(model_id_key, None)
-            if relevant_model_id is None:
-                continue
-            if relevant_model_id == model_id:
-                model = getattr(sd_pipe_sets[key], model_type_for_class, None)
-                if model:
-                    return model
-        return None
-
     for key in SD_MODELS:
         s = time.time()
         logging.info(f"🟡 Loading SD model: {key}")
@@ -144,36 +130,6 @@ def setup() -> ModelsPack:
         base_model = SD_MODELS[key].get("base_model", None)
 
         if base_model == "SDXL":
-            refiner_vae = None
-            vae = None
-            refiner_vae_id = SD_MODELS[key].get("refiner_vae", None)
-            vae_id = SD_MODELS[key].get("vae", None)
-            if refiner_vae_id is not None:
-                refiner_vae = get_saved_sd_model(
-                    model_id_key="refiner_vae",
-                    model_id=refiner_vae_id,
-                    model_type_for_class="refiner_vae",
-                )
-                if refiner_vae == None:
-                    refiner_vae = AutoencoderKL.from_pretrained(
-                        refiner_vae_id,
-                        torch_dtype=torch.float16,
-                        cache_dir=SD_MODEL_CACHE,
-                    )
-            if key == "SDXL":
-                vae = refiner_vae
-            elif vae_id is not None:
-                vae = get_saved_sd_model(
-                    model_id_key="vae",
-                    model_id=vae_id,
-                    model_type_for_class="vae",
-                )
-                if vae == None:
-                    vae = AutoencoderKL.from_pretrained(
-                        vae_id,
-                        torch_dtype=torch.float16,
-                        cache_dir=SD_MODEL_CACHE,
-                    )
             args = {
                 "pretrained_model_name_or_path": SD_MODELS[key]["id"],
                 "torch_dtype": SD_MODELS[key]["torch_dtype"],
@@ -183,8 +139,6 @@ def setup() -> ModelsPack:
             }
             if "variant" in SD_MODELS[key]:
                 args["variant"] = SD_MODELS[key]["variant"]
-            if vae is not None:
-                args["vae"] = vae
             text2img = StableDiffusionXLPipeline.from_pretrained(**args)
 
             if "default_lora" in SD_MODELS[key]:
@@ -207,8 +161,6 @@ def setup() -> ModelsPack:
                 }
                 if "variant" in SD_MODELS[key]:
                     refiner_args["variant"] = SD_MODELS[key]["variant"]
-                if refiner_vae is not None:
-                    refiner_args["vae"] = refiner_vae
                 refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
                     **refiner_args
                 )
@@ -218,28 +170,11 @@ def setup() -> ModelsPack:
             img2img = StableDiffusionXLImg2ImgPipeline(**text2img.components)
 
             inpaint = None
-            """ inpaint = get_saved_sd_model(
-                model_id_key="inpaint_id",
-                model_id=SD_MODELS[key]["inpaint_id"],
-                model_type_for_class="inpaint",
-            )
-            if inpaint is None:
-                inpaint = AutoPipelineForInpainting.from_pretrained(
-                    SD_MODELS[key]["inpaint_id"],
-                    torch_dtype=SD_MODELS[key]["torch_dtype"],
-                    cache_dir=SD_MODEL_CACHE,
-                    variant=SD_MODELS[key]["variant"],
-                    use_safetensors=True,
-                    add_watermarker=False,
-                )
-                inpaint.to(DEVICE_CUDA) """
             pipe = SDPipeSet(
                 text2img=text2img,
                 img2img=img2img,
                 inpaint=inpaint,
                 refiner=refiner,
-                refiner_vae=refiner_vae,
-                vae=vae,
             )
         elif base_model == "Stable Diffusion 3":
             args = {
@@ -256,11 +191,10 @@ def setup() -> ModelsPack:
             text2img = StableDiffusion3Pipeline.from_pretrained(**args)
             text2img = auto_move_to_device(SD_MODELS, key, text2img, f"{key} text2img")
             img2img = StableDiffusion3Img2ImgPipeline(**text2img.components)
-            inpaint = None
             pipe = SDPipeSet(
                 text2img=text2img,
                 img2img=img2img,
-                inpaint=inpaint,
+                inpaint=None,
                 refiner=None,
             )
         else:
@@ -275,12 +209,11 @@ def setup() -> ModelsPack:
             text2img = StableDiffusionPipeline.from_pretrained(**args)
             text2img = auto_move_to_device(SD_MODELS, key, text2img, f"{key} text2img")
             img2img = StableDiffusionImg2ImgPipeline(**text2img.components)
-            inpaint = None
 
             pipe = SDPipeSet(
                 text2img=text2img,
                 img2img=img2img,
-                inpaint=inpaint,
+                inpaint=None,
                 refiner=None,
             )
 
@@ -310,16 +243,10 @@ def setup() -> ModelsPack:
             torch_dtype=torch.float16,
             cache_dir=SD_MODEL_CACHE,
         ).to(kandinsky_device)
-        inpaint = None
-        """ KandinskyV22InpaintPipeline.from_pretrained(
-            KANDINSKY_2_2_DECODER_INPAINT_MODEL_ID,
-            torch_dtype=torch.float16,
-            cache_dir=SD_MODEL_CACHE,
-        ).to(DEVICE_CUDA) """
         kandinsky_2_2 = KandinskyPipeSet_2_2(
             prior=prior,
             text2img=text2img,
-            inpaint=inpaint,
+            inpaint=None,
         )
         logging.info(
             f"✅ Loaded Kandinsky 2.2 | Duration: {round(time.time() - s, 1)} seconds"

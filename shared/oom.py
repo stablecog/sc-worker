@@ -4,7 +4,7 @@ import logging
 import inspect
 
 
-from shared.move_to_cpu import move_all_models_to_cpu, move_other_models_to_cpu
+from shared.move_to_cpu import move_all_models_to_cpu
 
 
 def with_oom_protection(max_retries=1):

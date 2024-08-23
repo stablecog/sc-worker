@@ -49,17 +49,11 @@ class SDPipeSet:
         img2img: StableDiffusionImg2ImgPipeline | None,
         inpaint: StableDiffusionInpaintPipeline | None,
         refiner: StableDiffusionXLImg2ImgPipeline | None,
-        vae: Any | None = None,
-        refiner_vae: Any | None = None,
-        inpaint_vae: Any | None = None,
     ):
         self.text2img = text2img
         self.img2img = img2img
         self.inpaint = inpaint
         self.refiner = refiner
-        self.vae = vae
-        self.refiner_vae = refiner_vae
-        self.inpaint_vae = inpaint_vae
 
 
 class KandinskyPipeSet_2_2:
