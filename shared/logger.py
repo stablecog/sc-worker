@@ -6,23 +6,31 @@ import os
 import uuid
 import sys
 from dotenv import load_dotenv
-import io
 
 load_dotenv()
 
 
-class LoggerWriter:
-    def __init__(self, logger, level):
-        self.logger = logger
-        self.level = level
-        self.buffer = io.StringIO()
+class StdoutCapture:
+    def __init__(self, loki_handler):
+        self.stdout = sys.stdout
+        self.loki_handler = loki_handler
 
     def write(self, message):
+        self.stdout.write(message)
         if message.strip():
-            self.logger.log(self.level, message.strip())
+            record = logging.LogRecord(
+                name="stdout",
+                level=logging.INFO,
+                pathname="",
+                lineno=0,
+                msg=message.strip(),
+                args=(),
+                exc_info=None,
+            )
+            self.loki_handler.emit(record)
 
     def flush(self):
-        pass
+        self.stdout.flush()
 
 
 def setup_logger():
@@ -40,10 +48,6 @@ def setup_logger():
     if not loki_password:
         raise ValueError("LOKI_PASSWORD environment variable is not set")
 
-    # Set up the logging queue and handler
-    queue = Queue(-1)
-    queue_handler = logging.handlers.QueueHandler(queue)
-
     # Set up the Loki handler
     handler_loki = logging_loki.LokiHandler(
         url=f"{loki_url}/loki/api/v1/push",
@@ -60,22 +64,16 @@ def setup_logger():
     )
     stdout_handler.setFormatter(formatter)
 
-    # Set up the listener to handle log entries from the queue
-    listener = logging.handlers.QueueListener(queue, handler_loki, stdout_handler)
-
-    # Start the listener
-    listener.start()
-
     # Set up the root logger
     root_logger = logging.getLogger()
     # Clear existing handlers to avoid double logging
     if root_logger.hasHandlers():
         root_logger.handlers.clear()
-    root_logger.addHandler(queue_handler)
+    root_logger.addHandler(handler_loki)
+    root_logger.addHandler(stdout_handler)
     root_logger.setLevel(logging.INFO)
 
-    # Redirect stdout and stderr to the logger
-    sys.stdout = LoggerWriter(root_logger, logging.INFO)
-    sys.stderr = LoggerWriter(root_logger, logging.ERROR)
+    # Capture stdout and send to Loki without formatting
+    sys.stdout = StdoutCapture(handler_loki)
 
-    return listener
+    return root_logger
