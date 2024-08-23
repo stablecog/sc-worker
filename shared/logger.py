@@ -10,19 +10,26 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-class DualLoggerWriter:
-    def __init__(self, original_stream, logger, level):
+class TerminalCapture:
+    def __init__(self, original_stream, loki_handler):
         self.original_stream = original_stream
-        self.logger = logger
-        self.level = level
+        self.loki_handler = loki_handler
 
     def write(self, message):
-        if message and not message.isspace():
-            # Write to the original stream (stdout or stderr)
-            self.original_stream.write(message)
-            self.original_stream.flush()
-            # Log the message
-            self.logger.log(self.level, message.strip())
+        self.original_stream.write(message)
+        self.original_stream.flush()
+        if message.strip():
+            # Send raw message to Loki without formatting
+            record = logging.LogRecord(
+                name="terminal",
+                level=logging.INFO,
+                pathname="",
+                lineno=0,
+                msg=message.strip(),
+                args=(),
+                exc_info=None,
+            )
+            self.loki_handler.emit(record)
 
     def flush(self):
         self.original_stream.flush()
@@ -43,41 +50,35 @@ def setup_logger():
     if not loki_password:
         raise ValueError("LOKI_PASSWORD environment variable is not set")
 
-    # Set up the logging queue and handler
-    queue = Queue(-1)
-    queue_handler = logging.handlers.QueueHandler(queue)
-
     # Set up the Loki handler
-    handler_loki = logging_loki.LokiHandler(
+    loki_handler = logging_loki.LokiHandler(
         url=f"{loki_url}/loki/api/v1/push",
         tags={"worker_name": worker_name, "application": "sc-worker"},
         auth=(loki_username, loki_password),
         version="1",
     )
 
-    # Set up the stdout handler for console logging
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(logging.INFO)
+    # Set up formatter for logger calls
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
-    stdout_handler.setFormatter(formatter)
-
-    # Set up the listener to handle log entries from the queue
-    listener = logging.handlers.QueueListener(queue, handler_loki, stdout_handler)
-    listener.start()
+    loki_handler.setFormatter(formatter)
 
     # Set up the root logger
     root_logger = logging.getLogger()
-    # Clear existing handlers to avoid double logging
     if root_logger.hasHandlers():
         root_logger.handlers.clear()
-    root_logger.addHandler(queue_handler)
-    root_logger.addHandler(stdout_handler)
+    root_logger.addHandler(loki_handler)
     root_logger.setLevel(logging.INFO)
 
-    # Duplicate stdout and stderr to capture output without altering terminal display
-    sys.stdout = DualLoggerWriter(sys.stdout, root_logger, logging.INFO)
-    sys.stderr = DualLoggerWriter(sys.stderr, root_logger, logging.ERROR)
+    # Capture terminal output
+    sys.stdout = TerminalCapture(sys.stdout, loki_handler)
+    sys.stderr = TerminalCapture(sys.stderr, loki_handler)
 
-    return listener
+    return root_logger
+
+
+# Function to restore original stdout and stderr
+def restore_streams():
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
