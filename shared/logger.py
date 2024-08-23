@@ -5,9 +5,28 @@ from multiprocessing import Queue
 import os
 import uuid
 import sys
+from io import StringIO
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+class LoggerWriter:
+    def __init__(self, logger, level):
+        self.logger = logger
+        self.level = level
+        self.buffer = StringIO()
+
+    def write(self, message):
+        if message and not message.isspace():
+            self.buffer.write(message)
+            self.flush()
+
+    def flush(self):
+        output = self.buffer.getvalue().strip()
+        if output:
+            self.logger.log(self.level, output)
+            self.buffer = StringIO()  # Reset buffer
 
 
 def setup_logger():
@@ -58,5 +77,9 @@ def setup_logger():
         root_logger.handlers.clear()
     root_logger.addHandler(queue_handler)
     root_logger.setLevel(logging.INFO)
+
+    # Redirect stdout and stderr to the logger
+    sys.stdout = LoggerWriter(root_logger, logging.INFO)
+    sys.stderr = LoggerWriter(root_logger, logging.ERROR)
 
     return listener
