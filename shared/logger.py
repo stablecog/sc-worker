@@ -11,13 +11,13 @@ load_dotenv()
 
 
 class PrintCapturer:
-    def __init__(self, loki_handler, original_stream):
-        self.loki_handler = loki_handler
+    def __init__(self, queue, original_stream):
+        self.queue = queue
         self.original_stream = original_stream
 
     def write(self, message):
         if message.strip():
-            # Send the raw message to Loki
+            # Send the raw message to the queue
             record = logging.LogRecord(
                 name="print",
                 level=logging.INFO,
@@ -27,12 +27,25 @@ class PrintCapturer:
                 args=(),
                 exc_info=None,
             )
-            self.loki_handler.emit(record)
+            self.queue.put_nowait(record)
         # Always write to the original stream
         self.original_stream.write(message)
 
     def flush(self):
         self.original_stream.flush()
+
+
+class LokiHandler(logging_loki.LokiHandler):
+    def emit(self, record):
+        if record.name == "print":
+            # For print statements, send the raw message
+            self.send_message(record.msg)
+        else:
+            # For other log records, use the standard formatting
+            super().emit(record)
+
+    def send_message(self, message):
+        self._write_message(message)
 
 
 def setup_logger():
@@ -50,12 +63,11 @@ def setup_logger():
     if not loki_password:
         raise ValueError("LOKI_PASSWORD environment variable is not set")
 
-    # Set up the logging queue and handler
+    # Set up the logging queue
     queue = Queue(-1)
-    queue_handler = logging.handlers.QueueHandler(queue)
 
-    # Set up the Loki handler
-    handler_loki = logging_loki.LokiHandler(
+    # Set up the custom Loki handler
+    handler_loki = LokiHandler(
         url=f"{loki_url}/loki/api/v1/push",
         tags={"worker_name": worker_name, "application": "sc-worker"},
         auth=(loki_username, loki_password),
@@ -81,11 +93,11 @@ def setup_logger():
     # Clear existing handlers to avoid double logging
     if root_logger.hasHandlers():
         root_logger.handlers.clear()
-    root_logger.addHandler(queue_handler)
+    root_logger.addHandler(logging.handlers.QueueHandler(queue))
     root_logger.setLevel(logging.INFO)
 
     # Capture stdout and stderr
-    sys.stdout = PrintCapturer(handler_loki, sys.stdout)
-    sys.stderr = PrintCapturer(handler_loki, sys.stderr)
+    sys.stdout = PrintCapturer(queue, sys.stdout)
+    sys.stderr = PrintCapturer(queue, sys.stderr)
 
     return listener
