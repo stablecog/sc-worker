@@ -10,30 +10,29 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-class LokiHandler(logging_loki.LokiHandler):
-    def emit(self, record):
-        if getattr(record, "raw_print", False):
-            # For print statements, send the raw message
-            record.msg = record.getMessage()
-            record.levelname = "PRINT"
-        super().emit(record)
-
-
 class PrintCapturer:
-    def __init__(self, logger):
-        self.logger = logger
-        self.original_stdout = sys.stdout
-        self.original_stderr = sys.stderr
+    def __init__(self, loki_handler, original_stream):
+        self.loki_handler = loki_handler
+        self.original_stream = original_stream
 
     def write(self, message):
         if message.strip():
-            # Log the raw print message
-            self.logger.log(logging.INFO, message.rstrip(), extra={"raw_print": True})
-        # Always write to the original stdout
-        self.original_stdout.write(message)
+            # Send the raw message to Loki
+            record = logging.LogRecord(
+                name="print",
+                level=logging.INFO,
+                pathname="",
+                lineno=0,
+                msg=message,
+                args=(),
+                exc_info=None,
+            )
+            self.loki_handler.emit(record)
+        # Always write to the original stream
+        self.original_stream.write(message)
 
     def flush(self):
-        self.original_stdout.flush()
+        self.original_stream.flush()
 
 
 def setup_logger():
@@ -55,8 +54,8 @@ def setup_logger():
     queue = Queue(-1)
     queue_handler = logging.handlers.QueueHandler(queue)
 
-    # Set up the custom Loki handler
-    handler_loki = LokiHandler(
+    # Set up the Loki handler
+    handler_loki = logging_loki.LokiHandler(
         url=f"{loki_url}/loki/api/v1/push",
         tags={"worker_name": worker_name, "application": "sc-worker"},
         auth=(loki_username, loki_password),
@@ -85,8 +84,8 @@ def setup_logger():
     root_logger.addHandler(queue_handler)
     root_logger.setLevel(logging.INFO)
 
-    # Redirect stdout to the PrintCapturer
-    sys.stdout = PrintCapturer(root_logger)
-    sys.stderr = PrintCapturer(root_logger)
+    # Capture stdout and stderr
+    sys.stdout = PrintCapturer(handler_loki, sys.stdout)
+    sys.stderr = PrintCapturer(handler_loki, sys.stderr)
 
     return listener
