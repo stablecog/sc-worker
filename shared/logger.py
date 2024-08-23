@@ -6,30 +6,34 @@ import os
 import uuid
 import sys
 from dotenv import load_dotenv
-import io
 
 load_dotenv()
 
 
-class PrintLoggerWriter:
-    def __init__(self, logger, level):
+class LokiHandler(logging_loki.LokiHandler):
+    def emit(self, record):
+        if getattr(record, "raw_print", False):
+            # For print statements, send the raw message
+            record.msg = record.getMessage()
+            record.levelname = "PRINT"
+        super().emit(record)
+
+
+class PrintCapturer:
+    def __init__(self, logger):
         self.logger = logger
-        self.level = level
-        self.buffer = io.StringIO()
+        self.original_stdout = sys.stdout
+        self.original_stderr = sys.stderr
 
     def write(self, message):
         if message.strip():
-            self.logger.log(self.level, message.rstrip())
+            # Log the raw print message
+            self.logger.log(logging.INFO, message.rstrip(), extra={"raw_print": True})
+        # Always write to the original stdout
+        self.original_stdout.write(message)
 
     def flush(self):
-        pass
-
-
-class LokiHandler(logging_loki.LokiHandler):
-    def emit(self, record):
-        if hasattr(record, "raw_print"):
-            record.msg = record.raw_print
-        super().emit(record)
+        self.original_stdout.flush()
 
 
 def setup_logger():
@@ -60,14 +64,7 @@ def setup_logger():
     )
 
     # Set up the stdout handler for console logging
-    class StdoutHandler(logging.StreamHandler):
-        def emit(self, record):
-            if hasattr(record, "raw_print"):
-                print(record.raw_print, end="")
-            else:
-                super().emit(record)
-
-    stdout_handler = StdoutHandler(sys.stdout)
+    stdout_handler = logging.StreamHandler(sys.stdout)
     stdout_handler.setLevel(logging.INFO)
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -88,8 +85,8 @@ def setup_logger():
     root_logger.addHandler(queue_handler)
     root_logger.setLevel(logging.INFO)
 
-    # Redirect stdout and stderr to the logger
-    sys.stdout = PrintLoggerWriter(root_logger, logging.INFO)
-    sys.stderr = PrintLoggerWriter(root_logger, logging.ERROR)
+    # Redirect stdout to the PrintCapturer
+    sys.stdout = PrintCapturer(root_logger)
+    sys.stderr = PrintCapturer(root_logger)
 
     return listener
