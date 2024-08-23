@@ -79,16 +79,3 @@ def setup_logger():
     sys.stderr = LoggerWriter(root_logger, logging.ERROR)
 
     return listener
-
-
-# Usage example
-logger = logging.getLogger(__name__)
-listener = setup_logger()
-
-try:
-    # Your main code here
-    logger.info("This is a log message")
-    print("This is a print statement")
-finally:
-    # Stop the listener when your program is done
-    listener.stop()
