@@ -59,4 +59,9 @@ def setup_logger():
     root_logger.addHandler(queue_handler)
     root_logger.setLevel(logging.INFO)
 
+    # Configure diffusers logger to propagate to root logger
+    diffusers_logger = logging.getLogger("diffusers")
+    diffusers_logger.setLevel(logging.INFO)
+    diffusers_logger.propagate = True
+
     return listener
