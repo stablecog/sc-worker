@@ -1,58 +1,95 @@
 import logging
 import logging.handlers
 import logging_loki
+from multiprocessing import Queue
 import os
 import uuid
 import sys
 from dotenv import load_dotenv
+import io
 
 load_dotenv()
 
 
-class PrintCapture:
-    def __init__(self, loki_handler):
-        self.stdout = sys.stdout
-        self.loki_handler = loki_handler
+class PrintLoggerWriter:
+    def __init__(self, logger, level):
+        self.logger = logger
+        self.level = level
+        self.buffer = io.StringIO()
 
     def write(self, message):
-        self.stdout.write(message)
         if message.strip():
-            self.loki_handler.emit(
-                logging.LogRecord(
-                    name="print",
-                    level=logging.INFO,
-                    pathname="",
-                    lineno=0,
-                    msg=message,
-                    args=None,
-                    exc_info=None,
-                )
-            )
+            self.logger.log(self.level, message.rstrip())
 
     def flush(self):
-        self.stdout.flush()
+        pass
+
+
+class LokiHandler(logging_loki.LokiHandler):
+    def emit(self, record):
+        if hasattr(record, "raw_print"):
+            record.msg = record.raw_print
+        super().emit(record)
 
 
 def setup_logger():
+    # Fetch environment variables
     loki_url = os.getenv("LOKI_URL")
     loki_username = os.getenv("LOKI_USERNAME")
     loki_password = os.getenv("LOKI_PASSWORD")
     worker_name = os.getenv("WORKER_NAME", str(uuid.uuid4()))
 
-    if not all([loki_url, loki_username, loki_password]):
-        raise ValueError("LOKI_URL, LOKI_USERNAME, and LOKI_PASSWORD must be set")
+    # Validate environment variables
+    if not loki_url:
+        raise ValueError("LOKI_URL environment variable is not set")
+    if not loki_username:
+        raise ValueError("LOKI_USERNAME environment variable is not set")
+    if not loki_password:
+        raise ValueError("LOKI_PASSWORD environment variable is not set")
 
-    handler_loki = logging_loki.LokiHandler(
+    # Set up the logging queue and handler
+    queue = Queue(-1)
+    queue_handler = logging.handlers.QueueHandler(queue)
+
+    # Set up the custom Loki handler
+    handler_loki = LokiHandler(
         url=f"{loki_url}/loki/api/v1/push",
         tags={"worker_name": worker_name, "application": "sc-worker"},
         auth=(loki_username, loki_password),
         version="1",
     )
 
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger()
-    logger.addHandler(handler_loki)
+    # Set up the stdout handler for console logging
+    class StdoutHandler(logging.StreamHandler):
+        def emit(self, record):
+            if hasattr(record, "raw_print"):
+                print(record.raw_print, end="")
+            else:
+                super().emit(record)
 
-    sys.stdout = PrintCapture(handler_loki)
+    stdout_handler = StdoutHandler(sys.stdout)
+    stdout_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    stdout_handler.setFormatter(formatter)
 
-    return logger
+    # Set up the listener to handle log entries from the queue
+    listener = logging.handlers.QueueListener(queue, handler_loki, stdout_handler)
+
+    # Start the listener
+    listener.start()
+
+    # Set up the root logger
+    root_logger = logging.getLogger()
+    # Clear existing handlers to avoid double logging
+    if root_logger.hasHandlers():
+        root_logger.handlers.clear()
+    root_logger.addHandler(queue_handler)
+    root_logger.setLevel(logging.INFO)
+
+    # Redirect stdout and stderr to the logger
+    sys.stdout = PrintLoggerWriter(root_logger, logging.INFO)
+    sys.stderr = PrintLoggerWriter(root_logger, logging.ERROR)
+
+    return listener
