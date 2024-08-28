@@ -103,7 +103,7 @@ def generate_2_2(
         init_image = pad_image_pil(init_image, 64)
         end = time.time()
         logging.info(
-            f"-- Downloaded and cropped init image in: {round((end - start) * 1000)} ms"
+            f"-- Downloaded and cropped init image in: {round((end - start) * 1000)}ms"
         )
         start = time.time()
         mask_image = download_and_fit_image_mask(
@@ -114,7 +114,7 @@ def generate_2_2(
         mask_image = pad_image_mask_nd(mask_image, 64, 0)
         end = time.time()
         logging.info(
-            f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)} ms"
+            f"-- Downloaded and cropped mask image in: {round((end - start) * 1000)}ms"
         )
         if is_not_cuda(pipe.inpaint.device.type):
             pipe.inpaint = move_pipe_to_device(
@@ -156,7 +156,7 @@ def generate_2_2(
         init_image = download_and_fit_image(init_image_url, width, height)
         end = time.time()
         logging.info(
-            f"-- Downloaded and cropped init image in: {round((end - start) * 1000)} ms"
+            f"-- Downloaded and cropped init image in: {round((end - start) * 1000)}ms"
         )
         start = time.time()
         images_and_texts = [prompt, init_image]
@@ -253,7 +253,7 @@ def generate_2_2(
 
     inference_end = time.time()
     logging.info(
-        f"🔮 🟢 Inference | {model} | {num_outputs} image(s) | {round((inference_end - inference_start) * 1000)} ms"
+        f"🔮 🟢 Inference | {model} | {num_outputs} image(s) | {round((inference_end - inference_start) * 1000)}ms"
     )
 
     return filtered_output_images, nsfw_count

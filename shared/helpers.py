@@ -296,6 +296,6 @@ def move_pipe_to_device(pipe, model_name, device):
     e = time.time()
     emoji = "🚀" if device == DEVICE_CUDA else "🐌"
     logging.info(
-        f"{emoji} Moved {model_name} to {device} in: {round((e - s) * 1000)} ms"
+        f"{emoji} Moved {model_name} to {device} in: {round((e - s) * 1000)}ms"
     )
     return pipe

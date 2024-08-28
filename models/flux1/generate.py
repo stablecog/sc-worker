@@ -113,7 +113,7 @@ def generate(
 
     inference_end = time.time()
     logging.info(
-        f"🔮 🟢 Inference | {model} | {num_outputs} image(s) | {round((inference_end - inference_start) * 1000)} ms"
+        f"🔮 🟢 Inference | {model} | {num_outputs} image(s) | {round((inference_end - inference_start) * 1000)}ms"
     )
 
     return output_images, nsfw_count

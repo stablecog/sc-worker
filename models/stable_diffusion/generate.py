@@ -103,7 +103,7 @@ def generate(
         extra_kwargs["strength"] = prompt_strength
         end_i = time.time()
         logging.info(
-            f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)} ms"
+            f"-- Downloaded and cropped init image in: {round((end_i - start_i) * 1000)}ms"
         )
 
         if pipe.inpaint is not None and mask_image_url is not None:
@@ -118,7 +118,7 @@ def generate(
             extra_kwargs["strength"] = 0.99
             end_i = time.time()
             logging.info(
-                f"-- Downloaded and cropped mask image in: {round((end_i - start_i) * 1000)} ms"
+                f"-- Downloaded and cropped mask image in: {round((end_i - start_i) * 1000)}ms"
             )
         elif pipe.img2img is not None:
             # The process is: img2img
@@ -208,7 +208,7 @@ def generate(
             output_images[i] = out_image
         e = time.time()
         logging.info(
-            f"🖌️ Refined {len(output_images)} image(s) in: {round((e - s) * 1000)} ms"
+            f"🖌️ Refined {len(output_images)} image(s) in: {round((e - s) * 1000)}ms"
         )
 
     if nsfw_count > 0:
@@ -218,7 +218,7 @@ def generate(
 
     inference_end = time.time()
     logging.info(
-        f"🔮 🟢 Inference | {model} | {num_outputs} image(s) | {round((inference_end - inference_start) * 1000)} ms"
+        f"🔮 🟢 Inference | {model} | {num_outputs} image(s) | {round((inference_end - inference_start) * 1000)}ms"
     )
 
     return output_images, nsfw_count

@@ -272,7 +272,7 @@ def predict(
         endTime = time.time()
         logging.info(
             tabulate(
-                [["🖼️ Generate", f"🟢 {round((endTime - startTime) * 1000)} ms"]]
+                [["🖼️ Generate", f"🟢 {round((endTime - startTime) * 1000)}ms"]]
                 + log_table,
                 tablefmt=TabulateLevels.PRIMARY.value,
             ),
@@ -306,7 +306,7 @@ def predict(
         u_end = time.time()
         logging.info(
             tabulate(
-                [["⭐️ Upscale", f"🟢 {round((u_end - u_start) * 1000)} ms"]],
+                [["⭐️ Upscale", f"🟢 {round((u_end - u_start) * 1000)}ms"]],
                 tablefmt=TabulateLevels.PRIMARY.value,
             ),
         )
@@ -333,7 +333,7 @@ def predict(
             [
                 [
                     f"🔧 Process: {input.process_type}",
-                    f"🟢 {round((process_end - process_start) * 1000)} ms",
+                    f"🟢 {round((process_end - process_start) * 1000)}ms",
                 ]
             ],
             tablefmt=TabulateLevels.PRIMARY.value,
