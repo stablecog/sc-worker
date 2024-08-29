@@ -44,6 +44,7 @@ from predict.image.classes import (
     KandinskyPipeSet_2_2,
     ModelsPack,
     SDPipeSet,
+    Upscaler,
 )
 from shared.constants import WORKER_VERSION, TabulateLevels
 import logging
@@ -256,9 +257,9 @@ def setup() -> ModelsPack:
     # For upscaler
     logging.info("🟡 Loading upscaler")
     upscaler_pipe = AuraSR.from_pretrained(MODEL_NAME_AURA_SR)
-    upscaler = {
-        "pipe": upscaler_pipe,
-    }
+    upscaler = Upscaler(
+        pipe=upscaler_pipe,
+    )
     logging.info("✅ Loaded upscaler")
 
     end = time.time()
