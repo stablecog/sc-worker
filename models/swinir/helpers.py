@@ -5,7 +5,6 @@ import torch
 import cv2
 import numpy as np
 from . import util_calculate_psnr_ssim
-import os
 
 
 def define_model_swinir(args):
@@ -150,9 +149,11 @@ def define_model_swinir(args):
 
     pretrained_model = torch.load(args.model_path)
     model.load_state_dict(
-        pretrained_model[param_key_g]
-        if param_key_g in pretrained_model.keys()
-        else pretrained_model,
+        (
+            pretrained_model[param_key_g]
+            if param_key_g in pretrained_model.keys()
+            else pretrained_model
+        ),
         strict=True,
     )
 

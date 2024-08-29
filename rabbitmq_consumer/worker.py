@@ -2,17 +2,18 @@ import datetime
 import json
 import queue
 import hashlib
-import os
 import time
 import traceback
-from typing import Any, Dict, Iterable, Tuple, Callable
+from typing import Any, Dict, Iterable, Tuple
 from threading import Event
-import logging
 
-from boto3_type_annotations.s3 import ServiceResource
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
-from pika.exceptions import ConnectionClosedByBroker, AMQPConnectionError, AMQPChannelError
+from pika.exceptions import (
+    ConnectionClosedByBroker,
+    AMQPConnectionError,
+    AMQPChannelError,
+)
 
 from rabbitmq_consumer.events import Status, Event
 from rabbitmq_consumer.connection import RabbitMQConnection
@@ -21,16 +22,12 @@ from predict.image.predict import (
     predict as predict_for_image,
     PredictResult as PredictResultForImage,
 )
-from predict.voiceover.predict import (
-    PredictInput as PredictInputForVoiceover,
-    predict as predict_for_voiceover,
-    PredictResult as PredictResultForVoiceover,
-)
+from shared.constants import TabulateLevels
 from shared.helpers import format_datetime
-from predict.image.setup import ModelsPack as ModelsPackForImage
-from predict.voiceover.setup import ModelsPack as ModelsPackForVoiceover
+from predict.image.classes import ModelsPack as ModelsPackForImage
 from shared.webhook import post_webhook
 from tabulate import tabulate
+import logging
 
 
 def generate_queue_name_from_capabilities(
@@ -57,19 +54,11 @@ def generate_queue_name_from_capabilities(
 callback_in_progress = False
 
 
-# def should_process(redisConn: redis.Redis, message_id):
-#     """See if a message is being processed by another worker"""
-#     # Check and set the message_id in Redis atomically
-#     result = redisConn.set(message_id, 1, nx=True, ex=300)
-#     logging.info(f"Redis set result for message {message_id}: {result}")
-#     return bool(result)
-
-
 def create_amqp_callback(
     queue_name: str,
     worker_type: str,
     upload_queue: queue.Queue[Dict[str, Any]],
-    models_pack: ModelsPackForImage | ModelsPackForVoiceover,
+    models_pack: ModelsPackForImage,
 ):
     """Create the amqp callback to handle rabbitmq messages"""
 
@@ -79,10 +68,6 @@ def create_amqp_callback(
         properties: BasicProperties,
         body: bytes,
     ) -> None:
-        # if not should_process(redisConn, properties.message_id):
-        #     logging.info(f"Message {properties.message_id} is already being processed")
-        #     channel.basic_ack(delivery_tag=method.delivery_tag)
-        #     return
 
         global callback_in_progress
         try:
@@ -96,7 +81,7 @@ def create_amqp_callback(
                 ["Message ID", properties.message_id],
                 ["Priority", properties.priority],
             ]
-            logging.info("\n" + tabulate(log_table, tablefmt="double_grid"))
+            logging.info(tabulate(log_table, tablefmt=TabulateLevels.SECONDARY.value))
 
             if "webhook_events_filter" in message:
                 valid_events = {ev.value for ev in Event}
@@ -116,23 +101,18 @@ def create_amqp_callback(
 
             run_prediction = None
             args = {}
-            if worker_type == "voiceover":
-                run_prediction = run_prediction_for_voiceover
-            else:
-                run_prediction = run_prediction_for_image
+            run_prediction = run_prediction_for_image
 
             args["models_pack"] = models_pack
 
             for response_event, response in run_prediction(message, **args):
                 if "upload_output" in response and isinstance(
                     response["upload_output"],
-                    PredictResultForVoiceover
-                    if worker_type == "voiceover"
-                    else PredictResultForImage,
+                    (PredictResultForImage),
                 ):
-                    logging.info(f"-- Upload: Putting to queue")
+                    logging.info(f"^^ 🟡 Putting to queue")
                     upload_queue.put(response)
-                    logging.info(f"-- Upload: Put to queue")
+                    logging.info(f"^^ 🟢 Put to queue")
                 elif response_event in events_filter:
                     status_code = post_webhook(webhook_url, response)
                     logging.info(f"-- Webhook: {status_code}")
@@ -151,7 +131,7 @@ def start_amqp_queue_worker(
     connection: RabbitMQConnection,
     queue_name: str,
     upload_queue: queue.Queue[Dict[str, Any]],
-    models_pack: ModelsPackForImage | ModelsPackForVoiceover,
+    models_pack: ModelsPackForImage,
     shutdown_event: Event,
 ) -> None:
     logging.info(f"Listening for messages on {queue_name}\n")
@@ -265,67 +245,6 @@ def run_prediction_for_image(
         response["upload_prefix"] = input_obj.get("upload_path_prefix", "")
         response["upload_output"] = predictResult
         response["nsfw_count"] = predictResult.nsfw_count
-
-        completed_at = datetime.datetime.now()
-        response["completed_at"] = format_datetime(completed_at)
-
-        response["status"] = Status.SUCCEEDED
-        response["metrics"] = {
-            "predict_time": (completed_at - started_at).total_seconds()
-        }
-    except Exception as e:
-        tb = traceback.format_exc()
-        logging.error(f"Failed to run prediction: {tb}\n")
-        completed_at = datetime.datetime.now()
-        response["completed_at"] = format_datetime(completed_at)
-        response["status"] = Status.FAILED
-        response["error"] = str(e)
-    finally:
-        yield (Event.COMPLETED, response)
-
-
-def run_prediction_for_voiceover(
-    message: Dict[str, Any],
-    models_pack: ModelsPackForVoiceover,
-) -> Iterable[Tuple[Event, Dict[str, Any]]]:
-    """Runs the prediction and yields events and responses."""
-
-    # use the request message as the basis of our response so
-    # that we echo back any additional fields sent to us
-    response = message
-    response["status"] = Status.PROCESSING
-    response["outputs"] = None
-    response["logs"] = ""
-
-    started_at = datetime.datetime.now()
-
-    try:
-        input_obj: Dict[str, Any] = response["input"]
-    except Exception as e:
-        tb = traceback.format_exc()
-        logging.error(f"Failed to start prediction: {tb}\n")
-        response["status"] = Status.FAILED
-        response["error"] = str(e)
-        yield (Event.COMPLETED, response)
-
-        return
-
-    response["started_at"] = format_datetime(started_at)
-    response["logs"] = ""
-
-    yield (Event.START, response)
-
-    try:
-        predictResult = predict_for_voiceover(
-            input=PredictInputForVoiceover(**input_obj),
-            models_pack=models_pack,
-        )
-
-        if len(predictResult.outputs) == 0:
-            raise Exception("Missing outputs")
-
-        response["upload_prefix"] = input_obj.get("upload_path_prefix", "")
-        response["upload_output"] = predictResult
 
         completed_at = datetime.datetime.now()
         response["completed_at"] = format_datetime(completed_at)

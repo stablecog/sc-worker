@@ -1,4 +1,18 @@
+from diffusers import (
+    KandinskyV22InpaintPipeline,
+    KandinskyV22Pipeline,
+    KandinskyV22PriorPipeline,
+    StableDiffusionImg2ImgPipeline,
+    StableDiffusionInpaintPipeline,
+    StableDiffusionPipeline,
+    StableDiffusionXLImg2ImgPipeline,
+    StableDiffusionXLPipeline,
+    FluxPipeline,
+    StableDiffusion3Pipeline,
+)
+from typing import Any
 from PIL import Image
+from aura_sr import AuraSR
 
 
 class PredictOutput:
@@ -7,25 +21,76 @@ class PredictOutput:
         pil_image: Image.Image,
         target_extension: str,
         target_quality: int,
-        open_clip_image_embed: list[float],
-        open_clip_prompt_embed: list[float],
-        aesthetic_rating_score: float,
-        aesthetic_artifact_score: float,
     ):
         self.pil_image = pil_image
         self.target_extension = target_extension
         self.target_quality = target_quality
-        self.open_clip_image_embed = open_clip_image_embed
-        self.open_clip_prompt_embed = open_clip_prompt_embed
-        self.aesthetic_rating_score = aesthetic_rating_score
-        self.aesthetic_artifact_score = aesthetic_artifact_score
 
 
 class PredictResult:
     def __init__(
         self,
         outputs: list[PredictOutput],
+        signed_urls: list[str],
         nsfw_count: int,
     ):
         self.outputs = outputs
+        self.signed_urls = signed_urls
         self.nsfw_count = nsfw_count
+
+
+class SDPipeSet:
+    def __init__(
+        self,
+        text2img: (
+            StableDiffusionPipeline
+            | StableDiffusionXLPipeline
+            | StableDiffusion3Pipeline
+        ),
+        img2img: StableDiffusionImg2ImgPipeline | None,
+        inpaint: StableDiffusionInpaintPipeline | None,
+        refiner: StableDiffusionXLImg2ImgPipeline | None,
+    ):
+        self.text2img = text2img
+        self.img2img = img2img
+        self.inpaint = inpaint
+        self.refiner = refiner
+
+
+class KandinskyPipeSet_2_2:
+    def __init__(
+        self,
+        prior: KandinskyV22PriorPipeline,
+        text2img: KandinskyV22Pipeline,
+        inpaint: KandinskyV22InpaintPipeline | None,
+    ):
+        self.prior = prior
+        self.text2img = text2img
+        self.inpaint = inpaint
+
+
+class Flux1PipeSet:
+    def __init__(
+        self,
+        text2img: FluxPipeline,
+    ):
+        self.text2img = text2img
+
+
+class Upscaler:
+    def __init__(self, pipe: AuraSR):
+        self.pipe = pipe
+
+
+class ModelsPack:
+    def __init__(
+        self,
+        sd_pipe_sets: dict[str, SDPipeSet],
+        upscaler: Upscaler,
+        kandinsky_2_2: KandinskyPipeSet_2_2,
+        flux1: Flux1PipeSet | None,
+    ):
+        self.sd_pipe_sets = sd_pipe_sets
+        self.upscaler = upscaler
+        self.kandinsky_2_2 = kandinsky_2_2
+        self.flux1 = flux1

@@ -1,6 +1,6 @@
 import os
 import torch
-from models.constants import DEVICE
+from models.constants import DEVICE_CUDA
 
 TASKS_SWINIR = {"Real-World Image Super-Resolution-Large": "real_sr"}
 
@@ -12,4 +12,4 @@ MODELS_SWINIR = {
 }
 
 
-DEVICE_SWINIR = torch.device(DEVICE)
+DEVICE_SWINIR = torch.device(DEVICE_CUDA)

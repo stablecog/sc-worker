@@ -3,14 +3,14 @@ name: Build and Publish Worker
 on:
   push:
     tags:
-      - 'release*'
-concurrency: 
+      - "release*"
+concurrency:
   group: workflow-${{ github.workflow }}
   cancel-in-progress: true
 jobs:
   setup_env:
     name: ⚙️ Setup environment
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Add SHORT_SHA env property
         run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
@@ -39,13 +39,16 @@ jobs:
 
   build_and_publish_worker:
     name: Build and Publish Worker
-    runs-on: [self-hosted]
+    runs-on: [ubuntu-latest]
     needs:
       - setup_env
     env:
       GITHUB_RUN_ID: ${{ github.run_id }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
+
       - uses: actions/checkout@master
         with:
           ref: master
@@ -61,43 +64,13 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: stablecog/sc-worker:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
+          tags: |
+            stablecog/sc-worker:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
+            stablecog/sc-worker:latest
+            stablecog/sc-worker:auto-vram
 
       - name: Cleanup Docker Junk
         if: success()
         run: |
           docker rmi -f $(docker images -q stablecog/sc-worker) || true
           docker system prune -f || true
-
-  deploy:
-    name: Deploy Worker
-    runs-on: self-hosted
-    needs:
-      - setup_env
-      - build_and_publish_worker
-    env:
-      GITHUB_RUN_ID: ${{ github.run_id }}
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Scale a100surge Group
-        run: |
-          az aks nodepool scale --resource-group k8s --cluster-name stablecog --name a100surge --node-count 2
-
-      - name: Deploy
-        uses: ./.github/actions/k8s-deploy
-        with:
-          image: stablecog/sc-worker:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
-          kube_config: ${{ secrets.AKS_KUBE_CONFIG }}
-
-      - name: Scale down a100surge
-        if: always()
-        run: |
-          az aks nodepool scale --resource-group k8s --cluster-name stablecog --name a100surge --node-count 0
-          az cache purge
-          az account clear

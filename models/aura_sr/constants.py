@@ -1,0 +1,1 @@
+MODEL_NAME_AURA_SR = "fal/AuraSR-v2"

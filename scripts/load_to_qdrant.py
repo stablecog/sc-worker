@@ -6,6 +6,7 @@ from qdrant_client.http import models
 import time
 import json
 from typing import List
+import logging
 
 
 def main():
@@ -46,9 +47,9 @@ def main():
     try:
         with open(last_created_at_txt, "r") as f:
             last_created_at = f.read()
-            print(f"Found last created at in txt: {last_created_at}")
+            logging.info(f"Found last created at in txt: {last_created_at}")
     except Exception as e:
-        print(f"Last created at file not found, will create one.")
+        logging.info(f"Last created at file not found, will create one.")
     loaded = 0
     while has_more_generation_outputs:
         try:
@@ -95,15 +96,15 @@ def main():
                         )
                     )
                 except Exception as e:
-                    print(f"Couldn't create PointStruce, error: {e}")
-                    print(f"Skipping this row")
+                    logging.info(f"Couldn't create PointStruce, error: {e}")
+                    logging.info(f"Skipping this row")
             try:
                 qdrant.upsert(
                     collection_name=collection_name,
                     points=points,
                 )
             except Exception as e:
-                print(f"Qdrant Error: {e}")
+                logging.info(f"Qdrant Error: {e}")
                 raise e
 
             last_created_at = points[-1].payload["created_at"]
@@ -111,11 +112,11 @@ def main():
             with open(last_created_at_txt, "w") as f:
                 f.write(last_created_at)
             loaded += len(points)
-            print(f"Total loaded: {loaded}")
-            print(f"Last loaded item: {last_created_at}")
+            logging.info(f"Total loaded: {loaded}")
+            logging.info(f"Last loaded item: {last_created_at}")
         except Exception as e:
-            print(f"Error: {e}")
-            print("Sleeping for 2 seconds and trying again...")
+            logging.info(f"Error: {e}")
+            logging.info("Sleeping for 2 seconds and trying again...")
             time.sleep(2)
 
 

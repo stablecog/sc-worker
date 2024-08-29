@@ -1,14 +1,10 @@
-import glob
-import os
-import shutil
-import tempfile
 import torch
-import shutil
 import numpy as np
 from collections import OrderedDict
 import cv2
-import tempfile
-from shared.helpers import clean_folder
+
+from predict.image.classes import ModelsPack
+from shared.move_to_cpu import move_other_models_to_cpu
 from .constants import DEVICE_SWINIR
 from .helpers import get_image_pair, setup
 import time
@@ -16,17 +12,26 @@ from PIL import Image
 from typing import Any
 import requests
 from io import BytesIO
+import logging
+from torch.amp import autocast
 
 
 @torch.inference_mode()
-@torch.cuda.amp.autocast()
-def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image:
-    if image is None:
-        raise ValueError("Image is required for the upscaler.")
+@autocast("cuda")
+def upscale(
+    image: np.ndarray | Image.Image | str, upscaler: Any, models_pack: ModelsPack
+) -> Image.Image:
+    #### Move other models to CPU if needed
+    move_other_models_to_cpu(
+        main_model_name="upscaler", main_model_pipe="upscaler", models_pack=models_pack
+    )
+    #####################################
 
     args = upscaler["args"]
     pipe = upscaler["pipe"]
     output_image = None
+
+    inference_start = time.time()
 
     # check if image is a url and download it if sso
     if is_url(image):
@@ -72,8 +77,8 @@ def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image
         output = output[..., : h_old * args.scale, : w_old * args.scale]
 
     inf_end_time = time.time()
-    print(
-        f"-- Upscale - Inference in: {round((inf_end_time - inf_start_time) * 1000)} ms --"
+    logging.info(
+        f"-- Upscale - Inference in: {round((inf_end_time - inf_start_time) * 1000)}ms --"
     )
 
     save_start_time = time.time()
@@ -85,15 +90,23 @@ def upscale(image: np.ndarray | Image.Image | str, upscaler: Any) -> Image.Image
     output = (output * 255.0).round().astype(np.uint8)
     output_image = output
     save_end_time = time.time()
-    print(
-        f"-- Upscale - Image save in: {round((save_end_time - save_start_time) * 1000)} ms --"
+    logging.info(
+        f"-- Upscale - Image save in: {round((save_end_time - save_start_time) * 1000)}ms --"
     )
 
     start = time.time()
     imageRGB = cv2.cvtColor(output_image, cv2.COLOR_BGR2RGBA)
     pil_image = Image.fromarray(imageRGB)
     end = time.time()
-    print(f"-- Upscale - Array to PIL Image in: {round((end - start) * 1000)} ms --")
+    logging.info(
+        f"-- Upscale - Array to PIL Image in: {round((end - start) * 1000)}ms --"
+    )
+
+    inference_end = time.time()
+    logging.info(
+        f"🔮 🟢 Inference | SwinIR | {round((inference_end - inference_start) * 1000)}ms"
+    )
+
     return pil_image
 
 
@@ -107,7 +120,7 @@ def download_image(url: str) -> np.array:
     if response.status_code != 200:
         raise ValueError(f"Failed to download image from: {url}")
     end = time.time()
-    print(f"-- Upscale - Download image in: {round((end - start) * 1000)} ms --")
+    logging.info(f"-- Upscale - Download image in: {round((end - start) * 1000)}ms --")
 
     # Convert the image from PIL format to numpy array
     image_rgb = np.array(Image.open(BytesIO(response.content)))

@@ -9,21 +9,18 @@ from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor
 from PIL import ImageOps
 from typing import TypeVar, List
-from scipy.io.wavfile import write
-from pydub import AudioSegment
 from io import BytesIO
-from pydub.silence import split_on_silence
 import numpy as np
 import textwrap
 import torch
 
-from pydub import AudioSegment
-from pyloudnorm import Meter, normalize
 from io import BytesIO
-
-
-from predict.voiceover.classes import RemoveSilenceParams
+import logging
 from tabulate import tabulate
+
+from models.constants import DEVICE_CUDA
+from .constants import TabulateLevels
+from contextlib import contextmanager
 
 
 def clean_folder(folder):
@@ -35,7 +32,7 @@ def clean_folder(folder):
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
         except Exception as e:
-            print("Failed to delete %s. Reason: %s" % (file_path, e))
+            logging.info("Failed to delete %s. Reason: %s" % (file_path, e))
 
 
 def ensure_trailing_slash(url: str) -> str:
@@ -67,33 +64,30 @@ def format_datetime(timestamp: datetime.datetime) -> str:
     return timestamp.isoformat() + "Z"
 
 
-def time_it(func):
-    # This function shows the execution time of
-    # the function object passed
-    def wrap_func(*args, **kwargs):
-        t1 = time.time()
-        result = func(*args, **kwargs)
-        t2 = time.time()
-        print(f"Function {func.__name__!r} executed in {((t2-t1)*1000):.0f}ms")
-        return result
+@contextmanager
+def time_log(job_name: str, ms=False, start_log=True, prefix=True):
+    start_prefix = "🟡 Started | "
+    end_prefix = "🟢 Finished | "
 
-    return wrap_func
+    if prefix is False:
+        start_prefix = ""
+        end_prefix = ""
 
+    if start_log is True:
+        logging.info(f"{start_prefix}{job_name}")
 
-class time_code_block:
-    def __init__(self, prefix=None):
-        self.prefix = prefix
+    start_time = time.time()
 
-    def __enter__(self):
-        self.start_time = time.time()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.end_time = time.time()
-        self.elapsed_time = (self.end_time - self.start_time) * 1000
-        statement = f"Executed in: {self.elapsed_time:.2f} ms"
-        if self.prefix:
-            statement = f"{self.prefix} - {statement}"
-        print(statement)
+    try:
+        yield
+    finally:
+        end_time = time.time()
+        execution_time = end_time - start_time
+        unit = "s"
+        if ms:
+            execution_time *= 1000
+            unit = "ms"
+        logging.info(f"{end_prefix}{job_name} | {execution_time:.0f}{unit}")
 
 
 def download_image(url):
@@ -129,23 +123,6 @@ def download_images(urls, max_workers=10):
     return images
 
 
-def download_image_from_s3(key, bucket):
-    try:
-        image_object = bucket.Object(key)
-        image_data = image_object.get().get("Body").read()
-        image = Image.open(BytesIO(image_data))
-        return image
-    except Exception as e:
-        return None
-
-
-def download_images_from_s3(keys, bucket, max_workers=25):
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        images = list(executor.map(download_image_from_s3, keys, [bucket] * len(keys)))
-
-    return images
-
-
 T = TypeVar("T")
 
 
@@ -153,41 +130,6 @@ def return_value_if_in_list(value: T, list_of_values: List[T]) -> bool:
     if value not in list_of_values:
         raise ValueError(f'"{value}" is not in the list of choices')
     return value
-
-
-def numpy_to_wav_bytes(numpy_array, sample_rate):
-    wav_io = BytesIO()
-    write(wav_io, sample_rate, numpy_array)
-    wav_io.seek(0)
-    return wav_io
-
-
-def remove_silence_from_wav(
-    wav_bytes: BytesIO,
-    remove_silence_params: RemoveSilenceParams,
-) -> BytesIO:
-    audio_segment = AudioSegment.from_wav(wav_bytes)
-    audio_chunks = split_on_silence(
-        audio_segment,
-        min_silence_len=remove_silence_params.min_silence_len,
-        silence_thresh=remove_silence_params.silence_thresh,
-        keep_silence=remove_silence_params.keep_silence_len,
-    )
-    combined = AudioSegment.empty()
-    for chunk in audio_chunks:
-        combined += chunk
-    wav_io = BytesIO()
-    combined.export(wav_io, format="wav")
-    wav_io.seek(0)
-    return wav_io
-
-
-def convert_wav_to_mp3(wav_bytes: BytesIO):
-    audio_segment = AudioSegment.from_wav(wav_bytes)
-    mp3_io = BytesIO()
-    audio_segment.export(mp3_io, format="mp3", bitrate="320k")
-    mp3_io.seek(0)
-    return mp3_io
 
 
 def create_scaled_mask(width, height, scale_factor):
@@ -235,19 +177,6 @@ def resize_to_mask(img, mask):
 def wrap_text(text, width=50):
     # This function wraps the text to a certain width
     return "\n".join(textwrap.wrap(text, width=width))
-
-
-def do_normalize_audio_loudness(audio_arr, sample_rate, target_lufs=-16):
-    s = time.time()
-    # Create a meter instance
-    meter = Meter(sample_rate)
-    # Measure the loudness of the audio
-    loudness = meter.integrated_loudness(audio_arr)
-    # Normalize the audio to the target LUFS
-    normalized_audio_arr = normalize.loudness(audio_arr, loudness, target_lufs)
-    e = time.time()
-    print(f"🔊 Normalized audio loudness in: {round((e - s) * 1000)} ms 🔊")
-    return normalized_audio_arr
 
 
 def pad_image_mask_nd(
@@ -336,19 +265,7 @@ def crop_images(image_array, width, height):
     return cropped_images
 
 
-def print_tuple(a, b):
-    print(tabulate([[a, b]], tablefmt="simple_grid"))
-
-
-def clean_prefix_or_suffix_space(text: str):
-    if text.startswith(" "):
-        text = text[1:]
-    if text.endswith(" "):
-        text = text[:-1]
-    return text
-
-
-def log_gpu_memory(device_id=0, message=None):
+def log_gpu_memory(device_id=0, message="Value"):
     try:
         device_properties = torch.cuda.get_device_properties(device_id)
 
@@ -362,13 +279,23 @@ def log_gpu_memory(device_id=0, message=None):
         cached = cached_memory / (1024**3)
         cached_str = f"{cached:.1f} GB"
         log_table = [
+            ["GPU Memory Log", message],
             ["Allocated / Total (GB)", total_and_allocated_str],
             ["Cached Memory (GB)", cached_str],
         ]
-        if message is not None:
-            print(message)
-        print(
-            tabulate([["GPU Memory Log", "Value"]] + log_table, tablefmt="double_grid")
-        )
+        logging.info(tabulate(log_table, tablefmt=TabulateLevels.PRIMARY.value))
     except Exception as e:
-        print(f"Failed to log GPU memory")
+        logging.info(f"Failed to log GPU memory")
+
+
+def move_pipe_to_device(pipe, model_name, device):
+    if pipe is None:
+        return None
+    s = time.time()
+    pipe = pipe.to(device, silence_dtype_warnings=True)
+    e = time.time()
+    emoji = "🚀" if device == DEVICE_CUDA else "🐌"
+    logging.info(
+        f"{emoji} Moved {model_name} to {device} in: {round((e - s) * 1000)}ms"
+    )
+    return pipe

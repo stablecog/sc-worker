@@ -1,5 +1,6 @@
 import requests
 from tabulate import tabulate
+import logging
 
 
 def get_release_info(package, version):
@@ -32,10 +33,16 @@ with open("requirements.txt") as f:
             total_in_mb += size_in_mb
             table.append([package, version, round(size_in_mb, 2)])
         except ValueError:
-            print(f"Skipping {line}")
+            logging.info(f"Skipping {line}")
     table = sorted(table, key=lambda x: x[2], reverse=True)
-    print("\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n")
-    print(tabulate(table, headers=["Package", "Version", "Size (MB)"]))
-    print("\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n")
-    print(f"Total size: {total_in_mb:.2f} MB")
-    print("\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n")
+    logging.info(
+        "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n"
+    )
+    logging.info(tabulate(table, headers=["Package", "Version", "Size (MB)"]))
+    logging.info(
+        "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n"
+    )
+    logging.info(f"Total size: {total_in_mb:.2f} MB")
+    logging.info(
+        "\n||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n"
+    )
