@@ -11,6 +11,7 @@ from shared.helpers import (
 )
 import logging
 import time
+from PIL import Image
 
 
 class Flex1Output:
@@ -91,7 +92,7 @@ def generate(
 
     log_gpu_memory(message="After inference")
 
-    output_images = []
+    output_images: List[Image.Image] = []
     nsfw_count = 0
 
     if (

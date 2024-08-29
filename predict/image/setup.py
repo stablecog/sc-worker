@@ -38,8 +38,7 @@ from models.stable_diffusion.constants import (
     SD_MODEL_CACHE,
     SD_MODELS,
 )
-from models.swinir.constants import DEVICE_SWINIR, MODELS_SWINIR, TASKS_SWINIR
-from models.swinir.helpers import define_model_swinir, get_args_swinir
+from models.aura_sr.constants import MODEL_NAME_AURA_SR
 from predict.image.classes import (
     Flux1PipeSet,
     KandinskyPipeSet_2_2,
@@ -49,6 +48,8 @@ from predict.image.classes import (
 from shared.constants import WORKER_VERSION, TabulateLevels
 import logging
 from tabulate import tabulate
+from aura_sr import AuraSR
+
 
 from shared.helpers import time_log
 
@@ -253,17 +254,10 @@ def setup() -> ModelsPack:
         )
 
     # For upscaler
-    upscaler_args = get_args_swinir()
-    upscaler_args.task = TASKS_SWINIR["Real-World Image Super-Resolution-Large"]
-    upscaler_args.scale = 4
-    upscaler_args.model_path = MODELS_SWINIR["real_sr"]["large"]
-    upscaler_args.large_model = True
-    upscaler_pipe = define_model_swinir(upscaler_args)
-    upscaler_pipe.eval()
-    upscaler_pipe = upscaler_pipe.to(DEVICE_SWINIR)
+    logging.info("🟡 Loading upscaler")
+    upscaler_pipe = AuraSR.from_pretrained(MODEL_NAME_AURA_SR)
     upscaler = {
         "pipe": upscaler_pipe,
-        "args": upscaler_args,
     }
     logging.info("✅ Loaded upscaler")
 

@@ -12,6 +12,7 @@ from diffusers import (
 )
 from typing import Any
 from PIL import Image
+from aura_sr import AuraSR
 
 
 class PredictOutput:
@@ -76,11 +77,16 @@ class Flux1PipeSet:
         self.text2img = text2img
 
 
+class Upscaler:
+    def __init__(self, pipe: AuraSR):
+        self.pipe = pipe
+
+
 class ModelsPack:
     def __init__(
         self,
         sd_pipe_sets: dict[str, SDPipeSet],
-        upscaler: Any,
+        upscaler: Upscaler,
         kandinsky_2_2: KandinskyPipeSet_2_2,
         flux1: Flux1PipeSet | None,
     ):

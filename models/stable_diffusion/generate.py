@@ -14,6 +14,7 @@ from shared.helpers import (
     move_pipe_to_device,
 )
 import logging
+from PIL import Image
 
 
 class SDOutput:
@@ -167,7 +168,7 @@ def generate(
 
     log_gpu_memory(message="After inference")
 
-    output_images = []
+    output_images: List[Image.Image] = []
     nsfw_count = 0
 
     if (

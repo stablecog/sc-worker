@@ -7,12 +7,12 @@ from io import BytesIO
 import logging
 
 
-from predict.image.classes import ModelsPack
+from predict.image.classes import ModelsPack, Upscaler
 from shared.move_to_cpu import move_other_models_to_cpu
 
 
 def upscale(
-    image: Image.Image | str, upscaler: Any, models_pack: ModelsPack
+    image: Image.Image | str, upscaler: Upscaler, models_pack: ModelsPack
 ) -> Image.Image:
     #### Move other models to CPU if needed
     move_other_models_to_cpu(
@@ -21,16 +21,16 @@ def upscale(
     #####################################
     if is_url(image):
         s = time.time()
-        logging.info("🔮 🟡 Upscale | Image is a URL, downloading...")
+        logging.info("🟡 Upscale | Image is a URL, downloading...")
         image = load_image_from_url(image)
         e = time.time()
-        logging.info(f"🔮 🟢 Upscale | Image downloaded | {round((e - s) * 1000)}ms")
+        logging.info(f"🟢 Upscale | Image downloaded | {round((e - s) * 1000)}ms")
 
     inf_start_time = time.time()
     upscaled_image = upscaler.pipe.upscale_4x_overlapped(image)
     inf_end_time = time.time()
     logging.info(
-        f"🔮 🟢 Upscale | Inference | {round((inf_end_time - inf_start_time) * 1000)}ms"
+        f"🔮 Upscale | Inference | {round((inf_end_time - inf_start_time) * 1000)}ms"
     )
 
     return upscaled_image
@@ -70,9 +70,6 @@ def load_image_from_url(url, timeout=10, max_size=8 * 1024 * 1024):
         # Load image
         image_data = BytesIO(response.content)
         image = Image.open(image_data)
-
-        # Force load image data
-        image.load()
 
         return image
 

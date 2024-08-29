@@ -14,7 +14,7 @@ from models.stable_diffusion.constants import (
 )
 
 from models.stable_diffusion.generate import generate as generate_with_sd
-from models.swinir.upscale import upscale
+from models.aura_sr.upscale import upscale
 
 from typing import List
 
@@ -89,7 +89,7 @@ class PredictInput(BaseModel):
         description="Output quality of the image. Can be 1-100.", default=90
     )
     image_to_upscale: str = Field(
-        description="Input image for the upscaler (SwinIR).", default=None
+        description="Input image for the upscaler (AuraSR).", default=None
     )
     process_type: str = Field(
         description="Choose a process type. Can be 'generate', 'upscale' or 'generate_and_upscale'. Defaults to 'generate'",

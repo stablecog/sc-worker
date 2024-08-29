@@ -1,5 +1,6 @@
 import os
 import time
+from typing import List
 
 from models.constants import DEVICE_CUDA, is_not_cuda
 from models.kandinsky.constants import (
@@ -19,6 +20,7 @@ from shared.helpers import (
 import torch
 from torch.amp import autocast
 import logging
+from PIL import Image
 
 PRIOR_STEPS = 25
 PRIOR_GUIDANCE_SCALE = 4.0
@@ -83,7 +85,7 @@ def generate_2_2(
 
     logging.info(f"Negative prompt for Kandinsky 2.2: {negative_prompt}")
 
-    output_images = []
+    output_images: List[Image.Image] = []
 
     if is_not_cuda(pipe.prior.device.type):
         pipe.prior = move_pipe_to_device(
@@ -243,7 +245,7 @@ def generate_2_2(
             output_images_nsfw_results.append(res)
 
     nsfw_count = 0
-    filtered_output_images = []
+    filtered_output_images: List[Image.Image] = []
 
     for i, res in enumerate(output_images_nsfw_results):
         if res["has_nsfw_concepts"]:
