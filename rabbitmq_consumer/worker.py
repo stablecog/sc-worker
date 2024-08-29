@@ -183,17 +183,20 @@ def start_amqp_queue_worker(
     while not shutdown_event.is_set() or callback_in_progress:
         try:
             connection.channel.basic_qos(prefetch_count=1)
-            connection.channel.basic_consume(queue=queue_name, on_message_callback=msg_callback)
+            connection.channel.basic_consume(
+                queue=queue_name, on_message_callback=msg_callback
+            )
             connection.channel.start_consuming()
-        except ConnectionClosedByBroker as err:
-            logging.error(f"ConnectionClosedByBroker {err}")
+        except (ConnectionClosedByBroker, AMQPConnectionError, AMQPHeartbeatError) as err:
+            logging.error(f"Connection error: {err}. Attempting to reconnect...")
             connection.reconnect()
             continue
         except AMQPChannelError as err:
-            logging.error(f"AMQPChannelError {err}")
-            break
-        except AMQPConnectionError as err:
-            logging.error(f"AMQPConnectionError {err}")
+            logging.error(f"Channel error: {err}. Attempting to reopen channel...")
+            connection.reconnect()  # Attempt to reconnect and reopen the channel
+            continue
+        except Exception as err:
+            logging.error(f"Unexpected error: {err}. Attempting to recover...")
             connection.reconnect()
             continue
     if callback_in_progress:
