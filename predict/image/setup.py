@@ -78,8 +78,6 @@ def setup() -> ModelsPack:
         login(token=hf_token)
         logging.info(f"✅ Logged in to HuggingFace")
 
-    download_swinir_models()
-
     flux1: Flux1PipeSet = None
 
     if FLUX1_LOAD:
