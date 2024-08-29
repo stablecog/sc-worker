@@ -18,6 +18,7 @@ def upscale(
     move_other_models_to_cpu(
         main_model_name="upscaler", main_model_pipe="upscaler", models_pack=models_pack
     )
+    logging.info("🟡 Upscale | Started")
     #####################################
     if is_url(image):
         s = time.time()
