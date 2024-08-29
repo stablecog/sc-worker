@@ -25,10 +25,11 @@ def upscale(
     move_other_models_to_cpu(
         main_model_name="upscaler", main_model_pipe="upscaler", models_pack=models_pack
     )
+    #####################################
+
     args = upscaler["args"]
     pipe = upscaler["pipe"]
     output_image = None
-    #####################################
 
     inference_start = time.time()
 
