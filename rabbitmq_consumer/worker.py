@@ -13,6 +13,7 @@ from pika.exceptions import (
     ConnectionClosedByBroker,
     AMQPConnectionError,
     AMQPChannelError,
+    AMQPHeartbeatTimeout
 )
 
 from rabbitmq_consumer.events import Status, Event
@@ -167,7 +168,7 @@ def start_amqp_queue_worker(
                 queue=queue_name, on_message_callback=msg_callback
             )
             connection.channel.start_consuming()
-        except (ConnectionClosedByBroker, AMQPConnectionError, AMQPHeartbeatError) as err:
+        except (ConnectionClosedByBroker, AMQPConnectionError, AMQPHeartbeatTimeout) as err:
             logging.error(f"Connection error: {err}. Attempting to reconnect...")
             connection.reconnect()
             continue
