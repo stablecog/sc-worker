@@ -14,12 +14,10 @@ from diffusers import (
     FluxTransformer2DModel,
     FluxPipeline,
 )
-from transformers import T5EncoderModel, CLIPTextModel
-from diffusers.models import AutoencoderKL
+from transformers import T5EncoderModel
 from huggingface_hub import login
 
 from models.constants import DEVICE_CPU, DEVICE_CUDA
-from models.download.download_from_hf import download_swinir_models
 from models.flux1.constants import (
     FLUX1_DTYPE,
     FLUX1_KEEP_IN_CPU_WHEN_IDLE,
