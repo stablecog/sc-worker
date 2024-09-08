@@ -194,7 +194,8 @@ def setup() -> ModelsPack:
 
             text2img = None
             if "from_single_file_url" in SD_MODELS[key]:
-                logging.info(f"🟡 Loading SD model: {key} from single file: {SD_MODELS[key]["from_single_file_url"]}")
+                url = SD_MODELS[key]["from_single_file_url"]
+                logging.info(f"🟡 Loading SD model: {key} from single file: {url}")
                 text2img = StableDiffusion3Pipeline.from_single_file(**args)
             else:
                 text2img = StableDiffusion3Pipeline.from_pretrained(**args)
