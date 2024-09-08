@@ -36,6 +36,7 @@ SD_MODEL_CACHE = "/app/data/diffusers-cache"
 
 SD_MODELS_ALL = {
     "Stable Diffusion 3": {
+        "from_single_file_url": "https://huggingface.co/stabilityai/stable-diffusion-3-medium/blob/main/sd3_medium_incl_clips_t5xxlfp8.safetensors",
         "id": "stabilityai/stable-diffusion-3-medium-diffusers",
         "torch_dtype": torch.float16,
         "base_model": "Stable Diffusion 3",

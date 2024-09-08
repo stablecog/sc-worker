@@ -176,17 +176,28 @@ def setup() -> ModelsPack:
             )
         elif base_model == "Stable Diffusion 3":
             args = {
-                "pretrained_model_name_or_path": SD_MODELS[key]["id"],
                 "torch_dtype": SD_MODELS[key]["torch_dtype"],
                 "cache_dir": SD_MODEL_CACHE,
-                "text_encoder_3": None,
-                "tokenizer_3": None,
                 "safety_checker": None,
             }
+            if "from_single_file_url" in SD_MODELS[key]:
+                args["pretrained_model_name_or_path"] = SD_MODELS[key][
+                    "from_single_file_url"
+                ]
+                logging.info(f"🟡 Loading SD model: {key} from single file")
+            else:
+                args["pretrained_model_name_or_path"] = SD_MODELS[key]["id"]
+                args["text_encoder_3"] = None
+                args["tokenizer_3"] = None
+
             if "variant" in SD_MODELS[key]:
                 args["variant"] = SD_MODELS[key]["variant"]
 
-            text2img = StableDiffusion3Pipeline.from_pretrained(**args)
+            text2img = None
+            if "from_single_file_url" in SD_MODELS[key]:
+                text2img = StableDiffusion3Pipeline.from_single_file(**args)
+            else:
+                text2img = StableDiffusion3Pipeline.from_pretrained(**args)
             text2img = auto_move_to_device(SD_MODELS, key, text2img, f"{key} text2img")
             img2img = StableDiffusion3Img2ImgPipeline(**text2img.components)
             pipe = SDPipeSet(
