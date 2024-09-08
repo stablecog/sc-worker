@@ -181,7 +181,7 @@ def setup() -> ModelsPack:
                 "safety_checker": None,
             }
             if "from_single_file_url" in SD_MODELS[key]:
-                args["pretrained_model_name_or_path"] = SD_MODELS[key][
+                args["pretrained_model_link_or_path"] = SD_MODELS[key][
                     "from_single_file_url"
                 ]
             else:
