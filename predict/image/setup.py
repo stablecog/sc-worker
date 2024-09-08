@@ -82,7 +82,7 @@ def setup() -> ModelsPack:
         f1_s = time.time()
         with time_log(f"Load {FLUX1_MODEL_NAME} transformer"):
             f1_transformer = FluxTransformer2DModel.from_single_file(
-                "https://huggingface.co/Kijai/flux-fp8/blob/main/flux1-schnell-fp8.safetensors",
+                "https://huggingface.co/Kijai/flux-fp8/blob/main/flux1-schnell-fp8-e4m3fn.safetensors",
                 torch_dtype=FLUX1_DTYPE,
             )
         with time_log(f"Quantize {FLUX1_MODEL_NAME} transformer"):
