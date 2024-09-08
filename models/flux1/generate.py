@@ -13,6 +13,8 @@ import logging
 import time
 from PIL import Image
 
+MAX_INFERENCE_STEPS = 4
+
 
 class Flex1Output:
     def __init__(self, images: List[str], nsfw_content_detected: List[bool]):
@@ -76,7 +78,7 @@ def generate(
             generator=generator,
             guidance_scale=0,
             num_images_per_prompt=1,
-            num_inference_steps=4,
+            num_inference_steps=min(num_inference_steps, MAX_INFERENCE_STEPS),
             **extra_kwargs,
         )
         for img in out.images:
