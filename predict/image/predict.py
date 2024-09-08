@@ -1,4 +1,5 @@
 import time
+from models.aura_sr.constants import AURA_SR_MODEL_NAME
 from models.flux1.constants import FLUX1_LOAD, FLUX1_MODEL_NAME
 from models.kandinsky.constants import (
     KANDINSKY_2_2_MODEL_NAME,
@@ -109,7 +110,7 @@ class PredictInput(BaseModel):
 
     @validator("model")
     def validate_model(cls, v):
-        rest = []
+        rest = [AURA_SR_MODEL_NAME]
         if LOAD_KANDINSKY_2_2:
             rest += [KANDINSKY_2_2_MODEL_NAME]
         if FLUX1_LOAD:

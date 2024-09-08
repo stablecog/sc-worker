@@ -1,1 +1,2 @@
-MODEL_NAME_AURA_SR = "fal/AuraSR-v2"
+AURA_SR_MODEL_ID = "fal/AuraSR-v2"
+AURA_SR_MODEL_NAME = "AuraSR"

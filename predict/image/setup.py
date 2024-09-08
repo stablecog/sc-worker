@@ -36,7 +36,7 @@ from models.stable_diffusion.constants import (
     SD_MODEL_CACHE,
     SD_MODELS,
 )
-from models.aura_sr.constants import MODEL_NAME_AURA_SR
+from models.aura_sr.constants import AURA_SR_MODEL_ID
 from predict.image.classes import (
     Flux1PipeSet,
     KandinskyPipeSet_2_2,
@@ -252,7 +252,7 @@ def setup() -> ModelsPack:
 
     # For upscaler
     logging.info("🟡 Loading upscaler")
-    upscaler_pipe = AuraSR.from_pretrained(MODEL_NAME_AURA_SR)
+    upscaler_pipe = AuraSR.from_pretrained(AURA_SR_MODEL_ID)
     upscaler = Upscaler(
         pipe=upscaler_pipe,
     )
