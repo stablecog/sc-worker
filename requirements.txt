@@ -9,7 +9,7 @@ accelerate
 bitsandbytes
 huggingface-hub
 ftfy==6.1.3
-scipy==1.11.4
+scipy==1.14.1
 numpy==2.1.1
 opencv-python==4.7.0.68
 tqdm==4.66.1
