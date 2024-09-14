@@ -45,7 +45,7 @@ def setup_logger():
     )
     stdout_handler.setFormatter(formatter)
 
-    # Set up the listener to handle log entries from the queue
+    # Set up the listener to handle entries from the queue
     listener = logging.handlers.QueueListener(queue, handler_loki, stdout_handler)
 
     # Start the listener
