@@ -2,7 +2,7 @@ import os
 import time
 import torch
 import logging
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from diffusers import (
     KandinskyV22Pipeline,
     KandinskyV22PriorPipeline,
@@ -20,7 +20,6 @@ from huggingface_hub import login
 from models.constants import DEVICE_CPU, DEVICE_CUDA
 from models.flux1.constants import (
     FLUX1_DTYPE,
-    FLUX1_FP8_TRANSFORMER_FILE,
     FLUX1_KEEP_IN_CPU_WHEN_IDLE,
     FLUX1_MODEL_NAME,
     FLUX1_REPO,
@@ -64,7 +63,7 @@ def load_flux1_model():
     f1_s = time.time()
     with time_log(f"Load {FLUX1_MODEL_NAME} transformer"):
         f1_transformer = FluxTransformer2DModel.from_single_file(
-            FLUX1_FP8_TRANSFORMER_FILE,
+            "https://huggingface.co/Kijai/flux-fp8/blob/main/flux1-schnell-fp8-e4m3fn.safetensors",
             torch_dtype=FLUX1_DTYPE,
         )
     with time_log(f"Quantize {FLUX1_MODEL_NAME} transformer"):
@@ -208,7 +207,7 @@ def load_sd_model(key):
     logging.info(
         f"✅ Loaded SD model: {key} | Duration: {round(time.time() - s, 1)} seconds"
     )
-    return pipe
+    return key, pipe  # Return key to identify the model
 
 
 def load_kandinsky_2_2():
@@ -270,44 +269,40 @@ def setup() -> ModelsPack:
     kandinsky_2_2 = None
     upscaler = None
 
-    with ThreadPoolExecutor() as executor:
-        futures = {}
+    with ProcessPoolExecutor() as executor:
+        futures = []
 
         # Flux1 model
         if FLUX1_LOAD:
             flux1_future = executor.submit(load_flux1_model)
-            futures[flux1_future] = "flux1"
+            futures.append(flux1_future)
 
         # SD models
-        for key in SD_MODELS:
-            sd_future = executor.submit(load_sd_model, key)
-            futures[sd_future] = ("sd", key)
+        sd_futures = {executor.submit(load_sd_model, key): key for key in SD_MODELS}
 
         # Kandinsky 2.2
         if LOAD_KANDINSKY_2_2:
             kandinsky_future = executor.submit(load_kandinsky_2_2)
-            futures[kandinsky_future] = "kandinsky_2_2"
+            futures.append(kandinsky_future)
 
         # Upscaler
         upscaler_future = executor.submit(load_upscaler)
-        futures[upscaler_future] = "upscaler"
+        futures.append(upscaler_future)
 
-        for future in as_completed(futures):
-            task = futures[future]
+        for future in as_completed(futures + list(sd_futures.keys())):
             try:
                 result = future.result()
-                if task == "flux1":
+                if future == flux1_future:
                     flux1 = result
-                elif task == "kandinsky_2_2":
+                elif future == kandinsky_future:
                     kandinsky_2_2 = result
-                elif task == "upscaler":
+                elif future == upscaler_future:
                     upscaler = result
-                elif isinstance(task, tuple) and task[0] == "sd":
-                    key = task[1]
-                    pipe = result
+                elif future in sd_futures:
+                    key, pipe = result
                     sd_pipe_sets[key] = pipe
             except Exception as e:
-                logging.error(f"Error loading {task}: {e}")
+                logging.error(f"Error loading model: {e}")
 
     end = time.time()
     logging.info("//////////////////////////////////////////////////////////////////")
