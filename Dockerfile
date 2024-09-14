@@ -5,10 +5,8 @@ WORKDIR /app
 
 COPY requirements.txt .
 
-RUN python3 -m pip install virtualenv --no-cache-dir
-RUN python3 -m virtualenv venv
-RUN . venv/bin/activate && pip install -r requirements.txt --no-cache-dir && deactivate
+RUN pip install -r requirements.txt
 
 COPY . .
 
-CMD . venv/bin/activate && exec python main.py
+CMD python main.py
