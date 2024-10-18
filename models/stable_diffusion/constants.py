@@ -59,7 +59,7 @@ SD_MODELS_ALL = {
         "variant": "fp16",
         "refiner_id": "stabilityai/stable-diffusion-xl-refiner-1.0",
         "base_model": "SDXL",
-        "keep_in_cpu_when_idle": device_vram_gb < 75,
+        "keep_in_cpu_when_idle": True,
     },
     "Luna Diffusion": {
         "id": "proximasanfinetuning/luna-diffusion",
