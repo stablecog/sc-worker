@@ -67,7 +67,6 @@ jobs:
           tags: |
             stablecog/sc-worker:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
             stablecog/sc-worker:latest
-            stablecog/sc-worker:auto-vram
 
       - name: Cleanup Docker Junk
         if: success()
