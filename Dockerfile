@@ -1,4 +1,4 @@
-FROM stablecog/cuda-torch:12.4.0-2.4.0-runtime-ubuntu22.04
+FROM stablecog/cuda-torch:12.4.0-2.4.0
 
 RUN mkdir -p /app/data
 WORKDIR /app
