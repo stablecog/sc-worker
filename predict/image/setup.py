@@ -24,6 +24,7 @@ from models.flux1.constants import (
     FLUX1_MODEL_NAME,
     FLUX1_REPO,
     FLUX1_LOAD,
+    FLUX1_TRANSFORMER_REPO,
 )
 from models.kandinsky.constants import (
     KANDINSKY_2_2_DECODER_MODEL_ID,
@@ -81,16 +82,10 @@ def setup() -> ModelsPack:
     if FLUX1_LOAD:
         f1_s = time.time()
         with time_log(f"Load {FLUX1_MODEL_NAME} transformer"):
-            f1_transformer = FluxTransformer2DModel.from_single_file(
-                "https://huggingface.co/Kijai/flux-fp8/blob/main/flux1-schnell-fp8-e4m3fn.safetensors",
+            f1_transformer = FluxTransformer2DModel.from_pretrained(
+                FLUX1_TRANSFORMER_REPO,
                 torch_dtype=FLUX1_DTYPE,
             )
-        with time_log(f"Quantize {FLUX1_MODEL_NAME} transformer"):
-            quantize(f1_transformer, weights=qfloat8)
-
-        with time_log(f"Freeze {FLUX1_MODEL_NAME} transformer"):
-            freeze(f1_transformer)
-
         with time_log(f"Load {FLUX1_MODEL_NAME} text_encoder_2"):
             f1_text_encoder_2 = T5EncoderModel.from_pretrained(
                 FLUX1_REPO, subfolder="text_encoder_2", torch_dtype=FLUX1_DTYPE

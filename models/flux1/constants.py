@@ -4,6 +4,7 @@ import torch
 
 FLUX1_MODEL_NAME = "FLUX.1"
 FLUX1_REPO = "black-forest-labs/FLUX.1-schnell"
+FLUX1_TRANSFORMER_REPO = "stablecog-hf-1/FLUX.1-schnell-8bit-transformer"
 FLUX1_KEEP_IN_CPU_WHEN_IDLE = device_vram_gb < 40
 FLUX1_DTYPE = torch.bfloat16
 
