@@ -2,7 +2,7 @@ diffusers==0.31.0
 transformers==4.46.0
 safetensors==0.4.5
 sentencepiece==0.2.0
-optimum-quanto==0.2.4
+optimum-quanto==0.2.2
 protobuf==5.28.3
 hf-transfer==0.1.8
 accelerate==1.0.1
