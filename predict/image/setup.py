@@ -86,13 +86,13 @@ def setup() -> ModelsPack:
                 FLUX1_TRANSFORMER_REPO,
                 torch_dtype=FLUX1_DTYPE,
             )
+
         with time_log(f"Load {FLUX1_MODEL_NAME} text_encoder_2"):
             f1_text_encoder_2 = T5EncoderModel.from_pretrained(
                 FLUX1_REPO, subfolder="text_encoder_2", torch_dtype=FLUX1_DTYPE
             )
         with time_log(f"Quantize {FLUX1_MODEL_NAME} text_encoder_2"):
             quantize(f1_text_encoder_2, weights=qfloat8)
-
         with time_log(f"Freeze {FLUX1_MODEL_NAME} text_encoder_2"):
             freeze(f1_text_encoder_2)
 
