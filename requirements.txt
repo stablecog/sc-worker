@@ -33,7 +33,7 @@ python-logging-loki==0.3.1
 peft==0.13.2
 aura-sr==0.0.4
 --extra-index-url https://download.pytorch.org/whl/nightly/cu124
-torch==2.5.0
+torch==2.6.0
 --extra-index-url https://download.pytorch.org/whl/nightly/cu124
 torchvision==0.20.0
 --extra-index-url https://download.pytorch.org/whl/nightly/cu124
