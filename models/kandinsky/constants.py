@@ -7,7 +7,6 @@ from diffusers import (
 from shared.constants import MODELS_FROM_ENV, MODELS_FROM_ENV_LIST
 from shared.vram import device_vram_gb
 
-# Test
 KANDINSKY_2_2_DECODER_MODEL_ID = "kandinsky-community/kandinsky-2-2-decoder"
 KANDINSKY_2_2_PRIOR_MODEL_ID = "kandinsky-community/kandinsky-2-2-prior"
 KANDINSKY_2_2_DECODER_INPAINT_MODEL_ID = (
