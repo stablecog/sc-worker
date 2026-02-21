@@ -42,16 +42,6 @@ SD_MODELS_ALL = {
         "base_model": "Stable Diffusion 3",
         "keep_in_cpu_when_idle": device_vram_gb < 75,
     },
-    "SDXL": {
-        "id": "stabilityai/stable-diffusion-xl-base-1.0",
-        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
-        "torch_dtype": torch.float16,
-        "variant": "fp16",
-        "refiner_id": "stabilityai/stable-diffusion-xl-refiner-1.0",
-        "default_lora": "sd_xl_offset_example-lora_1.0.safetensors",
-        "base_model": "SDXL",
-        "keep_in_cpu_when_idle": True,
-    },
     "SSD-1B": {
         "id": "segmind/SSD-1B",
         "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
@@ -60,28 +50,6 @@ SD_MODELS_ALL = {
         "refiner_id": "stabilityai/stable-diffusion-xl-refiner-1.0",
         "base_model": "SDXL",
         "keep_in_cpu_when_idle": device_vram_gb < 75,
-    },
-    "Luna Diffusion": {
-        "id": "proximasanfinetuning/luna-diffusion",
-        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
-        "torch_dtype": torch.float16,
-        "keep_in_cpu_when_idle": True,
-    },
-    "Waifu Diffusion": {
-        "id": "hakurei/waifu-diffusion",
-        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
-        "prompt_prefix": "masterpiece, best quality, high quality",
-        "negative_prompt_prefix": "worst quality, low quality, deleted, nsfw, blurry",
-        "torch_dtype": torch.float16,
-        "branch": "fp16",
-        "keep_in_cpu_when_idle": True,
-    },
-    "22h Diffusion": {
-        "id": "22h/vintedois-diffusion-v0-1",
-        "inpaint_id": "diffusers/stable-diffusion-xl-1.0-inpainting-0.1",
-        "prompt_prefix": "estilovintedois",
-        "torch_dtype": torch.float16,
-        "keep_in_cpu_when_idle": True,
     },
 }
 
