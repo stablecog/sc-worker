@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
 
 RUN mkdir -p /app/data
 WORKDIR /app
