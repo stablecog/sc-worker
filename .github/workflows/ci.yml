@@ -66,6 +66,7 @@ jobs:
           push: true
           tags: |
             stablecog/sc-worker:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
+            stablecog/sc-worker:small
 
       - name: Cleanup Docker Junk
         if: success()
