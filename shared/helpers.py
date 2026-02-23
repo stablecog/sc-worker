@@ -289,10 +289,9 @@ def log_gpu_memory(device_id=0, message="Value"):
 
 
 def move_quantized_model_to(model, device):
-    """Move a bitsandbytes quantized model bypassing the .to() block."""
     for param in model.parameters():
         param.data = param.data.to(device)
-        if hasattr(param, "SCB"):
+        if hasattr(param, "SCB") and param.SCB is not None:
             param.SCB = param.SCB.to(device)
         if hasattr(param, "quant_state") and param.quant_state is not None:
             param.quant_state.to(device)
