@@ -37,7 +37,7 @@ from models.stable_diffusion.constants import (
     SD_MODEL_CACHE,
     SD_MODELS,
 )
-from models.aura_sr.constants import AURA_SR_MODEL_ID
+from models.aura_sr.constants import AURA_SR_MODEL_ID, AURA_SR_KEEP_IN_CPU_WHEN_IDLE
 from predict.image.classes import (
     Flux1PipeSet,
     KandinskyPipeSet_2_2,
@@ -259,7 +259,13 @@ def setup() -> ModelsPack:
 
     # For upscaler
     logging.info("🟡 Loading upscaler")
-    upscaler_pipe = AuraSR.from_pretrained(AURA_SR_MODEL_ID)
+    upscaler_device = DEVICE_CUDA
+    if AURA_SR_KEEP_IN_CPU_WHEN_IDLE:
+        upscaler_device = DEVICE_CPU
+        logging.info(f"🐌 Keep in {DEVICE_CPU} when idle: {AURA_SR_MODEL_ID}")
+    else:
+        logging.info(f"🚀 Keep in {DEVICE_CUDA}: {AURA_SR_MODEL_ID}")
+    upscaler_pipe = AuraSR.from_pretrained(AURA_SR_MODEL_ID, device=upscaler_device)
     upscaler = Upscaler(
         pipe=upscaler_pipe,
     )
