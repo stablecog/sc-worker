@@ -260,15 +260,20 @@ def setup() -> ModelsPack:
     # For upscaler
     logging.info("🟡 Loading upscaler")
     upscaler_device = DEVICE_CUDA
+    upscaler_pipe = AuraSR.from_pretrained(AURA_SR_MODEL_ID)
+
     if AURA_SR_KEEP_IN_CPU_WHEN_IDLE:
         upscaler_device = DEVICE_CPU
         logging.info(f"🐌 Keep in {DEVICE_CPU} when idle: {AURA_SR_MODEL_ID}")
+        upscaler_pipe.upsampler.to(upscaler_device)
     else:
         logging.info(f"🚀 Keep in {DEVICE_CUDA}: {AURA_SR_MODEL_ID}")
-    upscaler_pipe = AuraSR.from_pretrained(AURA_SR_MODEL_ID, device=upscaler_device)
+        upscaler_pipe.upsampler.to(upscaler_device)
+
     upscaler = Upscaler(
         pipe=upscaler_pipe,
     )
+
     logging.info("✅ Loaded upscaler")
 
     end = time.time()
