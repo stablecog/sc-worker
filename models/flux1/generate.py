@@ -62,12 +62,11 @@ def generate(
     extra_kwargs["width"] = width
     extra_kwargs["height"] = height
 
-    if is_not_cuda(pipe_selected.device.type):
-        pipe_selected = move_pipe_to_device(
-            pipe=pipe_selected,
-            model_name=f"{model} {main_model_pipe}",
-            device=DEVICE_CUDA,
-        )
+    pipe_selected = move_pipe_to_device(
+        pipe=pipe_selected,
+        model_name=f"{model} {main_model_pipe}",
+        device=DEVICE_CUDA,
+    )
 
     output: Flex1Output = Flex1Output(images=[], nsfw_content_detected=[])
 
