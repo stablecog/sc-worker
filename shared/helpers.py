@@ -292,7 +292,7 @@ def move_pipe_to_device(pipe, model_name, device):
     if pipe is None:
         return None
     s = time.time()
-    if model_name == "Upscaler":
+    if model_name == "upscaler":
         pipe.upsampler = pipe.upsampler.to(device)
     else:
         pipe = pipe.to(device, silence_dtype_warnings=True)
