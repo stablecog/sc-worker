@@ -170,16 +170,6 @@ def move_other_models_to_cpu(
                     device=DEVICE_CPU,
                 )
 
-    # Move upscaler to CPU if needed
-    if models_pack.upscaler is not None and main_model_name != "upscaler":
-        if is_cuda(next(models_pack.upscaler.pipe.upsampler.parameters()).device.type):
-            model_count += 1
-            models_pack.upscaler.pipe = move_pipe_to_device(
-                pipe=models_pack.upscaler.pipe,
-                model_name=f"upscaler",
-                device=DEVICE_CPU,
-            )
-
     e = time.time()
     if model_count == 0:
         logging.info(
@@ -256,15 +246,6 @@ def move_all_models_to_cpu(models_pack: ModelsPack):
             models_pack.sd_pipe_sets[model_name].refiner = move_pipe_to_device(
                 pipe=pipe_set.refiner,
                 model_name=f"{model_name} refiner",
-                device=DEVICE_CPU,
-            )
-
-        # Upscaler
-        if models_pack.upscaler is not None:
-            model_count += 1
-            models_pack.upscaler.pipe = move_pipe_to_device(
-                pipe=models_pack.upscaler.pipe,
-                model_name=f"upscaler",
                 device=DEVICE_CPU,
             )
 
