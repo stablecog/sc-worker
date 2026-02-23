@@ -16,7 +16,7 @@ from PIL import Image
 MAX_INFERENCE_STEPS = 4
 
 
-class Flex1Output:
+class Flux1Output:
     def __init__(self, images: List[str], nsfw_content_detected: List[bool]):
         self.images = images
         self.nsfw_content_detected = nsfw_content_detected
@@ -68,7 +68,7 @@ def generate(
         device=DEVICE_CUDA,
     )
 
-    output: Flex1Output = Flex1Output(images=[], nsfw_content_detected=[])
+    output: Flux1Output = Flux1Output(images=[], nsfw_content_detected=[])
 
     for i in range(num_outputs):
         generator = torch.Generator(device=DEVICE_CUDA).manual_seed(seed + i)

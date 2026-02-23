@@ -24,7 +24,6 @@ from models.flux1.constants import (
     FLUX1_MODEL_NAME,
     FLUX1_REPO,
     FLUX1_LOAD,
-    FLUX1_TRANSFORMER_REPO,
 )
 from models.kandinsky.constants import (
     KANDINSKY_2_2_DECODER_MODEL_ID,
@@ -81,11 +80,19 @@ def setup() -> ModelsPack:
 
     if FLUX1_LOAD:
         f1_s = time.time()
+
+        # Load transformer from original repo (not pre-quantized bitsandbytes)
+        # and quantize with quanto so .to() CPU/GPU moves work
         with time_log(f"Load {FLUX1_MODEL_NAME} transformer"):
             f1_transformer = FluxTransformer2DModel.from_pretrained(
-                FLUX1_TRANSFORMER_REPO,
+                FLUX1_REPO,
+                subfolder="transformer",
                 torch_dtype=FLUX1_DTYPE,
             )
+        with time_log(f"Quantize {FLUX1_MODEL_NAME} transformer"):
+            quantize(f1_transformer, weights=qfloat8)
+        with time_log(f"Freeze {FLUX1_MODEL_NAME} transformer"):
+            freeze(f1_transformer)
 
         with time_log(f"Load {FLUX1_MODEL_NAME} text_encoder_2"):
             f1_text_encoder_2 = T5EncoderModel.from_pretrained(
@@ -102,6 +109,7 @@ def setup() -> ModelsPack:
         f1_pipe.transformer = f1_transformer
         f1_pipe.text_encoder_2 = f1_text_encoder_2
         if FLUX1_KEEP_IN_CPU_WHEN_IDLE:
+            f1_pipe = f1_pipe.to(DEVICE_CPU, silence_dtype_warnings=True)
             logging.info(f"🐌 Keep in {DEVICE_CPU} when idle: {FLUX1_MODEL_NAME}")
         else:
             f1_pipe = f1_pipe.to(DEVICE_CUDA)
