@@ -260,6 +260,7 @@ def setup() -> ModelsPack:
     # For upscaler
     logging.info("🟡 Loading upscaler")
     upscaler_pipe = AuraSR.from_pretrained(AURA_SR_MODEL_ID)
+
     upscaler = Upscaler(
         pipe=upscaler_pipe,
     )

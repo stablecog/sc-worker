@@ -288,11 +288,37 @@ def log_gpu_memory(device_id=0, message="Value"):
         logging.info(f"Failed to log GPU memory")
 
 
+def move_quantized_model_to(model, device):
+    """Move a bitsandbytes quantized model bypassing the .to() block."""
+    for param in model.parameters():
+        param.data = param.data.to(device)
+        if hasattr(param, "SCB"):
+            param.SCB = param.SCB.to(device)
+        if hasattr(param, "quant_state") and param.quant_state is not None:
+            param.quant_state.to(device)
+    for buf in model.buffers():
+        buf.data = buf.data.to(device)
+
+
 def move_pipe_to_device(pipe, model_name, device):
     if pipe is None:
         return None
     s = time.time()
-    pipe = pipe.to(device, silence_dtype_warnings=True)
+
+    # If model name starts with FLUX.1
+    has_quantized_transformer = model_name.startswith("FLUX.1")
+
+    if has_quantized_transformer and hasattr(pipe, "transformer"):
+        # Move transformer separately (quantized, can't use .to())
+        move_quantized_model_to(pipe.transformer, device)
+        # Move everything else normally
+        components = {k: getattr(pipe, k, None) for k in pipe.components}
+        for key, comp in components.items():
+            if key != "transformer" and comp is not None and hasattr(comp, "to"):
+                comp.to(device)
+    else:
+        pipe = pipe.to(device, silence_dtype_warnings=True)
+
     e = time.time()
     emoji = "🚀" if device == DEVICE_CUDA else "🐌"
     logging.info(
