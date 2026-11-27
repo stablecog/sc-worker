@@ -1,8 +1,8 @@
-# PyTorch with CUDA 12.8 (Blackwell / RTX 5090 support)
---extra-index-url https://download.pytorch.org/whl/cu128
-torch==2.10.0
-torchvision==0.25.0
-torchaudio==2.10.0
+# PyTorch with CUDA 13.0 (GB10 / DGX Spark: aarch64, sm_121)
+--extra-index-url https://download.pytorch.org/whl/cu130
+torch==2.10.0+cu130
+torchvision==0.25.0+cu130
+torchaudio==2.10.0+cu130
 
 # HuggingFace ecosystem
 diffusers==0.31.0

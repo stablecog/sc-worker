@@ -1,11 +1,12 @@
-name: Build and Publish Worker
+name: Build and Publish Worker (GB10)
 
 on:
   push:
     tags:
       - "release*"
 concurrency:
-  group: workflow-${{ github.workflow }}
+  # Separate group so a GB10 release never cancels (or gets cancelled by) master/small releases
+  group: workflow-${{ github.workflow }}-gb10
   cancel-in-progress: true
 jobs:
   setup_env:
@@ -38,8 +39,9 @@ jobs:
       branch_name: ${{ env.BRANCH_NAME }}
 
   build_and_publish_worker:
-    name: Build and Publish Worker
-    runs-on: [ubuntu-latest]
+    name: Build and Publish Worker (GB10, linux/arm64)
+    # GB10 / DGX Spark is aarch64: build natively on GitHub's arm64 runner (no QEMU)
+    runs-on: ubuntu-24.04-arm
     needs:
       - setup_env
     env:
@@ -47,7 +49,9 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Delete huge unnecessary tools folder
-        run: rm -rf /opt/hostedtoolcache
+        run: |
+          sudo rm -rf /opt/hostedtoolcache /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost || true
+          df -h /
 
       - uses: actions/checkout@master
         with:
@@ -64,9 +68,10 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
+          platforms: linux/arm64
           tags: |
-            stablecog/sc-worker:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
-            stablecog/sc-worker:small
+            stablecog/sc-worker:gb10-${{ env.GITHUB_RUN_ID }}
+            stablecog/sc-worker:gb10
 
       - name: Cleanup Docker Junk
         if: success()

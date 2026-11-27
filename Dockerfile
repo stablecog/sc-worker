@@ -1,13 +1,17 @@
-FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu22.04
+# GB10 (NVIDIA DGX Spark / Grace Blackwell) build: linux/arm64, CUDA 13, sm_121.
+FROM nvidia/cuda:13.0.2-cudnn-runtime-ubuntu22.04
 
 RUN mkdir -p /app/data
 WORKDIR /app
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib64:/usr/local/nvidia/bin
-# Ensure PyTorch uses CUDA 12.8 for Blackwell (sm_120) support
-ENV TORCH_CUDA_ARCH_LIST="7.0;7.5;8.0;8.6;8.9;9.0;12.0"
+# Arch-neutral: the multiarch lib dir (aarch64-linux-gnu) is already on the default linker path
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/nvidia/lib64:/usr/local/nvidia/bin
+# GB10 is compute capability 12.1 (only used if a CUDA extension gets JIT-compiled)
+ENV TORCH_CUDA_ARCH_LIST="12.1"
+# GB10 has 128 GB of unified CPU/GPU memory: avoid allocator fragmentation across many resident models
+ENV PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
 
 RUN apt-get update && apt-get install -qqy --no-install-recommends \
   python3 \
